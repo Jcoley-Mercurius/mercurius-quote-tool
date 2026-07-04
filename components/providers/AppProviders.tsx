@@ -8,6 +8,7 @@ import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { WorkspaceProvider } from "@/components/organizations/WorkspaceProvider";
 import { QuoteHistoryProvider } from "@/components/quotes/QuoteHistoryProvider";
 import { VendorProfileProvider } from "@/components/vendor/VendorProfileProvider";
+import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
@@ -18,7 +19,13 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
           <WelcomeToast />
           <WorkspaceProvider>
             <VendorProfileProvider>
-              <QuoteHistoryProvider>{children}</QuoteHistoryProvider>
+              <QuoteHistoryProvider>
+                {/* Onboarding wizard sits here so it has access to auth,
+                    workspace, and vendor profile — renders as a modal overlay
+                    only when the profile is incomplete */}
+                <OnboardingWizard />
+                {children}
+              </QuoteHistoryProvider>
             </VendorProfileProvider>
           </WorkspaceProvider>
         </RequireAuth>
