@@ -56,15 +56,13 @@ export function AppHeader() {
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const [mobileMenuOpenAt, setMobileMenuOpenAt] = useState<string | null>(null);
   const [createOrgOpen, setCreateOrgOpen] = useState(false);
+
   const isAuthPage =
     pathname === "/login" ||
     pathname === "/auth/reset-password" ||
     pathname.startsWith("/invite/") ||
     pathname.startsWith("/quote/");
 
-  if (pathname.startsWith("/quote/")) {
-    return null;
-  }
   const showNav = Boolean(user && !isAuthPage);
   const mobileMenuOpen = mobileMenuOpenAt === pathname;
 
@@ -113,6 +111,10 @@ export function AppHeader() {
       toastSuccess("Signed out successfully.");
     }
   }, [closeMobileMenu, signOut]);
+
+  if (pathname.startsWith("/quote/")) {
+    return null;
+  }
 
   const renderNavLinks = (mobile = false) =>
     NAV_ITEMS.map(({ href, label }) => (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { SERVICE_OPTIONS } from "@/components/quote-form/types";
 import { formatShortDate } from "@/lib/quotes/helpers";
 import {
@@ -59,10 +59,6 @@ export function JobPhotosGallery({
     [galleryPhotos, page]
   );
 
-  useEffect(() => {
-    setPage(1);
-  }, [filters]);
-
   const filtersActive = hasActiveGalleryFilters(filters);
 
   const updateFilter = <K extends keyof GalleryFilters>(
@@ -70,10 +66,12 @@ export function JobPhotosGallery({
     value: GalleryFilters[K]
   ) => {
     setFilters((current) => ({ ...current, [key]: value }));
+    setPage(1);
   };
 
   const clearFilters = () => {
     setFilters(DEFAULT_GALLERY_FILTERS);
+    setPage(1);
   };
 
   return (

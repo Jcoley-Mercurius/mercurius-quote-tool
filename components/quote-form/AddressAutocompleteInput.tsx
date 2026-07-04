@@ -47,15 +47,16 @@ export function AddressAutocompleteInput({
 
   useEffect(() => {
     const trimmed = value.trim();
-    if (trimmed.length < 2) {
-      setSuggestions([]);
-      setIsLoading(false);
-      closeSuggestions();
-      return;
-    }
 
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
+      if (trimmed.length < 2) {
+        setSuggestions([]);
+        setIsLoading(false);
+        closeSuggestions();
+        return;
+      }
+
       setIsLoading(true);
       try {
         const response = await fetch(

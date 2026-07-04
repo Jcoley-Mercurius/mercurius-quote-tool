@@ -206,7 +206,7 @@ export function ChangeRequestsBanner({ quoteId }: ChangeRequestsBannerProps) {
             <span className="font-semibold text-slate-700">Next step:</span>{" "}
             Review the request above, update the quote, then share a new link
             with the homeowner. You can change the status back to{" "}
-            <span className="font-mono">"sent"</span> after sending the revised
+ <span className="font-mono">&quot;sent&quot;</span> after sending the revised
             quote.
           </p>
         </div>

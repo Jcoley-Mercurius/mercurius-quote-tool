@@ -15,37 +15,48 @@ export function ClientQuoteFlow({ token }: ClientQuoteFlowProps) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadQuote = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/quotes/share/${encodeURIComponent(token)}`);
-      const payload = (await response.json().catch(() => null)) as {
-        quote?: PublicQuotePayload;
-        error?: string;
-      } | null;
-
-      if (!response.ok || !payload?.quote) {
-        setError(
-          payload?.error ?? "This quote link is invalid or no longer available."
-        );
-        setData(null);
-        return;
-      }
-
-      setData(payload.quote);
-    } catch {
-      setError("Could not load quote. Check your connection and try again.");
-      setData(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Exposed so ErrorFallback's retry button can trigger a reload.
+  // Defined here (not inside the effect) so we can pass it as a prop.
+  const [reloadKey, setReloadKey] = useState(0);
+  const retry = () => setReloadKey((k) => k + 1);
 
   useEffect(() => {
-    void loadQuote();
-  }, [token]);
+    let active = true;
+
+    fetch(`/api/quotes/share/${encodeURIComponent(token)}`)
+      .then((r) => r.json().catch(() => null))
+      .then(
+        (
+          payload: {
+            quote?: PublicQuotePayload;
+            error?: string;
+          } | null
+        ) => {
+          if (!active) return;
+          if (!payload?.quote) {
+            setError(
+              payload?.error ??
+                "This quote link is invalid or no longer available."
+            );
+            setData(null);
+          } else {
+            setData(payload.quote);
+            setError(null);
+          }
+          setIsLoading(false);
+        }
+      )
+      .catch(() => {
+        if (!active) return;
+        setError("Could not load quote. Check your connection and try again.");
+        setData(null);
+        setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [token, reloadKey]);
 
   if (isLoading) {
     return <LoadingState message="Loading your quote..." />;
@@ -56,7 +67,7 @@ export function ClientQuoteFlow({ token }: ClientQuoteFlowProps) {
       <ErrorFallback
         title="Quote unavailable"
         message={error ?? "This quote link is invalid or no longer available."}
-        onRetry={() => void loadQuote()}
+        onRetry={retry}
         showHomeLink={false}
       />
     );

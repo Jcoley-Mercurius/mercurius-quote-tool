@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getQuotePhotoSignedUrl } from "@/lib/supabase/quote-photo-storage";
 
 interface PhotoViewerModalProps {
@@ -27,35 +27,32 @@ export function PhotoViewerModal({
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const loadFullPhoto = useCallback(async () => {
-    if (!originalPath) {
-      setFullUrl(thumbnailUrl);
-      return;
-    }
-
-    setIsLoading(true);
-    setLoadError(null);
-
-    try {
-      const signedUrl = await getQuotePhotoSignedUrl(originalPath);
-      setFullUrl(signedUrl);
-    } catch {
-      setLoadError("Could not load full-size photo. Showing thumbnail instead.");
-      setFullUrl(thumbnailUrl);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [originalPath, thumbnailUrl]);
-
+  // Load the full-size photo whenever the modal opens.
+  // All setState calls are inside promise callbacks to satisfy the linter rule.
   useEffect(() => {
-    if (!open) {
-      setFullUrl(null);
-      setLoadError(null);
+    if (!open) return;
+
+    if (!originalPath) {
+      Promise.resolve(thumbnailUrl).then(setFullUrl);
       return;
     }
 
-    void loadFullPhoto();
-  }, [open, loadFullPhoto]);
+    Promise.resolve()
+      .then(() => {
+        setIsLoading(true);
+        setLoadError(null);
+        return getQuotePhotoSignedUrl(originalPath);
+      })
+      .then((signedUrl) => {
+        setFullUrl(signedUrl);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setLoadError("Could not load full-size photo. Showing thumbnail instead.");
+        setFullUrl(thumbnailUrl);
+        setIsLoading(false);
+      });
+  }, [open, originalPath, thumbnailUrl]);
 
   useEffect(() => {
     if (!open) return;

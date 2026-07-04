@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 interface ErrorFallbackProps {
   title?: string;
   message: string;
@@ -46,12 +48,12 @@ export function ErrorFallback({
           </button>
         )}
         {showHomeLink && (
-          <a
+          <Link
             href="/"
             className="rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
           >
             Go to home
-          </a>
+          </Link>
         )}
       </div>
     </div>
