@@ -12,6 +12,11 @@ interface SendQuoteModalProps {
   status: QuoteStatus;
   onClose: () => void;
   onStatusChange?: (status: QuoteStatus) => void;
+  /**
+   * "send" (default) — initial send to a new client.
+   * "resend" — contractor is re-sending a revised quote after a change request.
+   */
+  mode?: "send" | "resend";
 }
 
 export function SendQuoteModal({
@@ -20,6 +25,7 @@ export function SendQuoteModal({
   status,
   onClose,
   onStatusChange,
+  mode = "send",
 }: SendQuoteModalProps) {
   const { session } = useAuth();
   const [clientName, setClientName] = useState("");
@@ -115,7 +121,11 @@ export function SendQuoteModal({
           "Quote link ready — email delivery is not configured in this environment."
         );
       } else {
-        toastSuccess(`Quote sent to ${email}.`);
+        toastSuccess(
+          mode === "resend"
+            ? `Revised quote sent to ${email}.`
+            : `Quote sent to ${email}.`
+        );
       }
 
       onClose();
@@ -149,19 +159,20 @@ export function SendQuoteModal({
       >
         {/* Header */}
         <div className="mb-5 flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mercurius-50">
-            <EnvelopeIcon className="h-5 w-5 text-mercurius-600" />
+          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${mode === "resend" ? "bg-amber-50" : "bg-mercurius-50"}`}>
+            <EnvelopeIcon className={`h-5 w-5 ${mode === "resend" ? "text-amber-600" : "text-mercurius-600"}`} />
           </div>
           <div className="min-w-0 flex-1 pt-0.5">
             <h2
               id="send-quote-title"
               className="text-base font-semibold text-slate-900"
             >
-              Send Quote to Client
+              {mode === "resend" ? "Send Revised Quote to Client" : "Send Quote to Client"}
             </h2>
             <p className="mt-0.5 text-sm text-slate-500">
-              A branded email with the shareable quote link will be sent to the
-              client.
+              {mode === "resend"
+                ? "Your revised quote will be emailed to the client with the updated link."
+                : "A branded email with the shareable quote link will be sent to the client."}
             </p>
           </div>
           <button
@@ -262,7 +273,7 @@ export function SendQuoteModal({
               ) : (
                 <>
                   <EnvelopeIcon className="h-4 w-4" />
-                  Send Quote
+                  {mode === "resend" ? "Send Revised Quote" : "Send Quote"}
                 </>
               )}
             </button>

@@ -110,6 +110,8 @@ export function QuoteFlow() {
   const [genStep, setGenStep] = useState<"analyzing" | "generating">("generating");
   const [genHasPhotos, setGenHasPhotos] = useState(false);
   const [editFormQuoteId, setEditFormQuoteId] = useState<string | null>(null);
+  const [isReviseMode, setIsReviseMode] = useState(false);
+  const [autoOpenSend, setAutoOpenSend] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [quoteRevision, setQuoteRevision] = useState(0);
 
@@ -278,8 +280,14 @@ export function QuoteFlow() {
         vendorProfile: profile,
       });
       toastDismiss(loadingId);
-      toastSuccess("Quote updated successfully.");
+      if (isReviseMode) {
+        toastSuccess("Quote revised. Now send it to the client.");
+        setAutoOpenSend(true);
+      } else {
+        toastSuccess("Quote updated successfully.");
+      }
       setEditFormQuoteId(null);
+      setIsReviseMode(false);
       setQuoteRevision((r) => r + 1);
     } catch (err) {
       toastDismiss(loadingId);
@@ -332,17 +340,30 @@ export function QuoteFlow() {
 
   const handleStartOver = () => {
     setEditFormQuoteId(null);
+    setIsReviseMode(false);
+    setAutoOpenSend(false);
     router.replace("/");
   };
 
   const handleEditDetails = () => {
     if (quoteIdParam) {
+      setIsReviseMode(false);
+      setAutoOpenSend(false);
+      setEditFormQuoteId(quoteIdParam);
+    }
+  };
+
+  const handleReviseAndResend = () => {
+    if (quoteIdParam) {
+      setIsReviseMode(true);
+      setAutoOpenSend(false);
       setEditFormQuoteId(quoteIdParam);
     }
   };
 
   const handleCancelEdit = () => {
     setEditFormQuoteId(null);
+    setIsReviseMode(false);
   };
 
   if (isGenerating) {
@@ -398,18 +419,32 @@ export function QuoteFlow() {
             </svg>
             Back to quote
           </button>
-          <p className="mt-2 text-sm text-slate-500">
-            Update property details for{" "}
-            <span className="font-medium text-slate-700">
-              {savedQuote.reference}
-            </span>{" "}
-            and regenerate with AI.
-          </p>
+          {isReviseMode ? (
+            <>
+              <p className="mt-2 text-sm font-medium text-amber-700">
+                Revising{" "}
+                <span className="font-semibold">{savedQuote.reference}</span>
+                {" — "}addressing the client&apos;s change request.
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Update the job details below, then regenerate. You&apos;ll be
+                prompted to send the revised quote directly to the client.
+              </p>
+            </>
+          ) : (
+            <p className="mt-2 text-sm text-slate-500">
+              Update property details for{" "}
+              <span className="font-medium text-slate-700">
+                {savedQuote.reference}
+              </span>{" "}
+              and regenerate with AI.
+            </p>
+          )}
         </div>
         <QuoteForm
           onSubmit={handleEditQuoteSubmit}
           initialData={payloadToFormData(savedQuote.form)}
-          submitLabel="Regenerate Quote"
+          submitLabel={isReviseMode ? "Regenerate & Prepare to Re-Send" : "Regenerate Quote"}
         />
       </>
     );
@@ -435,6 +470,12 @@ export function QuoteFlow() {
           onQuoteChange={handleQuoteChange}
           onStatusChange={handleStatusChange}
           isRegenerating={isRegenerating}
+          onReviseAndResend={
+            savedQuote.status === "changes_requested"
+              ? handleReviseAndResend
+              : undefined
+          }
+          defaultSendOpen={autoOpenSend}
         />
       </>
     );

@@ -44,6 +44,13 @@ interface QuoteResultProps {
   onQuoteChange?: (quote: GeneratedQuote) => void;
   onStatusChange?: (status: QuoteStatus) => void;
   isRegenerating: boolean;
+  /** Called when contractor clicks "Revise & Re-Send" from the banner or header */
+  onReviseAndResend?: () => void;
+  /**
+   * When true the SendQuoteModal opens immediately on mount in "resend" mode.
+   * Used by QuoteFlow after a revision is saved to auto-launch the send step.
+   */
+  defaultSendOpen?: boolean;
 }
 
 export function QuoteResult({
@@ -62,10 +69,12 @@ export function QuoteResult({
   onQuoteChange,
   onStatusChange,
   isRegenerating,
+  onReviseAndResend,
+  defaultSendOpen = false,
 }: QuoteResultProps) {
   const [quote, setQuote] = useState(initialQuote);
   const [hasEdits, setHasEdits] = useState(false);
-  const [sendModalOpen, setSendModalOpen] = useState(false);
+  const [sendModalOpen, setSendModalOpen] = useState(defaultSendOpen);
 
   const notifyLineItemsSaved = useDebouncedCallback(() => {
     toastSaved();
@@ -212,6 +221,23 @@ export function QuoteResult({
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
+          {/* Revise & Re-Send: prominent amber button when changes have been requested */}
+          {status === "changes_requested" && quoteId && onReviseAndResend && (
+            <button
+              type="button"
+              onClick={onReviseAndResend}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400/50"
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                <path
+                  fillRule="evenodd"
+                  d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 1.449-.39 7 7 0 0 0-11.712-3.138l-.31-.31H4.99a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 0-1.5H6.8l.312.311a5.5 5.5 0 0 1 9.201 2.466.75.75 0 0 0 1.449.39Z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Revise &amp; Re-Send
+            </button>
+          )}
           {quoteId && (
             <ShareQuoteButton
               quoteId={quoteId}
@@ -317,7 +343,7 @@ export function QuoteResult({
 
       {/* Change requests — shown when homeowner requested revisions */}
       {status === "changes_requested" && quoteId && (
-        <ChangeRequestsBanner quoteId={quoteId} />
+        <ChangeRequestsBanner quoteId={quoteId} onReviseAndResend={onReviseAndResend} />
       )}
 
       {/* Line Items */}
@@ -415,7 +441,7 @@ export function QuoteResult({
           </div>
         </div>
       </div>
-      {/* Send to Client modal */}
+      {/* Send to Client modal — mode=resend when opened via defaultSendOpen or Revise flow */}
       {quoteId && (
         <SendQuoteModal
           open={sendModalOpen}
@@ -423,6 +449,7 @@ export function QuoteResult({
           status={status}
           onClose={() => setSendModalOpen(false)}
           onStatusChange={onStatusChange}
+          mode={defaultSendOpen ? "resend" : "send"}
         />
       )}
     </div>

@@ -15,6 +15,8 @@ export interface ChangeRequestData {
 
 interface ChangeRequestsBannerProps {
   quoteId: string;
+  /** Called when the contractor clicks "Revise & Re-Send" */
+  onReviseAndResend?: () => void;
 }
 
 type LoadState =
@@ -23,7 +25,7 @@ type LoadState =
   | { phase: "loaded"; requests: ChangeRequestData[] }
   | { phase: "error" };
 
-export function ChangeRequestsBanner({ quoteId }: ChangeRequestsBannerProps) {
+export function ChangeRequestsBanner({ quoteId, onReviseAndResend }: ChangeRequestsBannerProps) {
   const { session } = useAuth();
   const [state, setLoadState] = useState<LoadState>({ phase: "loading" });
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -201,14 +203,28 @@ export function ChangeRequestsBanner({ quoteId }: ChangeRequestsBannerProps) {
       </div>
 
       {mostRecent && (
-        <div className="mt-5 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
-          <p className="text-xs leading-relaxed text-slate-500">
-            <span className="font-semibold text-slate-700">Next step:</span>{" "}
-            Review the request above, update the quote, then share a new link
-            with the homeowner. You can change the status back to{" "}
- <span className="font-mono">&quot;sent&quot;</span> after sending the revised
-            quote.
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3">
+          <p className="text-xs leading-relaxed text-slate-600">
+            <span className="font-semibold text-slate-800">Next step:</span>{" "}
+            Update the quote to address these changes, then send the revised
+            version directly to the client.
           </p>
+          {onReviseAndResend && (
+            <button
+              type="button"
+              onClick={onReviseAndResend}
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                <path
+                  fillRule="evenodd"
+                  d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 1.449-.39 7 7 0 0 0-11.712-3.138l-.31-.31H4.99a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 0-1.5H6.8l.312.311a5.5 5.5 0 0 1 9.201 2.466.75.75 0 0 0 1.449.39Z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Revise &amp; Re-Send
+            </button>
+          )}
         </div>
       )}
     </section>
