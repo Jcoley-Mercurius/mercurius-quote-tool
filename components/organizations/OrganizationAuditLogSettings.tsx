@@ -65,7 +65,7 @@ export function OrganizationAuditLogSettings() {
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-slate-900">Activity log</h2>
         <p className="mt-2 text-sm text-slate-500">
-          Recent team changes for{" "}
+          Recent team and quote activity for{" "}
           <span className="font-medium">{workspace.name}</span>.
           {!canViewSensitive ? (
             <>
@@ -105,7 +105,12 @@ export function OrganizationAuditLogSettings() {
                       {formatted.detail}
                     </p>
                     <p className="mt-2 text-xs text-slate-500">
-                      {actor} · {formatAuditTimestamp(entry.createdAt)}
+                      {entry.action === "quote_accepted"
+                        ? typeof entry.metadata.signer_name === "string"
+                          ? entry.metadata.signer_name
+                          : "Client"
+                        : actor}{" "}
+                      · {formatAuditTimestamp(entry.createdAt)}
                     </p>
                   </div>
                 </div>

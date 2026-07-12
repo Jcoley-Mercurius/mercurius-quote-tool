@@ -11,7 +11,9 @@ import {
   filterByService,
   filterByStatus,
   formatShortDate,
+  getQuoteExpiresAt,
   getRecommendedTotal,
+  isQuoteExpired,
   matchesSearch,
 } from "@/lib/quotes/helpers";
 import { hasVendorSnapshot } from "@/lib/quotes/vendor-snapshot";
@@ -22,7 +24,8 @@ import {
   type SavedQuote,
 } from "@/lib/quotes/types";
 import { LoadingState } from "@/components/ui/LoadingState";
-import { toastError, toastPromise, toastSuccess } from "@/lib/ui/toast";
+import { DeleteConfirmationModal } from "@/components/ui/DeleteConfirmationModal";
+import { toastError, toastSuccess } from "@/lib/ui/toast";
 import { useWorkspaceLabel } from "@/components/organizations/WorkspaceProvider";
 import { useQuoteHistory } from "./QuoteHistoryProvider";
 import { QuotesLoadBanner } from "./QuotesLoadBanner";
@@ -35,7 +38,11 @@ export function QuoteDashboard() {
   const workspaceLabel = useWorkspaceLabel();
   const [search, setSearch] = useState("");
   const [serviceFilter, setServiceFilter] = useState<ServiceType | "all">("all");
-  const [statusFilter, setStatusFilter] = useState<QuoteStatus | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<QuoteStatus | "all" | "expired">("all");
+
+  // Delete modal state
+  const [deleteTarget, setDeleteTarget] = useState<SavedQuote | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filtered = useMemo(() => {
     return quotes
@@ -54,27 +61,37 @@ export function QuoteDashboard() {
     const viewed = quotes.filter((q) => q.status === "viewed").length;
     const accepted = quotes.filter((q) => q.status === "accepted").length;
     const changesRequested = quotes.filter((q) => q.status === "changes_requested").length;
+    // Expired: non-accepted quotes past their validity window
+    const expired = quotes.filter(
+      (q) => q.status !== "accepted" && isQuoteExpired(q)
+    ).length;
     const totalValue = quotes.reduce(
       (sum, q) => sum + getRecommendedTotal(q.quote),
       0
     );
-    return { total: quotes.length, draft, sent, viewed, accepted, changesRequested, totalValue };
+    return { total: quotes.length, draft, sent, viewed, accepted, changesRequested, expired, totalValue };
   }, [quotes]);
 
   const handleDelete = (quote: SavedQuote) => {
-    if (
-      !confirm(
-        `Delete quote ${quote.reference}?\n\n"${quote.jobName}"\n\nThis cannot be undone.`
-      )
-    ) {
-      return;
-    }
+    setDeleteTarget(quote);
+  };
 
-    void toastPromise(deleteQuote(quote.id), {
-      loading: "Deleting quote...",
-      success: "Quote deleted.",
-      error: "Could not delete quote. Please try again.",
-    });
+  const handleDeleteClose = () => {
+    if (!isDeleting) setDeleteTarget(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await deleteQuote(deleteTarget.id);
+      toastSuccess("Quote deleted.");
+      setDeleteTarget(null);
+    } catch (err) {
+      toastError(err, "Could not delete quote. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleStatusChange = (quote: SavedQuote, status: QuoteStatus) => {
@@ -88,9 +105,19 @@ export function QuoteDashboard() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <QuotesLoadBanner />
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <>
+      <DeleteConfirmationModal
+        open={deleteTarget !== null}
+        onClose={handleDeleteClose}
+        onConfirm={() => void handleDeleteConfirm()}
+        reference={deleteTarget?.reference ?? ""}
+        jobName={deleteTarget?.jobName ?? ""}
+        isDeleting={isDeleting}
+      />
+
+      <div className="mx-auto max-w-5xl space-y-6">
+        <QuotesLoadBanner />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
@@ -115,13 +142,14 @@ export function QuoteDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-8">
         <StatCard label="Total Quotes" value={stats.total.toString()} />
         <StatCard label="Drafts" value={stats.draft.toString()} />
         <StatCard label="Sent" value={stats.sent.toString()} />
         <StatCard label="Viewed" value={stats.viewed.toString()} />
         <StatCard label="Accepted" value={stats.accepted.toString()} />
         <StatCard label="Changes Req." value={stats.changesRequested.toString()} warn={stats.changesRequested > 0} />
+        <StatCard label="Expired" value={stats.expired.toString()} expired={stats.expired > 0} />
         <StatCard
           label="Pipeline Value"
           value={formatCurrency(stats.totalValue)}
@@ -169,7 +197,7 @@ export function QuoteDashboard() {
           <select
             value={statusFilter}
             onChange={(e) =>
-              setStatusFilter(e.target.value as QuoteStatus | "all")
+              setStatusFilter(e.target.value as QuoteStatus | "all" | "expired")
             }
             className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-slate-700 focus:border-mercurius-500 focus:outline-none focus:ring-2 focus:ring-mercurius-500/20"
           >
@@ -179,6 +207,7 @@ export function QuoteDashboard() {
             <option value="viewed">Viewed</option>
             <option value="accepted">Accepted</option>
             <option value="changes_requested">Changes Requested</option>
+            <option value="expired">Expired</option>
           </select>
         </div>
       </div>
@@ -199,6 +228,7 @@ export function QuoteDashboard() {
         </div>
       )}
     </div>
+  </>
   );
 }
 
@@ -207,11 +237,13 @@ function StatCard({
   value,
   highlight,
   warn,
+  expired,
 }: {
   label: string;
   value: string;
   highlight?: boolean;
   warn?: boolean;
+  expired?: boolean;
 }) {
   return (
     <div
@@ -221,6 +253,8 @@ function StatCard({
           ? "border-mercurius-200 bg-mercurius-50"
           : warn
           ? "border-amber-200 bg-amber-50"
+          : expired
+          ? "border-red-200 bg-red-50"
           : "border-slate-200 bg-white",
       ].join(" ")}
     >
@@ -230,7 +264,13 @@ function StatCard({
       <p
         className={[
           "mt-1 text-xl font-bold",
-          highlight ? "text-mercurius-700" : warn ? "text-amber-700" : "text-slate-900",
+          highlight
+            ? "text-mercurius-700"
+            : warn
+            ? "text-amber-700"
+            : expired
+            ? "text-red-700"
+            : "text-slate-900",
         ].join(" ")}
       >
         {value}
@@ -253,9 +293,32 @@ function QuoteCard({
     quote.serviceType;
   const total = getRecommendedTotal(quote.quote);
   const statusStyle = QUOTE_STATUS_STYLES[quote.status];
+  const expired = quote.status !== "accepted" && isQuoteExpired(quote);
+  const expiresAt = getQuoteExpiresAt(quote);
+  const expiredOn = new Date(expiresAt).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 
   return (
-    <div className="group rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all hover:border-mercurius-200 hover:shadow-md sm:p-6">
+    <div
+      className={[
+        "group rounded-2xl border bg-white p-5 shadow-sm transition-all hover:shadow-md sm:p-6",
+        expired
+          ? "border-red-200 hover:border-red-300"
+          : "border-slate-200/80 hover:border-mercurius-200",
+      ].join(" ")}
+    >
+      {expired && (
+        <div className="mb-3 flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">
+          <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 shrink-0">
+            <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clipRule="evenodd" />
+          </svg>
+          <span className="font-medium">Expired {expiredOn}</span>
+          <span className="text-red-500">— client can no longer accept this quote</span>
+        </div>
+      )}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">

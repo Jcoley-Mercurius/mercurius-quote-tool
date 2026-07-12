@@ -9,6 +9,7 @@ type AcceptState =
   | { phase: "submitting" }
   | { phase: "success"; signerName: string }
   | { phase: "already_accepted" }
+  | { phase: "expired" }
   | { phase: "error"; message: string };
 
 interface AcceptQuoteSectionProps {
@@ -68,6 +69,11 @@ export function AcceptQuoteSection({
         return;
       }
 
+      if (response.status === 410 || data.error === "expired") {
+        setState({ phase: "expired" });
+        return;
+      }
+
       if (!response.ok || !data.accepted) {
         setState({
           phase: "error",
@@ -109,19 +115,19 @@ export function AcceptQuoteSection({
     );
   }
 
-  // Expired — cannot accept
-  if (isExpired) {
+  // Expired — cannot accept (server-rejected mid-flow, edge case)
+  if (state.phase === "expired" || isExpired) {
     return (
-      <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm sm:p-8">
+      <section className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm sm:p-8">
         <div className="flex items-start gap-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
-            <ClockIcon className="h-5 w-5 text-amber-600" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100">
+            <ClockIcon className="h-5 w-5 text-red-600" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-amber-900">
+            <h3 className="text-base font-semibold text-red-900">
               Quote has expired
             </h3>
-            <p className="mt-1 text-sm text-amber-800/80">
+            <p className="mt-1 text-sm text-red-800/80">
               This quote is no longer valid. Please contact {businessName} for an updated estimate.
             </p>
           </div>

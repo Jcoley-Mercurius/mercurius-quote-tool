@@ -102,6 +102,13 @@ export async function POST(
       );
     }
 
+    if (result.error === "expired") {
+      return NextResponse.json(
+        { error: "This quote has expired. Please contact your contractor for an updated estimate." },
+        { status: 410 }
+      );
+    }
+
     if (result.error === "invalid_token") {
       return NextResponse.json({ error: "Invalid share link." }, { status: 400 });
     }

@@ -8,7 +8,8 @@ export type OrganizationAuditAction =
   | "member_removed"
   | "invite_sent"
   | "invite_canceled"
-  | "invite_accepted";
+  | "invite_accepted"
+  | "quote_accepted";
 
 export interface OrganizationAuditEntry {
   id: string;
@@ -141,6 +142,27 @@ export function formatAuditEntry(entry: OrganizationAuditEntry): FormattedAuditE
         detail: role
           ? `${target} joined the team as ${role}.`
           : `${target} joined the team.`,
+      };
+    }
+    case "quote_accepted": {
+      const ref =
+        typeof entry.metadata.quote_reference === "string"
+          ? entry.metadata.quote_reference
+          : null;
+      const jobName =
+        typeof entry.metadata.job_name === "string"
+          ? entry.metadata.job_name
+          : null;
+      const signerName =
+        typeof entry.metadata.signer_name === "string"
+          ? entry.metadata.signer_name
+          : null;
+      const refLabel = ref ? ` (${ref})` : "";
+      const jobLabel = jobName ? ` — "${jobName}"` : "";
+      const signerLabel = signerName ? ` by ${signerName}` : "";
+      return {
+        title: "Quote accepted",
+        detail: `Quote${refLabel}${jobLabel} was accepted${signerLabel}.`,
       };
     }
     default:

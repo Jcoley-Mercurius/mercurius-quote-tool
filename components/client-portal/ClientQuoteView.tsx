@@ -15,12 +15,6 @@ interface ClientQuoteViewProps {
   token: string;
 }
 
-function isQuoteExpired(createdAt: string, validityDays: number): boolean {
-  const created = new Date(createdAt).getTime();
-  const expiresAt = created + validityDays * 24 * 60 * 60 * 1000;
-  return Date.now() > expiresAt;
-}
-
 export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
   const { quote, vendorProfile } = data;
   const totals = useMemo(() => computeTotals(quote.lineItems), [quote.lineItems]);
@@ -29,7 +23,13 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
   const [activePhoto, setActivePhoto] = useState<QuotePhotoThumbnail | null>(null);
   const [status, setStatus] = useState(data.status);
 
-  const expired = isQuoteExpired(data.createdAt, quote.validityDays ?? 30);
+  // Use server-computed isExpired flag (migration 016+); falls back to client-side calc.
+  const expired = data.isExpired;
+  const expiresAtFormatted = new Date(data.expiresAt).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
   const alreadyAccepted = status === "accepted";
   const changesRequested = status === "changes_requested";
 
@@ -59,12 +59,12 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
       {expired && !alreadyAccepted && (
         <div
           role="alert"
-          className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-100"
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 ring-1 ring-red-100"
         >
-          <p className="font-medium">This quote has expired</p>
-          <p className="mt-1 text-amber-800/90">
-            This quote was valid for {quote.validityDays ?? 30} days and is no
-            longer active. Please contact {businessName} for an updated estimate.
+          <p className="font-semibold">This quote expired on {expiresAtFormatted}</p>
+          <p className="mt-1 text-red-800/90">
+            This quote is no longer valid. Please contact {businessName} for an
+            updated estimate.
           </p>
         </div>
       )}
@@ -279,7 +279,11 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
       {/* Footer */}
       <footer className="rounded-2xl border border-slate-200/80 bg-slate-50 px-6 py-5 text-center text-sm text-slate-500">
         <p>
-          Valid for {quote.validityDays ?? 30} days · Prepared{" "}
+          {expired
+            ? <>Expired on <span className="font-medium text-red-600">{expiresAtFormatted}</span></>
+            : <>Valid until <span className="font-medium text-slate-700">{expiresAtFormatted}</span></>
+          }
+          {" · "}Prepared{" "}
           {new Date(data.createdAt).toLocaleDateString("en-US", {
             month: "long",
             day: "numeric",

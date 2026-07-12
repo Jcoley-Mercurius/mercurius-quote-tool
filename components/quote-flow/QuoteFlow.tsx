@@ -30,6 +30,7 @@ import { encodePhotosForApi, persistQuotePhotos } from "@/lib/quote/photos";
 import type {
   GeneratedQuote,
   QuoteFormPayload,
+  QuotePhotoInput,
 } from "@/lib/quote/types";
 
 function toPayload(form: QuoteFormData): QuoteFormPayload {
@@ -105,6 +106,9 @@ export function QuoteFlow() {
   const savedQuote = quoteIdParam ? getQuote(quoteIdParam) : undefined;
 
   const [isGenerating, setIsGenerating] = useState(false);
+  // "analyzing" is only set when photos are uploaded; "generating" is always the final step.
+  const [genStep, setGenStep] = useState<"analyzing" | "generating">("generating");
+  const [genHasPhotos, setGenHasPhotos] = useState(false);
   const [editFormQuoteId, setEditFormQuoteId] = useState<string | null>(null);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [quoteRevision, setQuoteRevision] = useState(0);
@@ -136,15 +140,12 @@ export function QuoteFlow() {
 
   const callGenerateApi = async (
     payload: QuoteFormPayload,
-    photos: File[],
+    encodedPhotos: QuotePhotoInput[] | undefined,
     options?: {
       regenerate?: boolean;
       existingQuote?: GeneratedQuote;
     }
   ) => {
-    const encodedPhotos =
-      photos.length > 0 ? await encodePhotosForApi(photos) : undefined;
-
     const response = await fetch("/api/generate-quote", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -175,16 +176,25 @@ export function QuoteFlow() {
   };
 
   const handleNewQuoteSubmit = async (formData: QuoteFormData) => {
+    const hasPhotos = formData.photos.length > 0;
+    setGenHasPhotos(hasPhotos);
+    setGenStep(hasPhotos ? "analyzing" : "generating");
     setIsGenerating(true);
     const payload = toPayload(formData);
     const loadingId = toastLoading(
-      formData.photos.length > 0
+      hasPhotos
         ? "Analyzing photos and generating your quote..."
         : "Generating your quote..."
     );
 
     try {
-      const result = await callGenerateApi(payload, formData.photos);
+      const encodedPhotos = hasPhotos
+        ? await encodePhotosForApi(formData.photos)
+        : undefined;
+
+      setGenStep("generating");
+
+      const result = await callGenerateApi(payload, encodedPhotos);
       const saved = await createAndSave(
         payload,
         result.quote,
@@ -229,16 +239,25 @@ export function QuoteFlow() {
   const handleEditQuoteSubmit = async (formData: QuoteFormData) => {
     if (!quoteIdParam || !savedQuote) return;
 
+    const hasPhotos = formData.photos.length > 0;
+    setGenHasPhotos(hasPhotos);
+    setGenStep(hasPhotos ? "analyzing" : "generating");
     setIsGenerating(true);
     const payload = toPayload(formData);
     const loadingId = toastLoading(
-      formData.photos.length > 0
+      hasPhotos
         ? "Analyzing photos and regenerating quote..."
         : "Regenerating quote..."
     );
 
     try {
-      const result = await callGenerateApi(payload, formData.photos, {
+      const encodedPhotos = hasPhotos
+        ? await encodePhotosForApi(formData.photos)
+        : undefined;
+
+      setGenStep("generating");
+
+      const result = await callGenerateApi(payload, encodedPhotos, {
         regenerate: true,
         existingQuote: savedQuote.quote,
       });
@@ -276,7 +295,7 @@ export function QuoteFlow() {
     const loadingId = toastLoading("Regenerating with AI...");
 
     try {
-      const result = await callGenerateApi(savedQuote.form, [], {
+      const result = await callGenerateApi(savedQuote.form, undefined, {
         regenerate: true,
         existingQuote: currentQuote,
       });
@@ -327,7 +346,7 @@ export function QuoteFlow() {
   };
 
   if (isGenerating) {
-    return <GeneratingState />;
+    return <GeneratingState step={genStep} hasPhotos={genHasPhotos} />;
   }
 
   if (workspaceLoading || quotesLoading) {
@@ -406,6 +425,7 @@ export function QuoteFlow() {
           source={savedQuote.source}
           quoteId={savedQuote.id}
           quoteReference={savedQuote.reference}
+          createdAt={savedQuote.createdAt}
           status={savedQuote.status}
           vendorProfile={resolveQuoteVendorProfile(savedQuote, profile)}
           usesVendorSnapshot={hasVendorSnapshot(savedQuote)}
@@ -429,10 +449,43 @@ export function QuoteFlow() {
   );
 }
 
-function GeneratingState() {
+function GeneratingState({
+  step,
+  hasPhotos,
+}: {
+  step: "analyzing" | "generating";
+  hasPhotos: boolean;
+}) {
+  // Build the ordered step list. The "analyzing" step only appears when photos
+  // were uploaded; "generating" is always the final step.
+  const steps: { id: "analyzing" | "generating"; label: string; sublabel: string }[] =
+    hasPhotos
+      ? [
+          {
+            id: "analyzing",
+            label: "Analyzing photos",
+            sublabel: "Reading job site conditions and scope…",
+          },
+          {
+            id: "generating",
+            label: "Generating quote",
+            sublabel: "Building line items and SWFL pricing…",
+          },
+        ]
+      : [
+          {
+            id: "generating",
+            label: "Generating quote",
+            sublabel: "Building line items and SWFL pricing…",
+          },
+        ];
+
+  const currentIndex = steps.findIndex((s) => s.id === step);
+
   return (
     <div className="mx-auto flex max-w-lg flex-col items-center py-20 text-center">
-      <div className="relative mb-8">
+      {/* Animated icon */}
+      <div className="relative mb-10">
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-mercurius-100">
           <svg
             className="h-8 w-8 animate-pulse text-mercurius-600"
@@ -450,13 +503,71 @@ function GeneratingState() {
         </div>
         <div className="absolute -inset-2 animate-ping rounded-2xl bg-mercurius-200 opacity-20" />
       </div>
-      <h2 className="text-xl font-semibold text-slate-900">
-        Generating your SWFL quote
-      </h2>
-      <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-500">
-        Analyzing property details, local building code factors, and Lee County
-        pricing benchmarks...
-      </p>
+
+      {/* Step list */}
+      <ol className="w-full space-y-3 text-left">
+        {steps.map((s, index) => {
+          const isDone = index < currentIndex;
+          const isActive = index === currentIndex;
+
+          return (
+            <li
+              key={s.id}
+              className={[
+                "flex items-start gap-4 rounded-xl border px-4 py-3.5 transition-all duration-300",
+                isActive
+                  ? "border-mercurius-200 bg-mercurius-50 shadow-sm"
+                  : isDone
+                  ? "border-slate-100 bg-white"
+                  : "border-slate-100 bg-white opacity-40",
+              ].join(" ")}
+            >
+              {/* Step indicator */}
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center">
+                {isDone ? (
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="h-5 w-5 text-mercurius-600"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : isActive ? (
+                  <span className="relative flex h-3 w-3">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-mercurius-400 opacity-75" />
+                    <span className="relative inline-flex h-3 w-3 rounded-full bg-mercurius-600" />
+                  </span>
+                ) : (
+                  <span className="h-2.5 w-2.5 rounded-full border-2 border-slate-300" />
+                )}
+              </span>
+
+              {/* Text */}
+              <div className="min-w-0 flex-1">
+                <p
+                  className={[
+                    "text-sm font-semibold",
+                    isActive ? "text-mercurius-900" : isDone ? "text-slate-700" : "text-slate-400",
+                  ].join(" ")}
+                >
+                  {s.label}
+                </p>
+                {isActive && (
+                  <p className="mt-0.5 text-xs text-mercurius-700/70">
+                    {s.sublabel}
+                  </p>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+
+      {/* Context tags */}
       <div className="mt-8 flex flex-wrap justify-center gap-2">
         {["Property context", "Line items", "Local pricing", "SWFL alerts"].map(
           (label) => (

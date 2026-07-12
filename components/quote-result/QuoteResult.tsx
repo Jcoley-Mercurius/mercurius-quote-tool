@@ -20,6 +20,7 @@ import type { VendorProfile } from "@/lib/vendor/types";
 import { EditableLineItems } from "./EditableLineItems";
 import { PdfExportButton } from "./PdfExportButton";
 import { ShareQuoteButton } from "./ShareQuoteButton";
+import { SendQuoteModal } from "./SendQuoteModal";
 import { DownloadQuotePhotosButton } from "@/components/photos/DownloadQuotePhotosButton";
 import { PhotoVisionSummary } from "./PhotoVisionSummary";
 import { QuoteAlerts } from "./QuoteAlerts";
@@ -32,6 +33,8 @@ interface QuoteResultProps {
   source: "ai" | "fallback";
   quoteId?: string;
   quoteReference?: string;
+  /** ISO string of when the quote was originally created (used for expiry check) */
+  createdAt?: string;
   status?: QuoteStatus;
   vendorProfile?: VendorProfile;
   usesVendorSnapshot?: boolean;
@@ -49,6 +52,7 @@ export function QuoteResult({
   source,
   quoteId,
   quoteReference,
+  createdAt,
   status = "draft",
   vendorProfile,
   usesVendorSnapshot = false,
@@ -61,6 +65,7 @@ export function QuoteResult({
 }: QuoteResultProps) {
   const [quote, setQuote] = useState(initialQuote);
   const [hasEdits, setHasEdits] = useState(false);
+  const [sendModalOpen, setSendModalOpen] = useState(false);
 
   const notifyLineItemsSaved = useDebouncedCallback(() => {
     toastSaved();
@@ -95,6 +100,19 @@ export function QuoteResult({
     quoteReference ?? generateQuoteReference(quote.generatedAt);
   const statusStyle = QUOTE_STATUS_STYLES[status];
 
+  // Expiry check — only relevant for non-draft, non-accepted quotes with a createdAt
+  const isExpired = (() => {
+    if (!createdAt || status === "accepted" || status === "draft") return false;
+    const validityDays = quote.validityDays ?? 30;
+    const expiresAt = new Date(createdAt).getTime() + validityDays * 24 * 60 * 60 * 1000;
+    return Date.now() > expiresAt;
+  })();
+  const expiresAtFormatted = createdAt
+    ? new Date(
+        new Date(createdAt).getTime() + (quote.validityDays ?? 30) * 24 * 60 * 60 * 1000
+      ).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+    : null;
+
   const handleRegenerate = () => {
     onRegenerate(quote);
   };
@@ -114,6 +132,19 @@ export function QuoteResult({
         </svg>
         Back to History
       </Link>
+
+      {isExpired && expiresAtFormatted && (
+        <div
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 ring-1 ring-red-100"
+        >
+          <p className="font-semibold">This quote expired on {expiresAtFormatted}</p>
+          <p className="mt-1 text-red-800/90">
+            The client link is no longer valid for acceptance. You may regenerate
+            this quote or create a new one to send an updated estimate.
+          </p>
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -187,6 +218,19 @@ export function QuoteResult({
               status={status}
               onStatusChange={onStatusChange}
             />
+          )}
+          {quoteId && (
+            <button
+              type="button"
+              onClick={() => setSendModalOpen(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-mercurius-500/20"
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 text-slate-500">
+                <path d="M3 4a2 2 0 0 0-2 2v1.161l8.441 4.221a1.25 1.25 0 0 0 1.118 0L19 7.162V6a2 2 0 0 0-2-2H3Z" />
+                <path d="m19 8.839-7.77 3.885a2.75 2.75 0 0 1-2.46 0L1 8.839V14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.839Z" />
+              </svg>
+              Send to Client
+            </button>
           )}
           {onEditDetails && (
             <button
@@ -321,7 +365,7 @@ export function QuoteResult({
         />
       </div>
 
-      {/* Footer actions */}
+      {/* Sticky footer actions */}
       <div className="sticky bottom-0 -mx-4 border-t border-slate-200 bg-white/90 px-4 py-4 backdrop-blur-sm sm:-mx-0 sm:rounded-2xl sm:border sm:shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-slate-400">
@@ -371,6 +415,16 @@ export function QuoteResult({
           </div>
         </div>
       </div>
+      {/* Send to Client modal */}
+      {quoteId && (
+        <SendQuoteModal
+          open={sendModalOpen}
+          quoteId={quoteId}
+          status={status}
+          onClose={() => setSendModalOpen(false)}
+          onStatusChange={onStatusChange}
+        />
+      )}
     </div>
   );
 }

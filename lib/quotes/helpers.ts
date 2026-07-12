@@ -45,6 +45,27 @@ export function formatShortDate(iso: string): string {
   });
 }
 
+/**
+ * Returns true if the quote's validity window has passed.
+ * Uses validityDays from the quote_data (default 30) relative to createdAt.
+ */
+export function isQuoteExpired(quote: SavedQuote): boolean {
+  const validityDays = quote.quote.validityDays ?? 30;
+  const expiresAt =
+    new Date(quote.createdAt).getTime() + validityDays * 24 * 60 * 60 * 1000;
+  return Date.now() > expiresAt;
+}
+
+/**
+ * Returns the ISO expiry timestamp for a saved quote.
+ */
+export function getQuoteExpiresAt(quote: SavedQuote): string {
+  const validityDays = quote.quote.validityDays ?? 30;
+  return new Date(
+    new Date(quote.createdAt).getTime() + validityDays * 24 * 60 * 60 * 1000
+  ).toISOString();
+}
+
 export function matchesSearch(saved: SavedQuote, query: string): boolean {
   if (!query.trim()) return true;
   const q = query.toLowerCase();
@@ -65,7 +86,9 @@ export function filterByService(
 
 export function filterByStatus(
   saved: SavedQuote,
-  status: SavedQuote["status"] | "all"
+  status: SavedQuote["status"] | "all" | "expired"
 ): boolean {
-  return status === "all" || saved.status === status;
+  if (status === "all") return true;
+  if (status === "expired") return isQuoteExpired(saved);
+  return saved.status === status;
 }
