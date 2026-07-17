@@ -31,7 +31,7 @@ import {
 } from "./validation";
 
 const inputClass =
-  "w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-mercurius-500 focus:outline-none focus:ring-2 focus:ring-mercurius-500/20";
+  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition duration-150";
 
 const labelClass = "mb-1.5 block text-sm font-medium text-slate-700";
 
@@ -208,9 +208,9 @@ export function QuoteForm({
 
         {/* Progress bar */}
         <div className="mt-5 flex items-center gap-3">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200">
             <div
-              className="h-full rounded-full bg-mercurius-500 transition-all duration-300"
+              className="h-full rounded-full bg-emerald-600 transition-all duration-500"
               style={{ width: `${completionScore}%` }}
             />
           </div>
@@ -277,7 +277,12 @@ export function QuoteForm({
               {SWFL_PROPERTY_HINTS.squareFootage}
             </p>
             {errors.squareFootage && (
-              <p className="mt-1 text-xs text-red-600">{errors.squareFootage}</p>
+              <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {errors.squareFootage}
+              </p>
             )}
           </div>
 
@@ -308,7 +313,12 @@ export function QuoteForm({
               ))}
             </div>
             {errors.stories && (
-              <p className="mt-1 text-xs text-red-600">{errors.stories}</p>
+              <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {errors.stories}
+              </p>
             )}
           </div>
 
@@ -333,7 +343,12 @@ export function QuoteForm({
               {SWFL_PROPERTY_HINTS.yearBuilt}
             </p>
             {errors.yearBuilt && (
-              <p className="mt-1 text-xs text-red-600">{errors.yearBuilt}</p>
+              <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {errors.yearBuilt}
+              </p>
             )}
           </div>
         </div>
@@ -380,7 +395,12 @@ export function QuoteForm({
               </p>
             )}
             {errors.zipCode && (
-              <p className="mt-1 text-xs text-red-600">{errors.zipCode}</p>
+              <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {errors.zipCode}
+              </p>
             )}
           </div>
         </FormSection>
@@ -410,7 +430,12 @@ export function QuoteForm({
             </span>
           </div>
           {errors.jobDescription && (
-            <p className="mt-1 text-xs text-red-600">{errors.jobDescription}</p>
+            <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+              <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              {errors.jobDescription}
+            </p>
           )}
         </FormSection>
       </div>
@@ -443,7 +468,7 @@ export function QuoteForm({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-mercurius-600 px-8 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-mercurius-700 focus:outline-none focus:ring-2 focus:ring-mercurius-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-8 py-3 text-sm font-semibold text-white shadow-sm transition duration-150 hover:bg-emerald-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? (
               <>

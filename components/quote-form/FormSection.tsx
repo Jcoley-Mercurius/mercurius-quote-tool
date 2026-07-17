@@ -12,9 +12,9 @@ export function FormSection({
   children,
 }: FormSectionProps) {
   return (
-    <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8">
+    <section className="rounded-2xl border border-slate-100 bg-white p-7 shadow-sm">
       <div className="mb-6 flex items-start gap-4">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-mercurius-50 text-sm font-semibold text-mercurius-700 ring-1 ring-mercurius-100">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-semibold text-white shadow-md ring-4 ring-emerald-100">
           {step}
         </div>
         <div>
