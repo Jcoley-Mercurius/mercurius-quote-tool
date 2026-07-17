@@ -33,11 +33,13 @@ export function AuthForm({
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState(initialEmail ?? "");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const switchMode = (next: AuthMode) => {
     setMode(next);
     if (next !== "signup") setPassword("");
+    setShowPassword(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,7 +120,7 @@ export function AuthForm({
   };
 
   const inputClass =
-    "w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 transition-colors focus:border-mercurius-500 focus:outline-none focus:ring-2 focus:ring-mercurius-500/20";
+    "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition-colors placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100";
 
   const title =
     mode === "signin"
@@ -138,72 +140,57 @@ export function AuthForm({
     (mode === "signup" && password.length > 0 && !signupStrength.isAcceptable);
 
   return (
-    <div className="mx-auto w-full max-w-md">
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm">
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-mercurius-100">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              className="h-7 w-7 text-mercurius-600"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
-              />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            {title}
-          </h1>
-          <p className="mt-2 text-sm text-slate-500">{subtitle}</p>
+    <div className="w-full">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+          {title}
+        </h1>
+        <p className="mt-2 text-sm text-slate-500">{subtitle}</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label
+            htmlFor="email"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
+          >
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={inputClass}
+            placeholder="you@company.com"
+          />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {mode !== "forgot" && (
           <div>
-            <label
-              htmlFor="email"
-              className="mb-1.5 block text-sm font-medium text-slate-700"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={inputClass}
-              placeholder="you@company.com"
-            />
-          </div>
-
-          {mode !== "forgot" && (
-            <div>
-              <div className="mb-1.5 flex items-center justify-between">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-slate-700"
+            <div className="mb-1.5 flex items-center justify-between">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-700"
+              >
+                Password
+              </label>
+              {mode === "signin" && (
+                <button
+                  type="button"
+                  onClick={() => switchMode("forgot")}
+                  className="text-xs font-medium text-emerald-700 hover:text-emerald-800"
                 >
-                  Password
-                </label>
-                {mode === "signin" && (
-                  <button
-                    type="button"
-                    onClick={() => switchMode("forgot")}
-                    className="text-xs font-medium text-mercurius-700 hover:text-mercurius-800"
-                  >
-                    Forgot password?
-                  </button>
-                )}
-              </div>
+                  Forgot password?
+                </button>
+              )}
+            </div>
+            <div className="relative">
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 autoComplete={
                   mode === "signin" ? "current-password" : "new-password"
                 }
@@ -211,66 +198,130 @@ export function AuthForm({
                 minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className={inputClass}
+                className={`${inputClass} pr-11`}
                 placeholder="At least 6 characters"
               />
-              {mode === "signup" && (
-                <PasswordStrengthIndicator password={password} />
-              )}
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 transition-colors hover:text-slate-600"
+              >
+                {showPassword ? (
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    className="h-5 w-5"
+                    aria-hidden
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    className="h-5 w-5"
+                    aria-hidden
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                    />
+                  </svg>
+                )}
+              </button>
             </div>
-          )}
+            {mode === "signup" && (
+              <PasswordStrengthIndicator password={password} />
+            )}
+          </div>
+        )}
 
-          <button
-            type="submit"
-            disabled={submitDisabled}
-            className="w-full rounded-xl bg-mercurius-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-mercurius-700 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isSubmitting
-              ? "Please wait..."
-              : mode === "signin"
-                ? "Sign In"
-                : mode === "signup"
-                  ? "Create Account"
-                  : "Send Reset Link"}
-          </button>
-        </form>
+        <button
+          type="submit"
+          disabled={submitDisabled}
+          className="w-full rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm shadow-emerald-600/20 transition-all hover:bg-emerald-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSubmitting
+            ? "Please wait..."
+            : mode === "signin"
+              ? "Sign In"
+              : mode === "signup"
+                ? "Create Account"
+                : "Send Reset Link"}
+        </button>
+      </form>
 
-        <p className="mt-6 text-center text-sm text-slate-500">
-          {mode === "forgot" ? (
-            <>
-              Remember your password?{" "}
-              <button
-                type="button"
-                onClick={() => switchMode("signin")}
-                className="font-semibold text-mercurius-700 hover:text-mercurius-800"
-              >
-                Back to sign in
-              </button>
-            </>
-          ) : mode === "signin" ? (
-            <>
-              New to Mercurius?{" "}
-              <button
-                type="button"
-                onClick={() => switchMode("signup")}
-                className="font-semibold text-mercurius-700 hover:text-mercurius-800"
-              >
-                Create an account
-              </button>
-            </>
-          ) : (
-            <>
-              Already have an account?{" "}
-              <button
-                type="button"
-                onClick={() => switchMode("signin")}
-                className="font-semibold text-mercurius-700 hover:text-mercurius-800"
-              >
-                Sign in
-              </button>
-            </>
-          )}
-        </p>
+      <p className="mt-6 text-center text-sm text-slate-500">
+        {mode === "forgot" ? (
+          <>
+            Remember your password?{" "}
+            <button
+              type="button"
+              onClick={() => switchMode("signin")}
+              className="font-semibold text-emerald-700 hover:text-emerald-800"
+            >
+              Back to sign in
+            </button>
+          </>
+        ) : mode === "signin" ? (
+          <>
+            New to Mercurius?{" "}
+            <button
+              type="button"
+              onClick={() => switchMode("signup")}
+              className="font-semibold text-emerald-700 hover:text-emerald-800"
+            >
+              Create an account
+            </button>
+          </>
+        ) : (
+          <>
+            Already have an account?{" "}
+            <button
+              type="button"
+              onClick={() => switchMode("signin")}
+              className="font-semibold text-emerald-700 hover:text-emerald-800"
+            >
+              Sign in
+            </button>
+          </>
+        )}
+      </p>
+
+      <div className="mt-8 flex items-center justify-center gap-2 border-t border-slate-100 pt-6 text-center text-xs text-slate-400">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          className="h-4 w-4 shrink-0 text-emerald-600"
+          aria-hidden
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
+          />
+        </svg>
+        <span>
+          Your quotes are encrypted and never shared with unauthorized vendors.
+        </span>
       </div>
     </div>
   );

@@ -112,7 +112,7 @@ export function AppHeader() {
     }
   }, [closeMobileMenu, signOut]);
 
-  if (pathname.startsWith("/quote/")) {
+  if (pathname.startsWith("/quote/") || pathname === "/login") {
     return null;
   }
 
