@@ -42,7 +42,7 @@ export function EditableLineItems({
       <div className="hidden overflow-hidden rounded-xl border border-slate-200 md:block">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-left">
+            <tr className="border-b border-slate-200 bg-slate-50/80 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
               <th className="px-4 py-3 font-medium text-slate-600">Item</th>
               <th className="w-20 px-3 py-3 font-medium text-slate-600">Qty</th>
               <th className="w-24 px-3 py-3 font-medium text-slate-600">Unit</th>
@@ -54,7 +54,7 @@ export function EditableLineItems({
           </thead>
           <tbody className="divide-y divide-slate-100">
             {lineItems.map((item) => (
-              <tr key={item.id} className="group hover:bg-slate-50/50">
+              <tr key={item.id} className="group transition-colors hover:bg-slate-50/60">
                 <td className="px-4 py-3">
                   <select
                     value={item.category}
