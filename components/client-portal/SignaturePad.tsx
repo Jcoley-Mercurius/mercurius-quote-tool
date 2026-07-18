@@ -133,8 +133,8 @@ export function SignaturePad({ onChange, disabled = false }: SignaturePadProps) 
           disabled
             ? "border-slate-100 bg-slate-50"
             : isEmpty
-            ? "border-slate-200 hover:border-slate-300"
-            : "border-mercurius-300",
+            ? "border-slate-200 hover:border-emerald-300"
+            : "border-emerald-400",
         ].join(" ")}
         style={{ height: 140 }}
       >
@@ -163,7 +163,7 @@ export function SignaturePad({ onChange, disabled = false }: SignaturePadProps) 
           type="button"
           onClick={clear}
           disabled={isEmpty}
-          className="text-xs font-medium text-slate-400 transition-colors hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40"
+          className="text-xs font-medium text-slate-400 transition-colors hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Clear signature
         </button>

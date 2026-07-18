@@ -42,30 +42,66 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 pb-12">
+    <div className="mx-auto max-w-4xl space-y-5 px-4 py-8 pb-16 sm:px-6">
+      <div className="mb-2 flex items-center justify-center gap-2 text-xs text-slate-400">
+        <svg className="h-3.5 w-3.5 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
+          <path
+            fillRule="evenodd"
+            d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z"
+            clipRule="evenodd"
+          />
+        </svg>
+        Secured by Mercurius · Encrypted quote delivery
+      </div>
+
       {data.isDraftPreview && (
         <div
           role="alert"
-          className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-100"
+          className="flex gap-3 rounded-2xl border border-amber-200/80 bg-amber-50 p-4 shadow-sm ring-1 ring-amber-100"
         >
-          <p className="font-medium">Preview only</p>
-          <p className="mt-1 text-amber-800/90">
-            This quote is still being finalized by your contractor. Pricing and
-            scope may change.
-          </p>
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100">
+            <svg className="h-4 w-4 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-amber-900">
+              Preview — not yet finalized
+            </p>
+            <p className="mt-0.5 text-sm text-amber-800/80">
+              Your contractor is still preparing this quote. Pricing and scope
+              may change before it&apos;s sent for acceptance.
+            </p>
+          </div>
         </div>
       )}
 
       {expired && !alreadyAccepted && (
         <div
           role="alert"
-          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 ring-1 ring-red-100"
+          className="flex gap-4 rounded-2xl border border-red-200/80 bg-red-50 p-5 shadow-sm ring-1 ring-red-100"
         >
-          <p className="font-semibold">This quote expired on {expiresAtFormatted}</p>
-          <p className="mt-1 text-red-800/90">
-            This quote is no longer valid. Please contact {businessName} for an
-            updated estimate.
-          </p>
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-100">
+            <svg className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div>
+            <p className="font-semibold text-red-900">
+              This quote expired on {expiresAtFormatted}
+            </p>
+            <p className="mt-1 text-sm text-red-800/80">
+              Contact {businessName} directly to request an updated estimate.
+            </p>
+          </div>
         </div>
       )}
 
@@ -81,11 +117,14 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
                 className="h-14 w-auto max-w-[140px] object-contain"
               />
             ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-mercurius-100 text-lg font-bold text-mercurius-700">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-100 text-lg font-bold text-emerald-700">
                 {businessName.charAt(0).toUpperCase()}
               </div>
             )}
             <div>
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">
+                Prepared for you by
+              </p>
               <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
                 {businessName}
               </h1>
@@ -103,7 +142,7 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
                   <span className="font-medium text-slate-700">Phone:</span>{" "}
                   <a
                     href={`tel:${vendorProfile.phone}`}
-                    className="text-mercurius-700 hover:underline"
+                    className="text-emerald-700 hover:underline"
                   >
                     {vendorProfile.phone}
                   </a>
@@ -114,7 +153,7 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
                   <span className="font-medium text-slate-700">Email:</span>{" "}
                   <a
                     href={`mailto:${vendorProfile.email}`}
-                    className="text-mercurius-700 hover:underline"
+                    className="text-emerald-700 hover:underline"
                   >
                     {vendorProfile.email}
                   </a>
@@ -135,8 +174,15 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
             {data.jobName}
           </span>
           {alreadyAccepted && (
-            <span className="rounded-full bg-mercurius-100 px-2.5 py-0.5 text-xs font-semibold text-mercurius-700">
-              ✓ Accepted
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+              <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fillRule="evenodd"
+                  d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Accepted
             </span>
           )}
         </div>
@@ -151,7 +197,7 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
       </section>
 
       {/* Pricing */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="relative grid items-start gap-4 overflow-hidden sm:grid-cols-3 sm:overflow-visible">
         <PriceCard
           label="Budget estimate"
           amount={totals.low}
@@ -199,14 +245,16 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
 
       {/* Line items */}
       <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8">
-        <h3 className="text-lg font-semibold text-slate-900">Scope & pricing</h3>
+        <h3 className="text-lg font-semibold text-slate-900">
+          What&apos;s included in your quote
+        </h3>
         <p className="mt-1 text-sm text-slate-500">
-          Detailed breakdown of included work.
+          A full breakdown of work and materials.
         </p>
         <div className="mt-6 -mx-2 overflow-x-auto sm:mx-0">
           <table className="min-w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-200 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <tr className="border-b border-slate-200 bg-slate-50/80 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <th className="px-3 py-2">Item</th>
                 <th className="hidden px-3 py-2 sm:table-cell">Qty</th>
                 <th className="px-3 py-2 text-right">Recommended</th>
@@ -214,7 +262,7 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {quote.lineItems.map((item) => (
-                <tr key={item.id}>
+                <tr key={item.id} className="transition-colors hover:bg-slate-50/60">
                   <td className="px-3 py-3">
                     <p className="font-medium text-slate-900">
                       {item.description}
@@ -234,7 +282,7 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
             </tbody>
           </table>
         </div>
-        <div className="mt-6 border-t border-slate-200 pt-4 sm:ml-auto sm:w-80">
+        <div className="mt-6 ml-auto w-full max-w-xs border-t border-slate-200 pt-4">
           <TotalRow label="Recommended total" amount={totals.recommended} highlight />
           <TotalRow label="Budget total" amount={totals.low} />
           <TotalRow label="Premium total" amount={totals.high} />
@@ -280,7 +328,7 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
       <footer className="rounded-2xl border border-slate-200/80 bg-slate-50 px-6 py-5 text-center text-sm text-slate-500">
         <p>
           {expired
-            ? <>Expired on <span className="font-medium text-red-600">{expiresAtFormatted}</span></>
+            ? <>Expired <span className="font-medium text-red-500">{expiresAtFormatted}</span></>
             : <>Valid until <span className="font-medium text-slate-700">{expiresAtFormatted}</span></>
           }
           {" · "}Prepared{" "}
@@ -291,8 +339,12 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
           })}
         </p>
         {vendorProfile?.showPoweredByMercurius !== false && (
-          <p className="mt-2 text-xs text-slate-400">
-            Quote prepared with Mercurius
+          <p className="mt-2 flex items-center justify-center gap-1 text-xs text-slate-400">
+            <svg className="h-3 w-3 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z" />
+              <path d="M3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
+            </svg>
+            Delivered via Mercurius
           </p>
         )}
       </footer>
@@ -318,29 +370,30 @@ function PriceCard({
   description: string;
   primary?: boolean;
 }) {
+  if (primary) {
+    return (
+      <div className="relative z-10 scale-[1.03] rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-700 p-5 text-center shadow-lg shadow-emerald-200/50 ring-1 ring-emerald-500/20">
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+          <span className="whitespace-nowrap rounded-full bg-white px-3 py-0.5 text-xs font-bold text-emerald-700 shadow-sm ring-1 ring-emerald-200">
+            Recommended
+          </span>
+        </div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">
+          {label}
+        </p>
+        <p className="mt-1 text-3xl font-extrabold text-white">
+          {formatCurrency(amount)}
+        </p>
+        <p className="mt-1 text-xs text-emerald-200">{description}</p>
+      </div>
+    );
+  }
   return (
-    <div
-      className={[
-        "rounded-2xl border p-5 text-center",
-        primary
-          ? "border-mercurius-300 bg-gradient-to-b from-mercurius-50 to-white ring-1 ring-mercurius-200"
-          : "border-slate-200 bg-white",
-      ].join(" ")}
-    >
-      <p
-        className={[
-          "text-xs font-semibold uppercase tracking-wide",
-          primary ? "text-mercurius-700" : "text-slate-500",
-        ].join(" ")}
-      >
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 text-center shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
         {label}
       </p>
-      <p
-        className={[
-          "mt-2 text-3xl font-bold tracking-tight",
-          primary ? "text-mercurius-700" : "text-slate-700",
-        ].join(" ")}
-      >
+      <p className="mt-1 text-2xl font-bold text-slate-800">
         {formatCurrency(amount)}
       </p>
       <p className="mt-1 text-xs text-slate-400">{description}</p>

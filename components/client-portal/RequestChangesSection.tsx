@@ -20,7 +20,6 @@ interface RequestChangesSectionProps {
 
 export function RequestChangesSection({
   token,
-  quoteReference,
   businessName,
   disabled = false,
   onSubmitted,
@@ -99,10 +98,9 @@ export function RequestChangesSection({
               Request sent
             </h3>
             <p className="mt-1 text-sm text-amber-800/80">
-              Your message has been sent to{" "}
-              <span className="font-medium">{businessName}</span>. They will
-              review your request and follow up with a revised quote or to
-              discuss the details.
+              <span className="font-medium">{businessName}</span> has received
+              your feedback and will follow up with a revised quote. You can
+              keep this page open to check for updates.
             </p>
           </div>
         </div>
@@ -117,7 +115,7 @@ export function RequestChangesSection({
         <button
           type="button"
           onClick={() => setState({ phase: "composing" })}
-          className="text-sm font-medium text-slate-400 transition-colors hover:text-slate-700 underline underline-offset-2"
+          className="text-sm font-medium text-slate-400 underline decoration-dotted underline-offset-4 transition-colors hover:text-slate-600"
         >
           Not ready to accept? Request changes instead
         </button>
@@ -129,11 +127,12 @@ export function RequestChangesSection({
   return (
     <section className="rounded-2xl border border-amber-200/80 bg-white p-6 shadow-sm sm:p-8">
       <div className="mb-5">
-        <h3 className="text-lg font-semibold text-slate-900">Request changes</h3>
+        <h3 className="text-lg font-semibold text-slate-900">
+          Something not right?
+        </h3>
         <p className="mt-1 text-sm text-slate-500">
-          Describe what you&apos;d like adjusted on quote{" "}
-          <span className="font-mono font-medium">{quoteReference}</span>.{" "}
-          {businessName} will review your request and follow up.
+          Tell {businessName} what you&apos;d like adjusted. They&apos;ll review
+          your feedback and send a revised quote.
         </p>
       </div>
 
@@ -172,7 +171,7 @@ export function RequestChangesSection({
             value={message}
             onChange={(e) => setMessage(e.target.value.slice(0, maxChars))}
             disabled={isSubmitting}
-            className="w-full resize-y rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20 disabled:opacity-60 min-h-[120px]"
+            className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 transition duration-150 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 disabled:opacity-60"
           />
           <div className="mt-1 flex justify-between">
             {message.trim().length > 0 && message.trim().length < 10 && (
@@ -204,7 +203,7 @@ export function RequestChangesSection({
               value={requesterName}
               onChange={(e) => setRequesterName(e.target.value)}
               disabled={isSubmitting}
-              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20 disabled:opacity-60"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 transition duration-150 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 disabled:opacity-60"
             />
           </div>
           <div>
@@ -223,7 +222,7 @@ export function RequestChangesSection({
               value={requesterPhone}
               onChange={(e) => setRequesterPhone(e.target.value)}
               disabled={isSubmitting}
-              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20 disabled:opacity-60"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 transition duration-150 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 disabled:opacity-60"
             />
           </div>
         </div>
@@ -242,7 +241,7 @@ export function RequestChangesSection({
             type="button"
             onClick={() => void handleSubmit()}
             disabled={!canSubmit || isSubmitting}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-8 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-8 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400/50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? (
               <>
