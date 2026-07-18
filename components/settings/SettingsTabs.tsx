@@ -87,7 +87,7 @@ export function SettingsTabs() {
               className={[
                 "flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all",
                 isActive
-                  ? "bg-white text-mercurius-700 shadow-sm ring-1 ring-slate-200/80"
+                  ? "bg-white text-emerald-700 shadow-sm ring-1 ring-slate-200/80"
                   : "text-slate-500 hover:bg-white/60 hover:text-slate-700",
               ].join(" ")}
             >

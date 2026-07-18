@@ -137,7 +137,7 @@ export function SendQuoteModal({
   };
 
   const inputClass =
-    "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 transition-colors focus:border-mercurius-500 focus:outline-none focus:ring-2 focus:ring-mercurius-500/20";
+    "w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 transition duration-150 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 disabled:opacity-60";
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -159,8 +159,8 @@ export function SendQuoteModal({
       >
         {/* Header */}
         <div className="mb-5 flex items-start gap-3">
-          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${mode === "resend" ? "bg-amber-50" : "bg-mercurius-50"}`}>
-            <EnvelopeIcon className={`h-5 w-5 ${mode === "resend" ? "text-amber-600" : "text-mercurius-600"}`} />
+          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${mode === "resend" ? "bg-amber-50" : "bg-emerald-50"}`}>
+            <EnvelopeIcon className={`h-5 w-5 ${mode === "resend" ? "text-amber-600" : "text-emerald-600"}`} />
           </div>
           <div className="min-w-0 flex-1 pt-0.5">
             <h2
@@ -263,7 +263,7 @@ export function SendQuoteModal({
             <button
               type="submit"
               disabled={isSending || !clientEmail.trim()}
-              className="inline-flex items-center gap-2 rounded-xl bg-mercurius-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-mercurius-700 focus:outline-none focus:ring-2 focus:ring-mercurius-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSending ? (
                 <>

@@ -62,69 +62,38 @@ export function VendorProfileNudge() {
   return (
     <div
       role="alert"
-      className="mb-6 rounded-xl border border-mercurius-200 bg-mercurius-50 px-4 py-3 text-sm text-mercurius-900 ring-1 ring-mercurius-100"
+      className="mb-6 flex gap-3 rounded-2xl border border-amber-200/80 bg-amber-50 p-4 shadow-sm ring-1 ring-amber-100"
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-start gap-3">
-          {/* Sparkle icon */}
-          <svg
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            className="mt-0.5 h-4 w-4 shrink-0 text-mercurius-500"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.83-4.401Z"
-              clipRule="evenodd"
-            />
-          </svg>
-
-          <div className="min-w-0">
-            <p className="font-medium leading-snug">
-              Complete your business profile
-            </p>
-            <p className="mt-0.5 text-mercurius-800/80">
-              Quotes look more professional with your business name, phone
-              number, and pricing configured.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex shrink-0 items-center gap-2 pl-7 sm:pl-0">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100">
+        <svg className="h-4 w-4 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+          <path
+            fillRule="evenodd"
+            d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-amber-900">
+          Complete your business profile
+        </p>
+        <p className="mt-0.5 text-sm text-amber-800/80">
+          Your business name, phone, and labor rate appear on every quote.
+          Clients trust complete profiles.
+        </p>
+        <div className="mt-3 flex items-center gap-3">
           <Link
             href="/settings"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-mercurius-300 bg-white px-3 py-1.5 text-xs font-semibold text-mercurius-700 transition-colors hover:bg-mercurius-100 focus:outline-none focus:ring-2 focus:ring-mercurius-500 focus:ring-offset-1"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-amber-700"
           >
-            Complete profile
-            <svg
-              viewBox="0 0 16 16"
-              fill="currentColor"
-              className="h-3 w-3"
-              aria-hidden="true"
-            >
-              <path
-                fillRule="evenodd"
-                d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z"
-                clipRule="evenodd"
-              />
-            </svg>
+            Complete profile →
           </Link>
-
           <button
             type="button"
             onClick={handleDismiss}
-            aria-label="Dismiss profile reminder"
-            className="rounded-lg p-1.5 text-mercurius-500 transition-colors hover:bg-mercurius-100/80 hover:text-mercurius-700 focus:outline-none focus:ring-2 focus:ring-mercurius-500 focus:ring-offset-1"
+            className="text-xs font-medium text-amber-700/60 transition-colors hover:text-amber-700"
           >
-            <svg
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="h-4 w-4"
-              aria-hidden="true"
-            >
-              <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-            </svg>
+            Dismiss
           </button>
         </div>
       </div>

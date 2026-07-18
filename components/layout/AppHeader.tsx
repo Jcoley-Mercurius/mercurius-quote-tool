@@ -25,7 +25,7 @@ function navLinkClass(active: boolean, mobile = false): string {
     return [
       "block rounded-xl px-4 py-3 text-base font-medium transition-colors",
       active
-        ? "bg-mercurius-50 text-mercurius-700"
+        ? "bg-emerald-50 text-emerald-700"
         : "text-slate-700 hover:bg-slate-50 hover:text-slate-900",
     ].join(" ");
   }
@@ -33,7 +33,7 @@ function navLinkClass(active: boolean, mobile = false): string {
   return [
     "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
     active
-      ? "bg-mercurius-50 text-mercurius-700"
+      ? "bg-emerald-50 text-emerald-700"
       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
   ].join(" ");
 }
@@ -323,7 +323,7 @@ export function AppHeader() {
                       setCreateOrgOpen(true);
                     }}
                     disabled={!schemaAvailable}
-                    className="mx-4 mt-2 rounded-xl border border-dashed border-mercurius-200 px-4 py-3 text-left text-sm font-medium text-mercurius-700 hover:bg-mercurius-50 disabled:cursor-not-allowed disabled:text-slate-400"
+                    className="mx-4 mt-2 rounded-xl border border-dashed border-emerald-200 px-4 py-3 text-left text-sm font-medium text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:text-slate-400"
                   >
                     Create organization
                   </button>
@@ -379,7 +379,7 @@ function MobileWorkspaceOption({
       className={[
         "rounded-xl px-4 py-3 text-left text-base font-medium transition-colors",
         selected
-          ? "bg-mercurius-50 text-mercurius-700"
+          ? "bg-emerald-50 text-emerald-700"
           : "text-slate-700 hover:bg-slate-50 hover:text-slate-900",
       ].join(" ")}
     >

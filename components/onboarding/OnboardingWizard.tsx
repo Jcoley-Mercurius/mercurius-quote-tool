@@ -149,87 +149,82 @@ function WizardModal({
     <div
       role="dialog"
       aria-modal="true"
-      aria-labelledby="onboarding-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      aria-label="Set up your business profile"
+      className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" />
 
       {/* Panel */}
       <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white shadow-2xl">
-        {/* Header */}
-        <div className="border-b border-slate-100 px-6 py-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2
-                id="onboarding-title"
-                className="text-lg font-semibold text-slate-900"
-              >
-                Welcome to Mercurius
-              </h2>
-              <p className="mt-0.5 text-sm text-slate-500">
-                Set up your profile in 3 quick steps.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleSkip}
-              className="text-xs font-medium text-slate-400 hover:text-slate-600"
-              title="Skip onboarding"
-            >
-              Skip for now
-            </button>
-          </div>
-
-          {/* Step indicator */}
-          <div className="mt-4 flex items-center gap-2">
-            {STEPS.map((label, i) => (
-              <div key={label} className="flex items-center gap-2">
-                <div
-                  className={[
-                    "flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold transition-colors",
-                    i < step
-                      ? "bg-mercurius-600 text-white"
-                      : i === step
-                        ? "bg-mercurius-100 text-mercurius-700 ring-2 ring-mercurius-400"
-                        : "bg-slate-100 text-slate-400",
-                  ].join(" ")}
-                >
-                  {i < step ? (
-                    <svg viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
-                      <path
-                        fillRule="evenodd"
-                        d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  ) : (
-                    i + 1
+        {/* Step indicator */}
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 pb-5 pt-6">
+          <div className="flex items-center gap-3">
+            {STEPS.map((label, i) => {
+              const done = i < step;
+              const active = i === step;
+              return (
+                <div key={label} className="flex items-center gap-2">
+                  {i > 0 && (
+                    <div
+                      className={[
+                        "h-px w-6 transition-colors",
+                        done ? "bg-emerald-400" : "bg-slate-200",
+                      ].join(" ")}
+                    />
                   )}
-                </div>
-                <span
-                  className={[
-                    "text-xs font-medium",
-                    i === step ? "text-mercurius-700" : "text-slate-400",
-                  ].join(" ")}
-                >
-                  {label}
-                </span>
-                {i < STEPS.length - 1 && (
                   <div
                     className={[
-                      "h-px w-6 rounded",
-                      i < step ? "bg-mercurius-400" : "bg-slate-200",
+                      "flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all",
+                      active
+                        ? "bg-emerald-600 text-white shadow-sm shadow-emerald-200"
+                        : done
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-slate-100 text-slate-400",
                     ].join(" ")}
-                  />
-                )}
-              </div>
-            ))}
+                  >
+                    {done ? (
+                      <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    ) : (
+                      String(i + 1)
+                    )}
+                  </div>
+                  <span
+                    className={[
+                      "hidden text-xs font-medium sm:inline",
+                      active
+                        ? "text-slate-900"
+                        : done
+                          ? "text-emerald-700"
+                          : "text-slate-400",
+                    ].join(" ")}
+                  >
+                    {label}
+                  </span>
+                </div>
+              );
+            })}
           </div>
+          <button
+            type="button"
+            onClick={handleSkip}
+            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            aria-label="Skip setup"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+            </svg>
+          </button>
         </div>
 
         {/* Step content */}
-        <div className="px-6 py-6">
+        <div className="px-6 py-6 space-y-5">
           {step === 0 && (
             <StepBusinessInfo
               draft={draft}
@@ -251,33 +246,41 @@ function WizardModal({
 
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4">
-          <button
-            type="button"
-            onClick={handleBack}
-            disabled={step === 0 || isSaving}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:invisible"
-          >
-            Back
-          </button>
+          <p className="text-xs text-slate-400">
+            Step {step + 1} of {STEPS.length}
+          </p>
 
-          {step < 2 ? (
-            <button
-              type="button"
-              onClick={handleNext}
-              className="rounded-xl bg-mercurius-600 px-5 py-2 text-sm font-semibold text-white hover:bg-mercurius-700"
-            >
-              Next
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => void handleFinish()}
-              disabled={isSaving}
-              className="rounded-xl bg-mercurius-600 px-5 py-2 text-sm font-semibold text-white hover:bg-mercurius-700 disabled:opacity-60"
-            >
-              {isSaving ? "Saving..." : "Finish setup"}
-            </button>
-          )}
+          <div className="flex items-center gap-4">
+            {step > 0 && (
+              <button
+                type="button"
+                onClick={handleBack}
+                disabled={isSaving}
+                className="text-sm font-medium text-slate-400 transition-colors hover:text-slate-600 disabled:opacity-50"
+              >
+                Back
+              </button>
+            )}
+
+            {step < 2 ? (
+              <button
+                type="button"
+                onClick={handleNext}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50"
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => void handleFinish()}
+                disabled={isSaving}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50"
+              >
+                {isSaving ? "Saving..." : "Finish Setup →"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -296,14 +299,19 @@ function StepBusinessInfo({
   update: <K extends keyof VendorProfile>(key: K, value: VendorProfile[K]) => void;
 }) {
   const inputClass =
-    "w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 transition-colors focus:border-mercurius-500 focus:outline-none focus:ring-2 focus:ring-mercurius-500/20";
+    "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition duration-150";
   const errorClass = "border-red-300 focus:border-red-500 focus:ring-red-500/20";
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-500">
-        This appears on every quote you send to clients.
-      </p>
+      <div>
+        <h3 className="text-base font-semibold text-slate-900">
+          Let&apos;s set up your business profile
+        </h3>
+        <p className="mt-1 text-sm text-slate-500">
+          This info appears on every quote you send to clients. Takes 60 seconds.
+        </p>
+      </div>
 
       <div>
         <label
@@ -359,14 +367,19 @@ function StepPricing({
   update: <K extends keyof VendorProfile>(key: K, value: VendorProfile[K]) => void;
 }) {
   const inputClass =
-    "w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 transition-colors focus:border-mercurius-500 focus:outline-none focus:ring-2 focus:ring-mercurius-500/20";
+    "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition duration-150";
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-500">
-        AI quote generation uses your rates instead of generic benchmarks. You
-        can always fine-tune these later in Settings.
-      </p>
+      <div>
+        <h3 className="text-base font-semibold text-slate-900">
+          Set your labor rate
+        </h3>
+        <p className="mt-1 text-sm text-slate-500">
+          We use this to calculate accurate estimates. You can change it anytime
+          in Settings.
+        </p>
+      </div>
 
       <div>
         <label
@@ -437,10 +450,15 @@ function StepBranding({
 }) {
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-500">
-        Upload your logo to personalize PDF quotes. This step is optional — you
-        can add or change it anytime in Settings.
-      </p>
+      <div>
+        <h3 className="text-base font-semibold text-slate-900">
+          Add your logo (optional)
+        </h3>
+        <p className="mt-1 text-sm text-slate-500">
+          Your logo appears on client quotes and the portal. Builds trust
+          instantly.
+        </p>
+      </div>
 
       <LogoUpload
         workspaceScope={workspaceScope}

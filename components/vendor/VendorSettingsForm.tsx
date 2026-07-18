@@ -15,7 +15,7 @@ import { LogoUpload } from "./LogoUpload";
 import type { VendorProfile } from "@/lib/vendor/types";
 
 const inputClass =
-  "w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 transition-colors focus:border-mercurius-500 focus:outline-none focus:ring-2 focus:ring-mercurius-500/20";
+  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 transition duration-150 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100";
 
 const inputErrorClass =
   "border-red-300 focus:border-red-500 focus:ring-red-500/20";
