@@ -97,16 +97,16 @@ export function AcceptQuoteSection({
   // Already accepted — stable confirmation state
   if (state.phase === "already_accepted") {
     return (
-      <section className="rounded-2xl border border-mercurius-200 bg-mercurius-50 p-6 shadow-sm sm:p-8">
+      <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm sm:p-8">
         <div className="flex items-start gap-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mercurius-100">
-            <CheckIcon className="h-5 w-5 text-mercurius-600" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100">
+            <CheckIcon className="h-5 w-5 text-emerald-600" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-mercurius-900">
+            <h3 className="text-base font-semibold text-emerald-900">
               Quote accepted
             </h3>
-            <p className="mt-1 text-sm text-mercurius-800/80">
+            <p className="mt-1 text-sm text-emerald-800/80">
               This quote has already been accepted. Your contractor will be in touch to schedule the work.
             </p>
           </div>
@@ -139,9 +139,9 @@ export function AcceptQuoteSection({
   // Success screen
   if (state.phase === "success") {
     return (
-      <section className="rounded-2xl border border-mercurius-200 bg-gradient-to-b from-mercurius-50 to-white p-8 shadow-sm text-center">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-mercurius-100">
-          <CheckIcon className="h-8 w-8 text-mercurius-600" />
+      <section className="rounded-2xl border border-emerald-200 bg-gradient-to-b from-emerald-50 to-white p-8 shadow-sm text-center">
+        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+          <CheckIcon className="h-8 w-8 text-emerald-600" />
         </div>
         <h2 className="text-xl font-bold tracking-tight text-slate-900">
           You&apos;re all set!
@@ -157,7 +157,7 @@ export function AcceptQuoteSection({
           been notified and will reach out within 24 hours to confirm your
           project timeline. Save this page link for your records.
         </p>
-        <div className="mt-6 rounded-xl border border-mercurius-100 bg-white px-5 py-4">
+        <div className="mt-6 rounded-xl border border-emerald-100 bg-white px-5 py-4">
           <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
             Acceptance recorded
           </p>
@@ -231,7 +231,7 @@ export function AcceptQuoteSection({
   const isSubmitting = state.phase === "submitting";
 
   return (
-    <section className="rounded-2xl border border-mercurius-200/80 bg-white p-6 shadow-sm sm:p-8">
+    <section className="rounded-2xl border border-emerald-200/80 bg-white p-6 shadow-sm sm:p-8">
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-slate-900">Accept this quote</h3>
         <p className="mt-1 text-sm text-slate-500">
@@ -302,7 +302,7 @@ export function AcceptQuoteSection({
             checked={agreed}
             onChange={(e) => setAgreed(e.target.checked)}
             disabled={isSubmitting}
-            className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-mercurius-600 accent-mercurius-600 focus:ring-mercurius-500 disabled:opacity-60"
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-emerald-600 accent-emerald-600 focus:ring-emerald-500 disabled:opacity-60"
           />
           <span className="text-sm leading-relaxed text-slate-600">
             I&apos;ve reviewed the full scope and pricing above and I&apos;m

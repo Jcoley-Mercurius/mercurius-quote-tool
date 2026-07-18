@@ -115,7 +115,7 @@ export function QuoteDashboard() {
         isDeleting={isDeleting}
       />
 
-      <div className="mx-auto max-w-5xl space-y-6">
+      <div className="mx-auto max-w-5xl space-y-5 px-4 py-6 sm:px-6 sm:py-8">
         <QuotesLoadBanner />
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -126,13 +126,14 @@ export function QuoteDashboard() {
             <RealtimeStatusBadge />
           </div>
           <p className="mt-2 text-sm text-slate-500">
-            Viewing <span className="font-medium text-slate-700">{workspaceLabel}</span>{" "}
-            workspace · search and reopen saved quotes
+            All quotes in{" "}
+            <span className="font-medium text-slate-700">{workspaceLabel}</span>{" "}
+            workspace
           </p>
         </div>
         <Link
           href="/"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-mercurius-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-mercurius-700"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
         >
           <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
             <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5z" />
@@ -142,12 +143,10 @@ export function QuoteDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-8">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard label="Total Quotes" value={stats.total.toString()} />
-        <StatCard label="Drafts" value={stats.draft.toString()} />
         <StatCard label="Sent" value={stats.sent.toString()} />
-        <StatCard label="Viewed" value={stats.viewed.toString()} />
-        <StatCard label="Accepted" value={stats.accepted.toString()} />
+        <StatCard label="Accepted" value={stats.accepted.toString()} highlight />
         <StatCard label="Changes Req." value={stats.changesRequested.toString()} warn={stats.changesRequested > 0} />
         <StatCard label="Expired" value={stats.expired.toString()} expired={stats.expired > 0} />
         <StatCard
@@ -177,7 +176,7 @@ export function QuoteDashboard() {
               placeholder="Search by reference, job name, or zip..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 py-2.5 pl-10 pr-4 text-sm focus:border-mercurius-500 focus:outline-none focus:ring-2 focus:ring-mercurius-500/20"
+              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 transition duration-150 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
             />
           </div>
           <select
@@ -185,7 +184,7 @@ export function QuoteDashboard() {
             onChange={(e) =>
               setServiceFilter(e.target.value as ServiceType | "all")
             }
-            className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-slate-700 focus:border-mercurius-500 focus:outline-none focus:ring-2 focus:ring-mercurius-500/20"
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 transition duration-150 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
           >
             <option value="all">All services</option>
             {SERVICE_OPTIONS.map((s) => (
@@ -199,7 +198,7 @@ export function QuoteDashboard() {
             onChange={(e) =>
               setStatusFilter(e.target.value as QuoteStatus | "all" | "expired")
             }
-            className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-slate-700 focus:border-mercurius-500 focus:outline-none focus:ring-2 focus:ring-mercurius-500/20"
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 transition duration-150 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
           >
             <option value="all">All statuses</option>
             <option value="draft">Draft</option>
@@ -213,6 +212,12 @@ export function QuoteDashboard() {
       </div>
 
       {/* Quote list */}
+      {filtered.length > 0 && (
+        <p className="text-xs text-slate-400">
+          Showing {filtered.length} of {quotes.length} quote
+          {quotes.length !== 1 ? "s" : ""}
+        </p>
+      )}
       {filtered.length === 0 ? (
         <EmptyState hasQuotes={quotes.length > 0} />
       ) : (
@@ -248,9 +253,9 @@ function StatCard({
   return (
     <div
       className={[
-        "rounded-xl border p-4",
+        "rounded-xl border p-4 sm:p-5",
         highlight
-          ? "border-mercurius-200 bg-mercurius-50"
+          ? "border-emerald-200 bg-emerald-50"
           : warn
           ? "border-amber-200 bg-amber-50"
           : expired
@@ -258,14 +263,14 @@ function StatCard({
           : "border-slate-200 bg-white",
       ].join(" ")}
     >
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
         {label}
       </p>
       <p
         className={[
-          "mt-1 text-xl font-bold",
+          "mt-1 text-2xl font-bold",
           highlight
-            ? "text-mercurius-700"
+            ? "text-emerald-700"
             : warn
             ? "text-amber-700"
             : expired
@@ -307,7 +312,7 @@ function QuoteCard({
         "group rounded-2xl border bg-white p-5 shadow-sm transition-all hover:shadow-md sm:p-6",
         expired
           ? "border-red-200 hover:border-red-300"
-          : "border-slate-200/80 hover:border-mercurius-200",
+          : "border-slate-200/80 hover:border-emerald-200",
       ].join(" ")}
     >
       {expired && (
@@ -330,7 +335,7 @@ function QuoteCard({
               onChange={(e) => onStatusChange(e.target.value as QuoteStatus)}
               aria-label={`Status for ${quote.reference}`}
               className={[
-                "rounded-full border-0 px-2.5 py-0.5 text-xs font-medium ring-1 focus:outline-none focus:ring-2 focus:ring-mercurius-500/20",
+                "rounded-full border-0 px-2.5 py-0.5 text-xs font-medium ring-1 focus:outline-none focus:ring-2 focus:ring-emerald-500/20",
                 statusStyle.bg,
                 statusStyle.text,
                 statusStyle.ring,
@@ -352,7 +357,7 @@ function QuoteCard({
             ) : null}
           </div>
           <Link href={`/?quoteId=${quote.id}`} className="block">
-            <h3 className="mt-2 truncate text-base font-semibold text-slate-900 group-hover:text-mercurius-700">
+            <h3 className="mt-2 truncate text-base font-semibold text-slate-900 group-hover:text-emerald-700">
               {quote.jobName}
             </h3>
             <p className="mt-1 text-sm text-slate-500">
@@ -372,7 +377,7 @@ function QuoteCard({
         <div className="flex items-center gap-4">
           <div className="text-right">
             <p className="text-xs text-slate-400">Recommended</p>
-            <p className="text-lg font-bold text-mercurius-700">
+            <p className="text-lg font-bold text-emerald-700">
               {formatCurrency(total)}
             </p>
           </div>
@@ -388,7 +393,7 @@ function QuoteCard({
             ) : null}
             <Link
               href={`/?quoteId=${quote.id}`}
-              className="rounded-lg border border-mercurius-200 bg-mercurius-50 px-4 py-2 text-sm font-medium text-mercurius-700 transition-colors hover:bg-mercurius-100"
+              className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition-colors hover:bg-emerald-100"
             >
               Open
             </Link>
@@ -416,7 +421,7 @@ function QuoteCard({
 function EmptyState({ hasQuotes }: { hasQuotes: boolean }) {
   return (
     <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-16 text-center">
-      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-mercurius-50 text-mercurius-600">
+      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-7 w-7">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
         </svg>
@@ -427,12 +432,12 @@ function EmptyState({ hasQuotes }: { hasQuotes: boolean }) {
       <p className="mx-auto mt-2 max-w-sm text-sm text-slate-500">
         {hasQuotes
           ? "Try adjusting your search or filter criteria."
-          : "Generate your first quote and it will appear here automatically."}
+          : "Create your first quote and it will appear here automatically. It only takes a minute."}
       </p>
       {!hasQuotes && (
         <Link
           href="/"
-          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-mercurius-600 px-6 py-3 text-sm font-semibold text-white hover:bg-mercurius-700"
+          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
         >
           Create a Quote
         </Link>

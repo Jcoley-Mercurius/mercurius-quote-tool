@@ -18,12 +18,12 @@ export function RealtimeStatusBadge() {
   if (status === "connected") {
     return (
       <span
-        className="inline-flex items-center gap-1.5 rounded-full bg-mercurius-50 px-2.5 py-1 text-xs font-medium text-mercurius-700 ring-1 ring-mercurius-100"
+        className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-100"
         title="Live updates are active"
       >
         <span className="relative flex h-2 w-2" aria-hidden>
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-mercurius-400 opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-mercurius-500" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
         </span>
         Live
       </span>

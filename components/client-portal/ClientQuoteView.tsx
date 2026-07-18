@@ -170,7 +170,7 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
           <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-mono text-xs text-slate-500">
             {data.reference}
           </span>
-          <span className="rounded-full bg-mercurius-50 px-2.5 py-0.5 text-xs font-medium text-mercurius-700 ring-1 ring-mercurius-100">
+          <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-100">
             {data.jobName}
           </span>
           {alreadyAccepted && (
@@ -229,7 +229,7 @@ export function ClientQuoteView({ data, token }: ClientQuoteViewProps) {
                 key={photo.index}
                 type="button"
                 onClick={() => setActivePhoto(photo)}
-                className="h-24 w-24 overflow-hidden rounded-lg border border-slate-200 bg-slate-100 transition hover:ring-2 hover:ring-mercurius-300 focus:outline-none focus:ring-2 focus:ring-mercurius-500"
+                className="h-24 w-24 overflow-hidden rounded-lg border border-slate-200 bg-slate-100 transition hover:ring-2 hover:ring-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -418,7 +418,7 @@ function TotalRow({
       <span
         className={
           highlight
-            ? "text-lg font-semibold text-mercurius-700"
+            ? "text-lg font-semibold text-emerald-700"
             : "font-medium text-slate-700"
         }
       >
@@ -443,7 +443,7 @@ function ReadOnlyListSection({
       <ul className="mt-4 space-y-2.5">
         {items.map((item, index) => (
           <li key={index} className="flex gap-2 text-sm text-slate-700">
-            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-mercurius-400" />
+            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
             <span className="leading-relaxed">{item}</span>
           </li>
         ))}
