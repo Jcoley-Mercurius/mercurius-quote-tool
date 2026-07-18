@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { useDebouncedCallback } from "@/lib/hooks/useDebouncedCallback";
-import { toastSaved } from "@/lib/ui/toast";
+import { toastSaved, toastSuccess } from "@/lib/ui/toast";
 import { formatCurrency } from "@/lib/quote/format";
 import {
   QUOTE_STATUS_LABELS,
@@ -26,6 +26,7 @@ import { PhotoVisionSummary } from "./PhotoVisionSummary";
 import { QuoteAlerts } from "./QuoteAlerts";
 import { AcceptanceDetails } from "./AcceptanceDetails";
 import { ChangeRequestsBanner } from "./ChangeRequestsBanner";
+import { QuoteComparison, type QuoteOption } from "@/components/quote/QuoteComparison";
 
 interface QuoteResultProps {
   quote: GeneratedQuote;
@@ -75,6 +76,9 @@ export function QuoteResult({
   const [quote, setQuote] = useState(initialQuote);
   const [hasEdits, setHasEdits] = useState(false);
   const [sendModalOpen, setSendModalOpen] = useState(defaultSendOpen);
+  // Which pricing tier the contractor has flagged as the preferred option to
+  // present to the client. Defaults to the AI-recommended tier.
+  const [preferredOptionId, setPreferredOptionId] = useState("recommended");
 
   const notifyLineItemsSaved = useDebouncedCallback(() => {
     toastSaved();
@@ -84,6 +88,79 @@ export function QuoteResult({
     () => computeTotals(quote.lineItems),
     [quote.lineItems]
   );
+
+  // Build the three comparison tiers from real line-item pricing.
+  const comparisonOptions = useMemo<QuoteOption[]>(() => {
+    const sumByCategory = (
+      match: string,
+      key: "priceLow" | "priceRecommended" | "priceHigh"
+    ) =>
+      quote.lineItems
+        .filter((li) => li.category.toLowerCase().includes(match))
+        .reduce((sum, li) => sum + li[key], 0);
+
+    const descriptions = quote.lineItems
+      .map((li) => li.description.trim())
+      .filter(Boolean);
+    const serviceList =
+      descriptions.length > 5
+        ? [
+            ...descriptions.slice(0, 5),
+            `+ ${descriptions.length - 5} more line items`,
+          ]
+        : descriptions;
+    const services =
+      serviceList.length > 0 ? serviceList : ["Full scope as detailed below"];
+
+    const laborRate = vendorProfile?.laborRatePerHour
+      ? `$${vendorProfile.laborRatePerHour}/hr`
+      : null;
+
+    const tiers = [
+      {
+        id: "budget",
+        name: "Budget",
+        description: "Economy scope for cost-conscious projects.",
+        key: "priceLow" as const,
+        total: totals.low,
+      },
+      {
+        id: "recommended",
+        name: "Recommended",
+        description: "Best value — balanced quality and price for this job.",
+        key: "priceRecommended" as const,
+        total: totals.recommended,
+        recommended: true,
+      },
+      {
+        id: "premium",
+        name: "Premium",
+        description: "Upgraded materials and scope for a premium finish.",
+        key: "priceHigh" as const,
+        total: totals.high,
+      },
+    ];
+
+    return tiers.map((tier) => ({
+      id: tier.id,
+      name: tier.name,
+      description: tier.description,
+      services,
+      laborRate: laborRate ?? formatCurrency(sumByCategory("labor", tier.key)),
+      materials: formatCurrency(sumByCategory("material", tier.key)),
+      totalPrice: formatCurrency(tier.total),
+      recommended: tier.recommended,
+    }));
+  }, [quote.lineItems, totals, vendorProfile]);
+
+  const handleSelectOption = useCallback((option: QuoteOption) => {
+    setPreferredOptionId(option.id);
+    toastSuccess(`Preferred option set to ${option.name}.`);
+  }, []);
+
+  const preferredOptionName =
+    comparisonOptions.find((o) => o.id === preferredOptionId)?.name ??
+    "Recommended";
 
   const handleQuoteUpdate = useCallback(
     (updates: Partial<GeneratedQuote>) => {
@@ -344,26 +421,18 @@ export function QuoteResult({
         )}
       </div>
 
-      {/* Price range cards */}
-      <div className="relative grid items-start gap-4 sm:grid-cols-3">
-        <PriceCard
-          label="Low Estimate"
-          amount={totals.low}
-          description="Budget-conscious scope"
-          variant="muted"
+      {/* Price comparison */}
+      <div>
+        <QuoteComparison
+          options={comparisonOptions}
+          onSelect={handleSelectOption}
         />
-        <PriceCard
-          label="Recommended"
-          amount={totals.recommended}
-          description="Best value for this job"
-          variant="primary"
-        />
-        <PriceCard
-          label="High Estimate"
-          amount={totals.high}
-          description="Premium materials & scope"
-          variant="muted"
-        />
+        <p className="mt-4 text-center text-sm text-slate-500">
+          Preferred option:{" "}
+          <span className="font-semibold text-emerald-700">
+            {preferredOptionName}
+          </span>
+        </p>
       </div>
 
       {quote.photoAnalysis ? (
@@ -514,51 +583,6 @@ export function QuoteResult({
           mode={defaultSendOpen ? "resend" : "send"}
         />
       )}
-    </div>
-  );
-}
-
-function PriceCard({
-  label,
-  amount,
-  description,
-  variant,
-}: {
-  label: string;
-  amount: number;
-  description: string;
-  variant: "primary" | "muted";
-}) {
-  if (variant === "primary") {
-    return (
-      <div className="relative z-10 scale-[1.03] rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-700 p-5 shadow-lg shadow-emerald-200/50 ring-1 ring-emerald-500/20">
-        {/* Best Value badge */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="whitespace-nowrap rounded-full bg-white px-3 py-0.5 text-xs font-bold text-emerald-700 shadow-sm ring-1 ring-emerald-200">
-            Best Value
-          </span>
-        </div>
-
-        <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">
-          {label}
-        </p>
-        <p className="mt-1 text-3xl font-extrabold text-white">
-          {formatCurrency(amount)}
-        </p>
-        <p className="mt-1 text-xs text-emerald-200">{description}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-        {label}
-      </p>
-      <p className="mt-1 text-2xl font-bold text-slate-800">
-        {formatCurrency(amount)}
-      </p>
-      <p className="mt-1 text-xs text-slate-400">{description}</p>
     </div>
   );
 }
