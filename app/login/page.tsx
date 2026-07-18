@@ -99,11 +99,11 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-[100dvh] flex-col lg:flex-row">
       {/* LEFT PANEL — brand storytelling (desktop) */}
-      <aside className="relative hidden overflow-hidden bg-gradient-to-br from-slate-900 to-emerald-950 lg:flex lg:w-[55%] lg:flex-col lg:justify-between lg:p-14">
+      <aside className="relative hidden overflow-hidden bg-gradient-to-br from-slate-900 to-emerald-950 lg:flex lg:w-[55%] lg:flex-col lg:justify-between lg:gap-8 lg:overflow-y-auto lg:p-14">
         <HomePattern />
         <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-emerald-500/20 blur-3xl" />
 
-        <div className="relative">
+        <div className="relative shrink-0">
           <BrandLockup />
         </div>
 
@@ -117,7 +117,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="relative">
+        <div className="relative shrink-0">
           <TrustPills />
         </div>
       </aside>

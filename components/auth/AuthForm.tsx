@@ -31,6 +31,7 @@ export function AuthForm({
   const router = useRouter();
   const { signIn, signUp, resetPassword } = useAuth();
   const [mode, setMode] = useState<AuthMode>(initialMode);
+  const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState(initialEmail ?? "");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -38,7 +39,10 @@ export function AuthForm({
 
   const switchMode = (next: AuthMode) => {
     setMode(next);
-    if (next !== "signup") setPassword("");
+    if (next !== "signup") {
+      setPassword("");
+      setFirstName("");
+    }
     setShowPassword(false);
   };
 
@@ -132,7 +136,9 @@ export function AuthForm({
   const subtitle =
     mode === "forgot"
       ? "Enter your email and we'll send you a link to reset your password."
-      : "Sign in to save quotes and vendor settings across devices.";
+      : mode === "signup"
+        ? "Get AI-powered quotes from vetted SWFL vendors in minutes."
+        : "Save quotes and manage your home service requests across devices.";
 
   const signupStrength = evaluatePasswordStrength(password);
   const submitDisabled =
@@ -149,6 +155,27 @@ export function AuthForm({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        {mode === "signup" && (
+          <div>
+            <label
+              htmlFor="firstName"
+              className="mb-1.5 block text-sm font-medium text-slate-700"
+            >
+              First name
+            </label>
+            <input
+              id="firstName"
+              type="text"
+              autoComplete="given-name"
+              required
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className={inputClass}
+              placeholder="Alex"
+            />
+          </div>
+        )}
+
         <div>
           <label
             htmlFor="email"
@@ -164,7 +191,7 @@ export function AuthForm({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className={inputClass}
-            placeholder="you@company.com"
+            placeholder="your@email.com"
           />
         </div>
 
