@@ -13,7 +13,11 @@ import {
   AutoFillBadge,
   PropertyLookupSection,
 } from "./PropertyLookupSection";
-import { ServiceTypeSelector } from "./ServiceTypeSelector";
+import {
+  ServiceTypeSelector,
+  sampleServices,
+  type ServiceType as ServiceSelectorItem,
+} from "@/components/quote/ServiceTypeSelector";
 import type {
   PropertyLookupResult,
   PropertyMatchType,
@@ -21,6 +25,7 @@ import type {
 import { toastValidationErrors } from "@/lib/validation/toast";
 import {
   INITIAL_FORM_DATA,
+  SERVICE_OPTIONS,
   STORY_OPTIONS,
   type AutoFilledPropertyField,
   type QuoteFormData,
@@ -41,6 +46,36 @@ function autoFilledFieldClass(isAutoFilled: boolean): string {
     ? `${inputClass} border-mercurius-200 bg-mercurius-50/70 ring-1 ring-mercurius-100/80`
     : inputClass;
 }
+
+function GeneralServiceIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="size-7"
+    >
+      <path d="M14.7 6.3a3.9 3.9 0 0 0-5.1 5.1l-6 6 2 2 6-6a3.9 3.9 0 0 0 5.1-5.1l-2.4 2.4-2-2 2.4-2.4Z" />
+    </svg>
+  );
+}
+
+// Map the app's canonical SERVICE_OPTIONS onto the visual selector's shape so we
+// keep every service (including "Other") and the existing serviceType values.
+const SERVICE_SELECTOR_ITEMS: ServiceSelectorItem[] = SERVICE_OPTIONS.map(
+  (option) => ({
+    id: option.id,
+    label: option.label,
+    icon:
+      sampleServices.find((service) => service.id === option.id)?.icon ?? (
+        <GeneralServiceIcon />
+      ),
+  })
+);
 
 interface QuoteFormProps {
   onSubmit: (data: QuoteFormData) => Promise<void>;
@@ -236,10 +271,27 @@ export function QuoteForm({
           description="Select the trade. We'll tailor pricing logic and local factors to your specialty."
         >
           <ServiceTypeSelector
-            value={formData.serviceType}
-            onChange={(v: ServiceType) => updateField("serviceType", v)}
-            error={errors.serviceType}
+            services={SERVICE_SELECTOR_ITEMS}
+            value={formData.serviceType || undefined}
+            onSelect={(service) =>
+              updateField("serviceType", service.id as ServiceType)
+            }
           />
+          {errors.serviceType && (
+            <p
+              className="mt-3 flex items-center gap-1 text-xs text-red-500"
+              role="alert"
+            >
+              <svg className="h-3 w-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              {errors.serviceType}
+            </p>
+          )}
         </FormSection>
       </div>
 
