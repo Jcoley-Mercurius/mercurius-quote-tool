@@ -3,31 +3,35 @@ import type { ReactNode } from "react";
 interface Benefit {
   title: string;
   description: string;
+  supportingText: string;
   icon: ReactNode;
 }
 
-function MatchingIcon() {
+function QuoteGenerationIcon() {
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="size-6">
       <path
-        d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"
+        d="M7 3h7l4 4v14H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"
         stroke="currentColor"
         strokeWidth="1.75"
-        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.75" />
       <path
-        d="m10.5 12 1 1 2-2"
+        d="M14 3v5h5M9 13h6M9 17h4"
         stroke="currentColor"
         strokeWidth="1.75"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      <path
+        d="m18.5 11 .45 1.05L20 12.5l-1.05.45L18.5 14l-.45-1.05L17 12.5l1.05-.45L18.5 11Z"
+        fill="currentColor"
+      />
     </svg>
   );
 }
 
-function PricingIcon() {
+function TransparentPricingIcon() {
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="size-6">
       <path
@@ -45,17 +49,25 @@ function PricingIcon() {
   );
 }
 
-function VendorIcon() {
+function DeliveryIcon() {
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="size-6">
       <path
-        d="M12 3 5 6v5c0 4.8 2.9 8.1 7 10 4.1-1.9 7-5.2 7-10V6l-7-3Z"
+        d="M5 3h10a2 2 0 0 1 2 2v5M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"
         stroke="currentColor"
         strokeWidth="1.75"
+        strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="m9 12 2 2 4-4"
+        d="M7 8h6M7 12h4"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <circle cx="17" cy="16" r="4" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="m15.5 16 1 1 2-2"
         stroke="currentColor"
         strokeWidth="1.75"
         strokeLinecap="round"
@@ -67,22 +79,25 @@ function VendorIcon() {
 
 const benefits: Benefit[] = [
   {
-    title: "AI-Powered Matching",
+    title: "AI-Powered Quote Generation",
     description:
-      "Tell us about your property and project. Mercurius analyzes the details to match you with the right service and quote.",
-    icon: <MatchingIcon />,
+      "Vendors turn property details, service requirements, and local pricing into polished, accurate quotes in minutes.",
+    supportingText: "Less admin work. More time serving clients.",
+    icon: <QuoteGenerationIcon />,
   },
   {
-    title: "Transparent Pricing",
+    title: "Transparent Pricing for Homeowners",
     description:
-      "Compare clear, itemized options without hidden fees, confusing estimates, or uncomfortable price negotiations.",
-    icon: <PricingIcon />,
+      "Homeowners receive clear, itemized options that make costs easy to understand and compare without haggling or guesswork.",
+    supportingText: "Clarity that builds confidence and trust.",
+    icon: <TransparentPricingIcon />,
   },
   {
-    title: "Trusted Local Vendors",
+    title: "Seamless Client Delivery & Acceptance",
     description:
-      "Connect with qualified professionals who understand Southwest Florida homes, conditions, and service standards.",
-    icon: <VendorIcon />,
+      "Send a professional quote directly to the client, collect feedback, and capture acceptance in one streamlined experience.",
+    supportingText: "From estimate to approved work, all in one place.",
+    icon: <DeliveryIcon />,
   },
 ];
 
@@ -93,19 +108,19 @@ export function HowMercuriusWorks() {
       className="bg-slate-50 px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24"
     >
       <div className="mx-auto flex max-w-7xl flex-col gap-10">
-        <header className="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
+        <header className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
           <p className="text-sm font-bold uppercase tracking-widest text-emerald-600">
-            Simple by design
+            Built for better business
           </p>
           <h2
             id="how-mercurius-works"
             className="text-balance text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl"
           >
-            How Mercurius works
+            Better quotes for vendors. Better decisions for homeowners.
           </h2>
-          <p className="text-pretty text-base leading-7 text-slate-600 sm:text-lg">
-            From property details to a trusted professional, we make every step
-            of your home service decision clearer.
+          <p className="max-w-2xl text-pretty text-base leading-7 text-slate-600 sm:text-lg">
+            Mercurius helps home service professionals create, deliver, and win
+            clear quotes while giving every homeowner a simpler way to say yes.
           </p>
         </header>
         <ol className="grid grid-cols-1 gap-5 md:grid-cols-3">
@@ -125,12 +140,15 @@ export function HowMercuriusWorks() {
                   0{index + 1}
                 </span>
               </div>
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-1 flex-col gap-3">
                 <h3 className="text-balance text-xl font-bold text-slate-950">
                   {benefit.title}
                 </h3>
                 <p className="text-pretty text-sm leading-6 text-slate-600">
                   {benefit.description}
+                </p>
+                <p className="mt-auto border-t border-slate-100 pt-4 text-sm font-semibold leading-6 text-emerald-700">
+                  {benefit.supportingText}
                 </p>
               </div>
             </li>
