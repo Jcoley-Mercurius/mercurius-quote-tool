@@ -1,6 +1,8 @@
 import { getSupabaseClient } from "@/lib/supabase/client";
 import type {
+  RepairRequestDetail,
   RepairRequestLead,
+  RepairRequestPhoto,
   RepairRequestStatus,
   RepairUrgency,
 } from "./types";
@@ -17,6 +19,7 @@ interface RepairRequestRow {
   email: string;
   phone: string | null;
   status: RepairRequestStatus;
+  photos?: RepairRequestPhoto[] | null;
 }
 
 function mapRow(row: RepairRequestRow): RepairRequestLead {
@@ -33,6 +36,23 @@ function mapRow(row: RepairRequestRow): RepairRequestLead {
     phone: row.phone ?? "",
     status: row.status,
   };
+}
+
+function mapPhotos(photos: RepairRequestPhoto[] | null | undefined): RepairRequestPhoto[] {
+  if (!Array.isArray(photos)) return [];
+  return photos
+    .filter(
+      (photo) =>
+        photo &&
+        typeof photo.dataUrl === "string" &&
+        photo.dataUrl.startsWith("data:image/")
+    )
+    .map((photo) => ({
+      name: typeof photo.name === "string" ? photo.name : "",
+      mimeType: typeof photo.mimeType === "string" ? photo.mimeType : "image/jpeg",
+      dataUrl: photo.dataUrl,
+      size: typeof photo.size === "number" ? photo.size : 0,
+    }));
 }
 
 /**
@@ -71,4 +91,64 @@ export async function fetchPendingRepairRequests(): Promise<RepairRequestLead[]>
   }
 
   return (data as RepairRequestRow[] | null)?.map(mapRow) ?? [];
+}
+
+/**
+ * Fetch a single repair request (including photos) for quote-form prefill.
+ */
+export async function fetchRepairRequestById(
+  id: string
+): Promise<RepairRequestDetail | null> {
+  const trimmed = id.trim();
+  if (!trimmed) return null;
+
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("repair_requests")
+    .select(
+      "id, created_at, service_type, description, location, zip, urgency, name, email, phone, status, photos"
+    )
+    .eq("id", trimmed)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[repair-requests] fetch by id failed:", {
+      id: trimmed,
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
+    throw new Error(error.message || "Could not load this repair request.");
+  }
+
+  if (!data) return null;
+
+  const row = data as RepairRequestRow;
+  return {
+    ...mapRow(row),
+    photos: mapPhotos(row.photos),
+  };
+}
+
+/** Mark a repair request as quoted after a vendor generates a quote from it. */
+export async function markRepairRequestQuoted(id: string): Promise<void> {
+  const trimmed = id.trim();
+  if (!trimmed) return;
+
+  const supabase = getSupabaseClient();
+  const { error } = await supabase
+    .from("repair_requests")
+    .update({ status: "quoted" })
+    .eq("id", trimmed)
+    .eq("status", "pending");
+
+  if (error) {
+    // Non-fatal for quote generation — log and continue.
+    console.error("[repair-requests] mark quoted failed:", {
+      id: trimmed,
+      code: error.code,
+      message: error.message,
+    });
+  }
 }

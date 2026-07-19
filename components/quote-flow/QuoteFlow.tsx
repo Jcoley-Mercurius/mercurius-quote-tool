@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useWorkspace } from "@/components/organizations/WorkspaceProvider";
 import { useQuoteHistory } from "@/components/quotes/QuoteHistoryProvider";
@@ -32,6 +32,13 @@ import type {
   QuoteFormPayload,
   QuotePhotoInput,
 } from "@/lib/quote/types";
+import {
+  fetchRepairRequestById,
+  markRepairRequestQuoted,
+} from "@/lib/repair/api";
+import { repairRequestToQuoteFormData } from "@/lib/repair/to-quote-form";
+import type { RepairRequestDetail } from "@/lib/repair/types";
+import { REPAIR_URGENCY_LABELS } from "@/lib/repair/types";
 
 function toPayload(form: QuoteFormData): QuoteFormPayload {
   return {
@@ -74,6 +81,7 @@ export function QuoteFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const quoteIdParam = searchParams.get("quoteId");
+  const repairRequestIdParam = searchParams.get("repairRequestId");
   const { user } = useAuth();
   const { profile, pricingSettings } = useVendorProfile();
   const { workspace, isLoading: workspaceLoading } = useWorkspace();
@@ -114,6 +122,55 @@ export function QuoteFlow() {
   const [autoOpenSend, setAutoOpenSend] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [quoteRevision, setQuoteRevision] = useState(0);
+
+  // Prefill from a homeowner repair request (?repairRequestId=...)
+  const [repairPrefill, setRepairPrefill] = useState<QuoteFormData | null>(null);
+  const [repairLead, setRepairLead] = useState<RepairRequestDetail | null>(null);
+  const [repairPrefillLoading, setRepairPrefillLoading] = useState(
+    Boolean(repairRequestIdParam && !quoteIdParam)
+  );
+  const [repairPrefillError, setRepairPrefillError] = useState<string | null>(
+    null
+  );
+
+  useEffect(() => {
+    if (!repairRequestIdParam || quoteIdParam) return;
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const request = await fetchRepairRequestById(repairRequestIdParam);
+        if (cancelled) return;
+        if (!request) {
+          setRepairPrefillError("This repair request could not be found.");
+          setRepairPrefill(null);
+          setRepairLead(null);
+          return;
+        }
+        const formData = await repairRequestToQuoteFormData(request);
+        if (cancelled) return;
+        setRepairLead(request);
+        setRepairPrefill(formData);
+        setRepairPrefillError(null);
+      } catch (err) {
+        if (cancelled) return;
+        setRepairPrefillError(
+          err instanceof Error
+            ? err.message
+            : "Could not load this repair request."
+        );
+        setRepairPrefill(null);
+        setRepairLead(null);
+      } finally {
+        if (!cancelled) setRepairPrefillLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [repairRequestIdParam, quoteIdParam]);
 
   const attachPhotoThumbnails = async (
     quoteId: string,
@@ -213,6 +270,11 @@ export function QuoteFlow() {
       if (quoteWithPhotos.photoThumbnails) {
         await updateQuote(saved.id, { quote: quoteWithPhotos });
       }
+
+      if (repairRequestIdParam) {
+        await markRepairRequestQuoted(repairRequestIdParam);
+      }
+
       toastDismiss(loadingId);
       const savedToCurrentWorkspace =
         (saveTarget.type === "personal" && workspace.type === "personal") ||
@@ -481,12 +543,47 @@ export function QuoteFlow() {
     );
   }
 
+  if (repairRequestIdParam && !quoteIdParam && repairPrefillLoading) {
+    return <LoadingState message="Loading repair request..." />;
+  }
+
+  if (repairRequestIdParam && !quoteIdParam && repairPrefillError) {
+    return (
+      <ErrorFallback
+        title="Could not open repair request"
+        message={repairPrefillError}
+        onRetry={() => router.replace("/quotes")}
+        retryLabel="Back to History"
+        showHomeLink
+      />
+    );
+  }
+
   return (
-    <QuoteForm
-      onSubmit={handleNewQuoteSubmit}
-      saveTarget={saveTarget}
-      onSaveTargetChange={setSaveTarget}
-    />
+    <>
+      {repairLead && (
+        <div className="mx-auto mb-6 max-w-3xl rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 sm:px-5">
+          <p className="font-semibold">
+            Prefilling from {repairLead.name}&apos;s repair request
+          </p>
+          <p className="mt-0.5 text-emerald-800/80">
+            {REPAIR_URGENCY_LABELS[repairLead.urgency]} · {repairLead.zip}
+            {repairLead.email ? ` · ${repairLead.email}` : ""}
+            {" — "}review the details below, then generate your quote.
+          </p>
+        </div>
+      )}
+      <QuoteForm
+        key={repairRequestIdParam ?? "new-quote"}
+        onSubmit={handleNewQuoteSubmit}
+        initialData={repairPrefill ?? undefined}
+        saveTarget={saveTarget}
+        onSaveTargetChange={setSaveTarget}
+        submitLabel={
+          repairLead ? "Generate Quote for this Request" : undefined
+        }
+      />
+    </>
   );
 }
 
