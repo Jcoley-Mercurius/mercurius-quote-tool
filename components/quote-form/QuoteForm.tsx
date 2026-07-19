@@ -179,46 +179,132 @@ export function QuoteForm({
     }
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="mx-auto max-w-3xl space-y-6">
-      {/* Hero */}
-      <div className="text-center sm:text-left">
-        {profile.businessName && (
-          <Link
-            href="/settings"
-            className="mb-3 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 ring-1 ring-slate-200 transition-colors hover:bg-slate-200"
-          >
-            {profile.businessName} · ${profile.laborRatePerHour}/hr labor
-          </Link>
-        )}
-        <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-mercurius-50 px-3 py-1 text-xs font-medium text-mercurius-700 ring-1 ring-mercurius-100">
-          <svg viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
-            <path d="M8 1a4 4 0 0 0-4 4v1H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-1V5a4 4 0 0 0-4-4zm2 5V5a2 2 0 1 0-4 0v1h4z" />
-          </svg>
-          Cape Coral & Fort Myers · Lee County
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-          Create a professional quote
-        </h1>
-        <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-500 sm:text-base">
-          Built for SWFL contractors. We factor in local housing stock, hurricane
-          requirements, and market conditions so your quotes are accurate and
-          impressive.
-        </p>
+  const wizardSteps = [
+    { label: "Service", complete: Boolean(formData.serviceType) },
+    {
+      label: "Property",
+      complete: Boolean(
+        formData.squareFootage && formData.stories && formData.yearBuilt
+      ),
+    },
+    {
+      label: "Job details",
+      complete: Boolean(
+        formData.zipCode.length === 5 &&
+          formData.jobDescription.trim().length >= 10
+      ),
+    },
+  ];
+  const activeStepIndex = wizardSteps.findIndex((step) => !step.complete);
+  const displayStepIndex = activeStepIndex === -1 ? wizardSteps.length - 1 : activeStepIndex;
 
-        {/* Progress bar */}
-        <div className="mt-5 flex items-center gap-3">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200">
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="mx-auto flex max-w-5xl flex-col gap-6 pb-24 md:pb-0"
+    >
+      <header className="flex flex-col gap-6">
+        <Link
+          href="/quotes"
+          className="group inline-flex w-fit items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-4"
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 20 20"
+            fill="none"
+            className="size-4 transition-transform group-hover:-translate-x-0.5"
+          >
+            <path
+              d="M16 10H4m5-5-5 5 5 5"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Back to quotes
+        </Link>
+
+        <div className="flex flex-col gap-5 border-b border-slate-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex max-w-2xl flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full bg-mercurius-50 px-3 py-1 text-xs font-semibold text-mercurius-700 ring-1 ring-mercurius-100">
+                <svg aria-hidden="true" viewBox="0 0 16 16" fill="currentColor" className="size-3.5">
+                  <path d="M8 1a4 4 0 0 0-4 4v1H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-1V5a4 4 0 0 0-4-4zm2 5V5a2 2 0 1 0-4 0v1h4z" />
+                </svg>
+                SWFL market intelligence
+              </span>
+              {profile.businessName && (
+                <Link
+                  href="/settings"
+                  className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 ring-1 ring-slate-200 transition-colors hover:bg-slate-200"
+                >
+                  {profile.businessName} · ${profile.laborRatePerHour}/hr
+                </Link>
+              )}
+            </div>
+            <h1 className="text-balance text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+              Create a new quote
+            </h1>
+            <p className="text-pretty text-sm leading-6 text-slate-500 sm:text-base">
+              Add the job details and Mercurius will build a polished, locally
+              informed quote ready to send to your client.
+            </p>
+          </div>
+          <p className="shrink-0 text-sm font-semibold tabular-nums text-emerald-700">
+            {completionScore}% complete
+          </p>
+        </div>
+
+        <nav aria-label="Quote creation progress" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+          <ol className="grid grid-cols-3 gap-2 sm:gap-4">
+            {wizardSteps.map((step, index) => {
+              const isComplete = step.complete;
+              const isCurrent = index === displayStepIndex && !isComplete;
+              return (
+                <li key={step.label} className="flex min-w-0 items-center gap-2 sm:gap-3">
+                  <span
+                    className={[
+                      "flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-colors",
+                      isComplete
+                        ? "border-emerald-600 bg-emerald-600 text-white"
+                        : isCurrent
+                          ? "border-emerald-600 bg-emerald-50 text-emerald-700"
+                          : "border-slate-200 bg-slate-50 text-slate-400",
+                    ].join(" ")}
+                  >
+                    {isComplete ? (
+                      <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" className="size-4">
+                        <path d="m3.5 8 3 3 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    ) : (
+                      index + 1
+                    )}
+                  </span>
+                  <span className={isCurrent || isComplete ? "truncate text-xs font-semibold text-slate-900 sm:text-sm" : "truncate text-xs font-medium text-slate-400 sm:text-sm"}>
+                    {step.label}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+          <div
+            className="mt-4 h-1.5 overflow-hidden rounded-full bg-slate-100"
+            role="progressbar"
+            aria-label="Quote completion"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={completionScore}
+          >
             <div
-              className="h-full rounded-full bg-emerald-600 transition-all duration-500"
+              className="h-full rounded-full bg-emerald-600 transition-[width] duration-500"
               style={{ width: `${completionScore}%` }}
             />
           </div>
-          <span className="text-xs font-medium text-slate-400">
-            {completionScore}% complete
-          </span>
-        </div>
-      </div>
+        </nav>
+      </header>
+
+      <div className="flex flex-col gap-6 rounded-2xl border border-slate-200 bg-slate-50/70 p-3 shadow-sm sm:p-5 lg:p-6">
 
       {/* Section 1: Service Type */}
       <div data-error={!!errors.serviceType}>
@@ -459,35 +545,44 @@ export function QuoteForm({
         />
       </FormSection>
 
-      {/* Submit */}
-      <div className="sticky bottom-0 -mx-6 border-t border-slate-200 bg-white/90 px-6 py-4 backdrop-blur-sm sm:-mx-0 sm:rounded-2xl sm:border sm:shadow-sm">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-slate-400">
-            AI analyzes SWFL market factors to build your quote in seconds.
+      </div>
+
+      {/* Desktop action */}
+      <div className="hidden items-center justify-between gap-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:flex">
+        <div className="flex flex-col gap-1">
+          <p className="text-sm font-semibold text-slate-900">Ready to build your quote?</p>
+          <p className="text-xs leading-5 text-slate-500">
+            AI analyzes your details and SWFL market factors in seconds.
           </p>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-8 py-3 text-sm font-semibold text-white shadow-sm transition duration-150 hover:bg-emerald-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isSubmitting ? (
-              <>
-                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                Generating Quote...
-              </>
-            ) : (
-              <>
-                {submitLabel}
-                <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-                  <path fillRule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.06-1.06l5.5 5.25a.75.75 0 010 1.06l-5.5 5.25a.75.75 0 11-1.06-1.06l4.158-3.96H3.75A.75.75 0 013 10z" clipRule="evenodd" />
-                </svg>
-              </>
-            )}
-          </button>
         </div>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSubmitting ? "Generating Quote..." : submitLabel}
+          {!isSubmitting && (
+            <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="size-4">
+              <path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </button>
+      </div>
+
+      {/* Mobile action */}
+      <div className="fixed inset-x-0 bottom-0 z-30 rounded-t-2xl border-x border-t border-slate-200 bg-white/95 px-4 pt-3 shadow-[0_-8px_30px_rgba(15,23,42,0.10)] backdrop-blur-md md:hidden pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="mx-auto flex min-h-14 w-full max-w-lg items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-4 text-base font-semibold text-white shadow-sm transition hover:bg-emerald-700 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transform-none"
+        >
+          {isSubmitting ? "Generating Quote..." : submitLabel}
+          {!isSubmitting && (
+            <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="size-5">
+              <path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </button>
       </div>
     </form>
   );
