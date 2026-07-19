@@ -86,10 +86,10 @@ const benefits: Benefit[] = [
     icon: <QuoteGenerationIcon />,
   },
   {
-    title: "AI-Matched to Trusted Vendors",
+    title: "AI Finds Your Best-Fit Vendors",
     description:
-      "We route each request to the right local pros, who receive warm, ready-to-quote leads — never cold contact lists.",
-    supportingText: "Warm repair leads that actually convert.",
+      "Our matching engine analyzes the repair, property, urgency, and vendor specialties to route your request to the pros most likely to win it.",
+    supportingText: "Smart matching — not a directory dump.",
     icon: <DeliveryIcon />,
   },
   {
@@ -110,18 +110,18 @@ export function HowMercuriusWorks() {
       <div className="mx-auto flex max-w-7xl flex-col gap-10">
         <header className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
           <p className="text-sm font-bold uppercase tracking-widest text-emerald-600">
-            How it works
+            AI-powered matching
           </p>
           <h2
             id="how-mercurius-works"
             className="text-balance text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl"
           >
-            From repair request to work won — in one flow.
+            AI matches every repair to the right local pro.
           </h2>
           <p className="max-w-2xl text-pretty text-base leading-7 text-slate-600 sm:text-lg">
-            Homeowners describe the problem, AI matches it to trusted local
-            vendors, and quotes come back fast. Warm leads for pros, clear
-            choices for homeowners.
+            Describe the problem once. Our matching engine reads your property,
+            urgency, and job scope to connect you with the vendors most likely to
+            win the work — warm leads for pros, fast quotes for homeowners.
           </p>
         </header>
         <ol className="grid grid-cols-1 gap-5 md:grid-cols-3">

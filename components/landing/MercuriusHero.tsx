@@ -8,8 +8,8 @@ interface MercuriusHeroProps {
 }
 
 const trustStats = [
+  { value: "~2 min", label: "Avg. match time" },
   { value: "2,400+", label: "Local vendors" },
-  { value: "18,000+", label: "Repairs quoted" },
   { value: "4.9/5", label: "Homeowner rating" },
 ];
 
@@ -60,17 +60,17 @@ export function MercuriusHero({
             <div className="flex flex-col gap-6">
               <div className="flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700">
                 <ShieldIcon />
-                The repair marketplace for SWFL homes
+                AI-powered repair matching
               </div>
               <div className="flex flex-col gap-5">
                 <h1 className="max-w-3xl text-balance text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl lg:leading-[1.05]">
-                  Repairs matched. Quotes delivered.{" "}
-                  <span className="text-emerald-600">Your home, handled.</span>
+                  Every repair, instantly{" "}
+                  <span className="text-emerald-600">matched by AI.</span>
                 </h1>
                 <p className="max-w-xl text-pretty text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
-                  Homeowners submit a repair request and AI matches it to trusted
-                  local vendors — warm, ready-to-quote leads for pros, clear
-                  quotes for homeowners.
+                  Describe the problem once. Our matching engine analyzes your
+                  property and routes it to the best-fit local vendors — warm,
+                  ready-to-quote leads for pros, fast quotes for homeowners.
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row">
@@ -118,10 +118,11 @@ export function MercuriusHero({
                 </span>
                 <div className="min-w-0">
                   <p className="font-semibold text-slate-950">
-                    Warm repair leads
+                    AI matching engine
                   </p>
                   <p className="text-sm leading-6 text-slate-600">
-                    AI routes each request to the right local pro, ready to quote.
+                    Analyzes your property and repair to find best-fit local pros
+                    in seconds.
                   </p>
                 </div>
               </div>

@@ -60,6 +60,7 @@ export function AppHeader() {
   const isAuthPage =
     pathname === "/login" ||
     pathname === "/auth/reset-password" ||
+    pathname === "/request-repair" ||
     pathname.startsWith("/invite/") ||
     pathname.startsWith("/quote/");
 

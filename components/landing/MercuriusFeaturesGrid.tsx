@@ -109,18 +109,18 @@ function DashboardIcon() {
 
 const features: Feature[] = [
   {
-    eyebrow: "Match",
+    eyebrow: "The core",
     title: "AI Repair Matching",
     description:
-      "Homeowners submit a repair request and AI routes it to the best-fit local vendors—structured, detailed, and ready to quote.",
+      "Our engine analyzes the repair, property, urgency, and vendor specialties to route each request to the pros most likely to win it — in seconds, not days.",
     icon: <SparklesIcon />,
     wide: true,
   },
   {
     eyebrow: "Capture",
-    title: "Photo-Based Requests",
+    title: "AI Photo Analysis",
     description:
-      "Homeowners add photos of the problem so vendors can assess scope and quote accurately—before the first visit.",
+      "AI reads homeowner photos to gauge scope and severity, so matched vendors can quote accurately before the first visit.",
     icon: <ImageIcon />,
   },
   {
@@ -163,17 +163,18 @@ export function MercuriusFeaturesGrid() {
       <div className="mx-auto flex max-w-7xl flex-col gap-12">
         <header className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
           <p className="text-sm font-bold uppercase tracking-widest text-emerald-600">
-            One platform, both sides
+            Powered by AI matching
           </p>
           <h2
             id="mercurius-features-title"
             className="text-balance text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl lg:text-5xl"
           >
-            Everything a repair takes — from request to won work.
+            Intelligent matching at the core of every repair.
           </h2>
           <p className="max-w-2xl text-pretty text-base leading-7 text-slate-600 sm:text-lg">
-            Mercurius connects homeowners who need repairs with local vendors who
-            want warm leads, and streamlines every step in between.
+            A smart marketplace that reads each job and connects homeowners with
+            the best-fit local vendors — then streamlines every step from request
+            to won work.
           </p>
         </header>
         <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">

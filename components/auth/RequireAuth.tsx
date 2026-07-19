@@ -5,7 +5,11 @@ import { useEffect } from "react";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { useAuth } from "./AuthProvider";
 
-const AUTH_PUBLIC_PATHS = ["/login", "/auth/reset-password"];
+const AUTH_PUBLIC_PATHS = [
+  "/login",
+  "/auth/reset-password",
+  "/request-repair",
+];
 
 function isInvitePath(pathname: string): boolean {
   return pathname.startsWith("/invite/");
