@@ -29,6 +29,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Slide transition for the testimonial carousel */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Custom scrollbar for photo previews */
 .photo-scroll::-webkit-scrollbar {
   height: 6px;

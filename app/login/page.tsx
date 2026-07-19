@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { AuthForm } from "@/components/auth/AuthForm";
+import { TestimonialCarousel } from "@/components/ui/TestimonialCarousel";
 
 const TRUST_STATS = [
   "2,400+ vetted vendors",
@@ -115,6 +116,13 @@ export default function LoginPage() {
             AI-powered home service quotes matched to your property — no
             haggling, no guesswork.
           </p>
+        </div>
+
+        <div className="relative">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-emerald-300/80">
+            Loved by SWFL homeowners
+          </p>
+          <TestimonialCarousel className="max-w-xl" />
         </div>
 
         <div className="relative shrink-0">
