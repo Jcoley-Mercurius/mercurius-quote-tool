@@ -18,6 +18,7 @@ import {
   toastWarning,
 } from "@/lib/ui/toast";
 import { useVendorProfile } from "@/components/vendor/VendorProfileProvider";
+import { MercuriusHero } from "@/components/landing/MercuriusHero";
 import { QuoteForm } from "@/components/quote-form/QuoteForm";
 import { QuoteResult } from "@/components/quote-result/QuoteResult";
 import type { QuoteFormData } from "@/components/quote-form/types";
@@ -482,11 +483,20 @@ export function QuoteFlow() {
   }
 
   return (
-    <QuoteForm
-      onSubmit={handleNewQuoteSubmit}
-      saveTarget={saveTarget}
-      onSaveTargetChange={setSaveTarget}
-    />
+    <>
+      {/* Landing hero shown on the main entry when starting a fresh quote.
+          The primary CTA scrolls down to the builder below. */}
+      <div className="-mx-4 -mt-8 mb-8 sm:-mx-6 sm:-mt-12">
+        <MercuriusHero getQuoteHref="#quote-builder" vendorsHref="/settings" />
+      </div>
+      <div id="quote-builder" className="scroll-mt-24">
+        <QuoteForm
+          onSubmit={handleNewQuoteSubmit}
+          saveTarget={saveTarget}
+          onSaveTargetChange={setSaveTarget}
+        />
+      </div>
+    </>
   );
 }
 
