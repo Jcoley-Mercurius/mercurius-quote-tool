@@ -158,45 +158,45 @@ export function MercuriusFeaturesGrid() {
   return (
     <section
       aria-labelledby="mercurius-features-title"
-      className="bg-feature-surface px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24"
+      className="bg-white px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24"
     >
-      <div className="mx-auto flex max-w-7xl flex-col gap-10">
-        <header className="flex max-w-3xl flex-col gap-4">
-          <p className="text-sm font-bold uppercase tracking-widest text-emerald-500">
+      <div className="mx-auto flex max-w-7xl flex-col gap-12">
+        <header className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
+          <p className="text-sm font-bold uppercase tracking-widest text-emerald-600">
             Built for better quoting
           </p>
           <h2
             id="mercurius-features-title"
-            className="text-balance text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl"
+            className="text-balance text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl lg:text-5xl"
           >
             Everything you need to quote, present, and win the work.
           </h2>
-          <p className="max-w-2xl text-pretty text-base leading-7 text-slate-400 sm:text-lg">
+          <p className="max-w-2xl text-pretty text-base leading-7 text-slate-600 sm:text-lg">
             Mercurius brings intelligent estimating and a polished homeowner
             experience into one streamlined platform.
           </p>
         </header>
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature) => (
             <li
               key={feature.title}
-              className={`group flex min-h-72 flex-col justify-between gap-8 overflow-hidden rounded-2xl border border-slate-800 bg-feature-card p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-600 hover:shadow-xl hover:shadow-emerald-950/20 motion-reduce:transform-none motion-reduce:transition-none sm:p-7 ${
+              className={`group flex min-h-64 flex-col justify-between gap-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-900/5 motion-reduce:transform-none motion-reduce:transition-none sm:p-8 ${
                 feature.wide ? "lg:col-span-2" : ""
               }`}
             >
-              <div className="flex items-start justify-between gap-4">
-                <span className="flex size-12 items-center justify-center rounded-xl border border-emerald-900 bg-emerald-950 text-emerald-500 transition-colors group-hover:border-emerald-600 group-hover:bg-emerald-600 group-hover:text-white">
+              <div className="flex items-center justify-between gap-4">
+                <span className="flex size-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
                   {feature.icon}
                 </span>
-                <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
                   {feature.eyebrow}
                 </span>
               </div>
-              <div>
-                <h3 className="text-balance text-xl font-bold text-white sm:text-2xl">
+              <div className="flex flex-col gap-3">
+                <h3 className="text-balance text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">
                   {feature.title}
                 </h3>
-                <p className="mt-3 text-pretty text-sm leading-6 text-slate-400">
+                <p className="text-pretty text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">
                   {feature.description}
                 </p>
               </div>
