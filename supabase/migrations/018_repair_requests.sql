@@ -43,7 +43,8 @@ create index if not exists repair_requests_zip_idx
 
 -- ---------------------------------------------------------------------------
 -- Row Level Security
--- Anon can insert (public repair request form).
+-- Anon can INSERT (public repair request form) but must NOT SELECT.
+-- The API inserts with Prefer: return=minimal (no .select() chain).
 -- Authenticated users can read (vendor lead inbox; refine later by matching).
 -- ---------------------------------------------------------------------------
 alter table public.repair_requests enable row level security;
@@ -64,6 +65,8 @@ create policy "Authenticated users can read repair requests"
 
 -- ---------------------------------------------------------------------------
 -- Grants
+-- NOTE: Do not grant SELECT to anon — returning inserted rows via PostgREST
+-- would fail RLS and break the public submit API.
 -- ---------------------------------------------------------------------------
 grant select, insert on public.repair_requests to authenticated;
 grant insert on public.repair_requests to anon;
