@@ -79,25 +79,25 @@ function DeliveryIcon() {
 
 const benefits: Benefit[] = [
   {
-    title: "AI-Powered Quote Generation",
+    title: "Submit a Repair Request",
     description:
-      "Vendors turn property details, service requirements, and local pricing into polished, accurate quotes in minutes.",
-    supportingText: "Less admin work. More time serving clients.",
+      "Homeowners describe the problem and property details. AI structures it into a clear, actionable job scope in seconds.",
+    supportingText: "No jargon. No guesswork. Just the fix you need.",
     icon: <QuoteGenerationIcon />,
   },
   {
-    title: "Transparent Pricing for Homeowners",
+    title: "AI-Matched to Trusted Vendors",
     description:
-      "Homeowners receive clear, itemized options that make costs easy to understand and compare without haggling or guesswork.",
-    supportingText: "Clarity that builds confidence and trust.",
-    icon: <TransparentPricingIcon />,
+      "We route each request to the right local pros, who receive warm, ready-to-quote leads — never cold contact lists.",
+    supportingText: "Warm repair leads that actually convert.",
+    icon: <DeliveryIcon />,
   },
   {
-    title: "Seamless Client Delivery & Acceptance",
+    title: "Compare Quotes & Get It Fixed",
     description:
-      "Send a professional quote directly to the client, collect feedback, and capture acceptance in one streamlined experience.",
-    supportingText: "From estimate to approved work, all in one place.",
-    icon: <DeliveryIcon />,
+      "Homeowners compare clear, itemized quotes and accept in a click. Vendors win the work and get straight to the job.",
+    supportingText: "From request to repaired, all in one place.",
+    icon: <TransparentPricingIcon />,
   },
 ];
 
@@ -110,17 +110,18 @@ export function HowMercuriusWorks() {
       <div className="mx-auto flex max-w-7xl flex-col gap-10">
         <header className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
           <p className="text-sm font-bold uppercase tracking-widest text-emerald-600">
-            Built for better business
+            How it works
           </p>
           <h2
             id="how-mercurius-works"
             className="text-balance text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl"
           >
-            Better quotes for vendors. Better decisions for homeowners.
+            From repair request to work won — in one flow.
           </h2>
           <p className="max-w-2xl text-pretty text-base leading-7 text-slate-600 sm:text-lg">
-            Mercurius helps home service professionals create, deliver, and win
-            clear quotes while giving every homeowner a simpler way to say yes.
+            Homeowners describe the problem, AI matches it to trusted local
+            vendors, and quotes come back fast. Warm leads for pros, clear
+            choices for homeowners.
           </p>
         </header>
         <ol className="grid grid-cols-1 gap-5 md:grid-cols-3">

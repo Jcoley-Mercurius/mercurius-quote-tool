@@ -8,8 +8,8 @@ interface MercuriusHeroProps {
 }
 
 const trustStats = [
-  { value: "2,400+", label: "Trusted vendors" },
-  { value: "18,000+", label: "Quotes generated" },
+  { value: "2,400+", label: "Local vendors" },
+  { value: "18,000+", label: "Repairs quoted" },
   { value: "4.9/5", label: "Homeowner rating" },
 ];
 
@@ -60,16 +60,17 @@ export function MercuriusHero({
             <div className="flex flex-col gap-6">
               <div className="flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700">
                 <ShieldIcon />
-                Smarter home service decisions
+                The repair marketplace for SWFL homes
               </div>
               <div className="flex flex-col gap-5">
                 <h1 className="max-w-3xl text-balance text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl lg:leading-[1.05]">
-                  Smart quotes. Trusted vendors.{" "}
-                  <span className="text-emerald-600">Your home, protected.</span>
+                  Repairs matched. Quotes delivered.{" "}
+                  <span className="text-emerald-600">Your home, handled.</span>
                 </h1>
                 <p className="max-w-xl text-pretty text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
-                  AI-powered home service quotes matched to your property — no
-                  haggling, no guesswork.
+                  Homeowners submit a repair request and AI matches it to trusted
+                  local vendors — warm, ready-to-quote leads for pros, clear
+                  quotes for homeowners.
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row">
@@ -77,7 +78,7 @@ export function MercuriusHero({
                   href={getQuoteHref}
                   className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                 >
-                  Get a Quote
+                  Request a Repair
                   <ArrowIcon />
                 </Link>
                 <Link
@@ -117,10 +118,10 @@ export function MercuriusHero({
                 </span>
                 <div className="min-w-0">
                   <p className="font-semibold text-slate-950">
-                    Property-matched pricing
+                    Warm repair leads
                   </p>
                   <p className="text-sm leading-6 text-slate-600">
-                    Built around your home and local SWFL rates.
+                    AI routes each request to the right local pro, ready to quote.
                   </p>
                 </div>
               </div>

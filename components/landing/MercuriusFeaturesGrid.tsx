@@ -109,46 +109,46 @@ function DashboardIcon() {
 
 const features: Feature[] = [
   {
-    eyebrow: "Create",
-    title: "AI Quote Generation",
+    eyebrow: "Match",
+    title: "AI Repair Matching",
     description:
-      "Turn project details into polished, itemized quotes in minutes—with labor, materials, and local market factors already considered.",
+      "Homeowners submit a repair request and AI routes it to the best-fit local vendors—structured, detailed, and ready to quote.",
     icon: <SparklesIcon />,
     wide: true,
   },
   {
-    eyebrow: "Visualize",
-    title: "Reimagine Visualization",
+    eyebrow: "Capture",
+    title: "Photo-Based Requests",
     description:
-      "Help homeowners picture the finished project with clear, compelling AI-assisted visual concepts.",
+      "Homeowners add photos of the problem so vendors can assess scope and quote accurately—before the first visit.",
     icon: <ImageIcon />,
   },
   {
     eyebrow: "Compare",
-    title: "Transparent Pricing",
+    title: "Transparent Quotes",
     description:
-      "Present easy-to-understand options so clients can compare scope, materials, and total investment with confidence.",
+      "Clear, itemized options let homeowners compare scope, materials, and total cost with confidence—no haggling.",
     icon: <ReceiptIcon />,
   },
   {
     eyebrow: "Convert",
     title: "Client Portal & Acceptance",
     description:
-      "Deliver quotes through a professional client experience with simple review, selection, and digital acceptance.",
+      "Vendors deliver quotes through a professional experience with simple review, selection, and digital acceptance.",
     icon: <ClientIcon />,
   },
   {
     eyebrow: "Local Insight",
     title: "Local SWFL Expertise",
     description:
-      "Build estimates informed by Southwest Florida housing, weather, permit, and regional pricing considerations.",
+      "Estimates informed by Southwest Florida housing, weather, permits, and regional repair pricing.",
     icon: <PinIcon />,
   },
   {
-    eyebrow: "Manage",
-    title: "Vendor Dashboard",
+    eyebrow: "For Vendors",
+    title: "Warm Leads & Vendor Dashboard",
     description:
-      "Track active quotes, client decisions, and opportunities from one focused workspace built for service professionals.",
+      "Vendors receive qualified repair leads—not cold lists—and track requests, quotes, and won work from one focused workspace.",
     icon: <DashboardIcon />,
     wide: true,
   },
@@ -163,17 +163,17 @@ export function MercuriusFeaturesGrid() {
       <div className="mx-auto flex max-w-7xl flex-col gap-12">
         <header className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
           <p className="text-sm font-bold uppercase tracking-widest text-emerald-600">
-            Built for better quoting
+            One platform, both sides
           </p>
           <h2
             id="mercurius-features-title"
             className="text-balance text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl lg:text-5xl"
           >
-            Everything you need to quote, present, and win the work.
+            Everything a repair takes — from request to won work.
           </h2>
           <p className="max-w-2xl text-pretty text-base leading-7 text-slate-600 sm:text-lg">
-            Mercurius brings intelligent estimating and a polished homeowner
-            experience into one streamlined platform.
+            Mercurius connects homeowners who need repairs with local vendors who
+            want warm leads, and streamlines every step in between.
           </p>
         </header>
         <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
