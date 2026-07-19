@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { QuoteSaveTargetSelector } from "@/components/organizations/QuoteSaveTargetSelector";
+import { MobileQuoteActionBar } from "@/components/quote/MobileQuoteActionBar";
 import { useVendorProfile } from "@/components/vendor/VendorProfileProvider";
 import type { Workspace } from "@/lib/organizations/types";
 import { getSwflAreaName, isSwflZip, SWFL_PROPERTY_HINTS } from "@/lib/swfl";
@@ -160,8 +161,7 @@ export function QuoteForm({
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitQuote = async () => {
     const validationErrors = validateQuoteForm(formData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -179,8 +179,16 @@ export function QuoteForm({
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void submitQuote();
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="mx-auto max-w-3xl space-y-6">
+    <form
+      onSubmit={handleSubmit}
+      className="mx-auto max-w-3xl space-y-6 pb-24 md:pb-0"
+    >
       {/* Hero */}
       <div className="text-center sm:text-left">
         {profile.businessName && (
@@ -460,7 +468,7 @@ export function QuoteForm({
       </FormSection>
 
       {/* Submit */}
-      <div className="sticky bottom-0 -mx-6 border-t border-slate-200 bg-white/90 px-6 py-4 backdrop-blur-sm sm:-mx-0 sm:rounded-2xl sm:border sm:shadow-sm">
+      <div className="md:sticky md:bottom-0 -mx-6 border-t border-slate-200 bg-white/90 px-6 py-4 backdrop-blur-sm sm:-mx-0 sm:rounded-2xl sm:border sm:shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-slate-400">
             AI analyzes SWFL market factors to build your quote in seconds.
@@ -489,6 +497,16 @@ export function QuoteForm({
           </button>
         </div>
       </div>
+
+      {/* Sticky mobile CTA — appears once the user starts filling the form and
+          hides once every scored field is complete. */}
+      <MobileQuoteActionBar
+        isVisible={completionScore > 0}
+        isComplete={completionScore === 100}
+        onSubmit={() => void submitQuote()}
+        isSubmitting={isSubmitting}
+        label={submitLabel}
+      />
     </form>
   );
 }
