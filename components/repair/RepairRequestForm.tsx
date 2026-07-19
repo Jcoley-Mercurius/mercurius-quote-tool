@@ -10,8 +10,9 @@ import {
   type ServiceType as ServiceSelectorItem,
 } from "@/components/quote/ServiceTypeSelector";
 import { SERVICE_OPTIONS, type ServiceType } from "@/components/quote-form/types";
+import { encodePhotosForApi } from "@/lib/quote/photos";
 import { getSwflAreaName, isSwflZip } from "@/lib/swfl";
-import { toastSuccess } from "@/lib/ui/toast";
+import { toastError, toastSuccess } from "@/lib/ui/toast";
 import { toastValidationErrors } from "@/lib/validation/toast";
 
 const inputClass =
@@ -159,14 +160,52 @@ export function RepairRequestForm() {
 
     setIsSubmitting(true);
     try {
-      // No repair-request backend exists yet; simulate the handoff so the
-      // homeowner gets clear confirmation. Wire this to an API/table later.
-      await new Promise((resolve) => setTimeout(resolve, 700));
+      const encodedPhotos =
+        formData.photos.length > 0
+          ? await encodePhotosForApi(formData.photos)
+          : [];
+
+      const photos = encodedPhotos.map((photo, index) => ({
+        name: formData.photos[index]?.name ?? `photo-${index + 1}`,
+        mimeType: photo.mimeType,
+        dataUrl: photo.dataUrl,
+        size: formData.photos[index]?.size ?? 0,
+      }));
+
+      const response = await fetch("/api/repair-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          serviceType: formData.serviceType,
+          description: formData.jobDescription.trim(),
+          location: formData.propertyAddress.trim(),
+          zip: formData.zipCode,
+          urgency: formData.urgency,
+          photos,
+          name: formData.fullName.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+        }),
+      });
+
+      const payload = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        success?: boolean;
+      };
+
+      if (!response.ok) {
+        throw new Error(
+          payload.error ?? "Could not submit your repair request."
+        );
+      }
+
       const serviceLabel =
         SERVICE_OPTIONS.find((s) => s.id === formData.serviceType)?.label ??
         "your repair";
       setSubmittedService(serviceLabel);
       toastSuccess("Repair request submitted. We'll match you with local pros.");
+    } catch (err) {
+      toastError(err, "Could not submit your repair request. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
