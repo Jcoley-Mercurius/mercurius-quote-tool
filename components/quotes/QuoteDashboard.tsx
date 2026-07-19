@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   SERVICE_OPTIONS,
   type ServiceType,
@@ -27,13 +27,6 @@ import { LoadingState } from "@/components/ui/LoadingState";
 import { DeleteConfirmationModal } from "@/components/ui/DeleteConfirmationModal";
 import { toastError, toastSuccess } from "@/lib/ui/toast";
 import { useWorkspaceLabel } from "@/components/organizations/WorkspaceProvider";
-import { useAuth } from "@/components/auth/AuthProvider";
-import { useVendorProfile } from "@/components/vendor/VendorProfileProvider";
-import {
-  OnboardingChecklist,
-  type OnboardingStep,
-} from "@/components/vendor/OnboardingChecklist";
-import { hasCustomLogo } from "@/lib/vendor/logo";
 import { useQuoteHistory } from "./QuoteHistoryProvider";
 import { QuotesLoadBanner } from "./QuotesLoadBanner";
 import { DownloadQuotePhotosButton } from "@/components/photos/DownloadQuotePhotosButton";
@@ -124,7 +117,6 @@ export function QuoteDashboard() {
 
       <div className="mx-auto max-w-5xl space-y-5 px-4 py-6 sm:px-6 sm:py-8">
         <QuotesLoadBanner />
-        <SetupChecklist hasQuotes={quotes.length > 0} />
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-3">
@@ -242,92 +234,6 @@ export function QuoteDashboard() {
       )}
     </div>
   </>
-  );
-}
-
-function checklistDismissalKey(userId: string) {
-  return `mercurius:setup-checklist-dismissed:${userId}`;
-}
-
-/**
- * First-run setup checklist shown on the dashboard. Completion state is derived
- * from the real vendor profile (business details, labor rate, logo) rather than
- * demo data, and dismissal persists per-user in localStorage — mirroring how
- * VendorProfileNudge behaves. It hides itself once required setup is done.
- */
-function SetupChecklist({ hasQuotes }: { hasQuotes: boolean }) {
-  const { user } = useAuth();
-  const { profile, isLoading } = useVendorProfile();
-  const [dismissed, setDismissed] = useState(true); // start hidden to avoid flash
-
-  useEffect(() => {
-    if (!user?.id) return;
-    setDismissed(
-      localStorage.getItem(checklistDismissalKey(user.id)) === "1"
-    );
-  }, [user?.id]);
-
-  const steps = useMemo<OnboardingStep[]>(() => {
-    const profileComplete =
-      profile.businessName.trim() !== "" && profile.phone.trim() !== "";
-    // 95 is the untouched default; treat anything else as intentionally set.
-    const laborRateSet =
-      profile.laborRatePerHour > 0 && profile.laborRatePerHour !== 95;
-    const logoAdded = hasCustomLogo(profile);
-
-    return [
-      {
-        id: "business-profile",
-        title: "Complete business profile",
-        description: "Add your company details and contact information.",
-        completed: profileComplete,
-      },
-      {
-        id: "labor-rate",
-        title: "Set labor rate",
-        description: "Choose the default hourly rate used in your quotes.",
-        completed: laborRateSet,
-      },
-      {
-        id: "company-logo",
-        title: "Add logo",
-        description: "Personalize estimates with your company branding.",
-        optional: true,
-        completed: logoAdded,
-      },
-    ];
-  }, [profile]);
-
-  const allRequiredComplete = steps
-    .filter((step) => !step.optional)
-    .every((step) => step.completed);
-
-  const handleDismiss = () => {
-    if (user?.id) {
-      localStorage.setItem(checklistDismissalKey(user.id), "1");
-    }
-    setDismissed(true);
-  };
-
-  if (isLoading || !user || dismissed || allRequiredComplete) {
-    return null;
-  }
-
-  // Re-key on the derived completion signature so the checklist re-seeds when
-  // the underlying vendor profile changes (e.g. after editing settings).
-  const completionSignature = steps
-    .map((step) => (step.completed ? "1" : "0"))
-    .join("");
-
-  return (
-    <OnboardingChecklist
-      key={completionSignature}
-      steps={steps}
-      title={
-        hasQuotes ? "Finish setting up your workspace" : "Set up your quote workspace"
-      }
-      onDismiss={handleDismiss}
-    />
   );
 }
 

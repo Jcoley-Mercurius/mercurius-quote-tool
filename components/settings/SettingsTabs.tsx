@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useWorkspace } from "@/components/organizations/WorkspaceProvider";
 import { VendorSettingsForm } from "@/components/vendor/VendorSettingsForm";
+import { SetupChecklist } from "@/components/vendor/SetupChecklist";
 import { OrganizationMembersSettings } from "@/components/organizations/OrganizationMembersSettings";
 import { OrganizationTeamSettings } from "@/components/organizations/OrganizationTeamSettings";
 import { OrganizationAuditLogSettings } from "@/components/organizations/OrganizationAuditLogSettings";
@@ -116,7 +117,12 @@ export function SettingsTabs() {
 // ─── Tab panels ───────────────────────────────────────────────────────────────
 
 function ProfileTab() {
-  return <VendorSettingsForm />;
+  return (
+    <div className="space-y-6">
+      <SetupChecklist />
+      <VendorSettingsForm />
+    </div>
+  );
 }
 
 function TeamTab() {
