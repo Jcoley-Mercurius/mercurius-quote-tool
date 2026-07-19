@@ -300,7 +300,7 @@ export function JobPhotosGallery({
             : undefined
         }
         quoteHref={
-          activeItem ? `/?quoteId=${activeItem.quoteId}` : undefined
+          activeItem ? `/quote?quoteId=${activeItem.quoteId}` : undefined
         }
       />
     </>

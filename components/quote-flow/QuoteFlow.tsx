@@ -18,8 +18,6 @@ import {
   toastWarning,
 } from "@/lib/ui/toast";
 import { useVendorProfile } from "@/components/vendor/VendorProfileProvider";
-import { MercuriusHero } from "@/components/landing/MercuriusHero";
-import { HowMercuriusWorks } from "@/components/landing/HowMercuriusWorks";
 import { QuoteForm } from "@/components/quote-form/QuoteForm";
 import { QuoteResult } from "@/components/quote-result/QuoteResult";
 import type { QuoteFormData } from "@/components/quote-form/types";
@@ -224,13 +222,13 @@ export function QuoteFlow() {
 
       if (savedToCurrentWorkspace) {
         toastSuccess("Quote generated and saved.");
-        router.replace(`/?quoteId=${saved.id}`);
+        router.replace(`/quote?quoteId=${saved.id}`);
       } else {
         const targetLabel = workspaceLabel(saveTarget);
         toastSuccess(
           `Quote saved to ${targetLabel}. Switch workspace to view it in History.`
         );
-        router.replace("/");
+        router.replace("/quote");
       }
     } catch (err) {
       toastDismiss(loadingId);
@@ -344,7 +342,7 @@ export function QuoteFlow() {
     setEditFormQuoteId(null);
     setIsReviseMode(false);
     setAutoOpenSend(false);
-    router.replace("/");
+    router.replace("/quote");
   };
 
   const handleEditDetails = () => {
@@ -398,7 +396,7 @@ export function QuoteFlow() {
     return (
       <QuoteNotFound
         quoteId={quoteIdParam}
-        onDismiss={() => router.replace("/")}
+        onDismiss={() => router.replace("/quote")}
       />
     );
   }
@@ -484,21 +482,11 @@ export function QuoteFlow() {
   }
 
   return (
-    <>
-      {/* Landing hero + benefits shown on the main entry when starting a fresh
-          quote. The hero's primary CTA scrolls down to the builder below. */}
-      <div className="-mx-4 -mt-8 mb-8 sm:-mx-6 sm:-mt-12">
-        <MercuriusHero getQuoteHref="#quote-builder" vendorsHref="/settings" />
-        <HowMercuriusWorks />
-      </div>
-      <div id="quote-builder" className="scroll-mt-24">
-        <QuoteForm
-          onSubmit={handleNewQuoteSubmit}
-          saveTarget={saveTarget}
-          onSaveTargetChange={setSaveTarget}
-        />
-      </div>
-    </>
+    <QuoteForm
+      onSubmit={handleNewQuoteSubmit}
+      saveTarget={saveTarget}
+      onSaveTargetChange={setSaveTarget}
+    />
   );
 }
 

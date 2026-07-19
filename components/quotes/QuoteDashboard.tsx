@@ -132,7 +132,7 @@ export function QuoteDashboard() {
           </p>
         </div>
         <Link
-          href="/"
+          href="/quote"
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
         >
           <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
@@ -356,7 +356,7 @@ function QuoteCard({
               </span>
             ) : null}
           </div>
-          <Link href={`/?quoteId=${quote.id}`} className="block">
+          <Link href={`/quote?quoteId=${quote.id}`} className="block">
             <h3 className="mt-2 truncate text-base font-semibold text-slate-900 group-hover:text-emerald-700">
               {quote.jobName}
             </h3>
@@ -392,7 +392,7 @@ function QuoteCard({
               />
             ) : null}
             <Link
-              href={`/?quoteId=${quote.id}`}
+              href={`/quote?quoteId=${quote.id}`}
               className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition-colors hover:bg-emerald-100"
             >
               Open
@@ -436,7 +436,7 @@ function EmptyState({ hasQuotes }: { hasQuotes: boolean }) {
       </p>
       {!hasQuotes && (
         <Link
-          href="/"
+          href="/quote"
           className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
         >
           Create a Quote

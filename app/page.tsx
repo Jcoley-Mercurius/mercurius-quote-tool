@@ -1,11 +1,13 @@
-import { Suspense } from "react";
-import { QuoteFlow } from "@/components/quote-flow/QuoteFlow";
-import { LoadingState } from "@/components/ui/LoadingState";
+import { HowMercuriusWorks } from "@/components/landing/HowMercuriusWorks";
+import { MercuriusHero } from "@/components/landing/MercuriusHero";
 
 export default function Home() {
   return (
-    <Suspense fallback={<LoadingState message="Loading quote builder..." />}>
-      <QuoteFlow />
-    </Suspense>
+    // Pull the landing sections flush to the edges of the padded app shell so
+    // their full-width backgrounds read as a proper landing page.
+    <div className="-mx-4 -mt-8 sm:-mx-6 sm:-mt-12">
+      <MercuriusHero getQuoteHref="/quote" vendorsHref="/settings" />
+      <HowMercuriusWorks />
+    </div>
   );
 }

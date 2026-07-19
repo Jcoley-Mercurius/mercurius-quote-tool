@@ -15,7 +15,7 @@ import { toastError, toastInfo, toastSuccess } from "@/lib/ui/toast";
 import { getVendorLogoSrc, hasCustomLogo } from "@/lib/vendor/logo";
 
 const NAV_ITEMS = [
-  { href: "/", label: "New Quote" },
+  { href: "/quote", label: "New Quote" },
   { href: "/quotes", label: "History" },
   { href: "/settings", label: "Settings" },
 ] as const;
