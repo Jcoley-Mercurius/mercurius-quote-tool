@@ -28,6 +28,7 @@ import { DeleteConfirmationModal } from "@/components/ui/DeleteConfirmationModal
 import { toastError, toastSuccess } from "@/lib/ui/toast";
 import { useWorkspaceLabel } from "@/components/organizations/WorkspaceProvider";
 import { useQuoteHistory } from "./QuoteHistoryProvider";
+import { IncomingRepairRequests } from "./IncomingRepairRequests";
 import { QuotesLoadBanner } from "./QuotesLoadBanner";
 import { DownloadQuotePhotosButton } from "@/components/photos/DownloadQuotePhotosButton";
 import { QuotePhotoThumbnails } from "./QuotePhotoThumbnails";
@@ -141,6 +142,8 @@ export function QuoteDashboard() {
           New Quote
         </Link>
       </div>
+
+      <IncomingRepairRequests />
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
