@@ -1,4 +1,8 @@
 import type { OpportunityOrigin, OpportunityStatus } from "@/lib/supabase/types";
+export {
+  OPPORTUNITY_ORIGIN_LABELS,
+  OPPORTUNITY_STATUS_LABELS,
+} from "@/lib/opportunities/types";
 
 export type MetricResult<T> =
   | { status: "ready"; value: T }
@@ -25,20 +29,3 @@ export interface DashboardRepositoryData {
   customerCount: MetricResult<number>;
   propertyCount: MetricResult<number>;
 }
-
-export const OPPORTUNITY_STATUS_LABELS: Record<OpportunityStatus, string> = {
-  new: "New",
-  opened: "Opened",
-  quoting: "Ready to quote",
-  quoted: "Quoted",
-  won: "Won",
-  lost: "Lost",
-  declined: "Declined",
-  closed: "Closed",
-};
-
-export const OPPORTUNITY_ORIGIN_LABELS: Record<OpportunityOrigin, string> = {
-  marketplace: "Marketplace",
-  direct: "Direct",
-  repair_request: "Repair request",
-};

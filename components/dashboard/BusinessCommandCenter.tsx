@@ -19,6 +19,7 @@ import {
   type MetricResult,
   type OpportunitySummary,
 } from "@/lib/dashboard/types";
+import { OPPORTUNITY_STATUS_STYLES } from "@/lib/opportunities/types";
 import type { VendorProfile } from "@/lib/vendor/types";
 import { MetricState } from "./MetricState";
 
@@ -26,17 +27,6 @@ const UNAVAILABLE: MetricResult<number> = {
   status: "unavailable",
   reason: "This metric is not available yet.",
 };
-
-const STATUS_STYLES = {
-  new: "bg-emerald-50 text-emerald-800 ring-emerald-200",
-  opened: "bg-sky-50 text-sky-800 ring-sky-200",
-  quoting: "bg-amber-50 text-amber-800 ring-amber-200",
-  quoted: "bg-violet-50 text-violet-800 ring-violet-200",
-  won: "bg-emerald-50 text-emerald-800 ring-emerald-200",
-  lost: "bg-slate-100 text-slate-700 ring-slate-200",
-  declined: "bg-slate-100 text-slate-700 ring-slate-200",
-  closed: "bg-slate-100 text-slate-700 ring-slate-200",
-} as const;
 
 export function BusinessCommandCenter() {
   const { user } = useAuth();
@@ -391,7 +381,7 @@ function OpportunityRow({ item, now }: { item: OpportunitySummary; now: Date | n
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="truncate font-semibold text-slate-950">{item.title}</h3>
-          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${STATUS_STYLES[item.status]}`}>
+          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${OPPORTUNITY_STATUS_STYLES[item.status]}`}>
             {OPPORTUNITY_STATUS_LABELS[item.status]}
           </span>
         </div>

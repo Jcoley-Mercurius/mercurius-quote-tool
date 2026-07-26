@@ -1,4 +1,11 @@
-import { ModulePlaceholder } from "@/components/workspace/ModulePlaceholder";
-export default function Page() {
-  return <ModulePlaceholder name="Opportunities" description="Your opportunity workspace will bring Marketplace requests and direct leads into one focused pipeline. Recent live opportunities are available on the Business Command Center today." />;
+import { Suspense } from "react";
+import { OpportunitiesWorkspace } from "@/components/opportunities/OpportunitiesWorkspace";
+import { LoadingState } from "@/components/ui/LoadingState";
+
+export default function OpportunitiesPage() {
+  return (
+    <Suspense fallback={<LoadingState message="Loading opportunities..." />}>
+      <OpportunitiesWorkspace />
+    </Suspense>
+  );
 }
