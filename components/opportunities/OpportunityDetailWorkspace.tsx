@@ -457,10 +457,10 @@ function Unavailable({ children }: { children: React.ReactNode }) {
 function DetailLoading() {
   return (
     <div role="status" aria-label="Loading opportunity" className="space-y-6">
-      <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />
+      <div className="h-40 animate-pulse rounded-2xl bg-slate-100 motion-reduce:animate-none" />
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="h-64 animate-pulse rounded-2xl bg-slate-100" />
-        <div className="h-64 animate-pulse rounded-2xl bg-slate-100" />
+        <div className="h-64 animate-pulse rounded-2xl bg-slate-100 motion-reduce:animate-none" />
+        <div className="h-64 animate-pulse rounded-2xl bg-slate-100 motion-reduce:animate-none" />
       </div>
     </div>
   );

@@ -732,8 +732,13 @@ export function OpportunityQuoteContext({
   workspace: Workspace;
 }) {
   return (
-    <aside className="mx-auto mb-6 max-w-3xl rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-950 sm:px-5">
-      <p className="font-semibold">Creating a quote for {detail.title}</p>
+    <aside
+      className="mx-auto mb-6 max-w-3xl rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-950 sm:px-5"
+      aria-labelledby="opportunity-quote-context"
+    >
+      <p id="opportunity-quote-context" className="font-semibold">
+        Creating a quote for {detail.title}
+      </p>
       <p className="mt-1 text-emerald-900/80">
         This quote will remain associated with the opportunity and will be saved
         to the {workspaceLabel(workspace)} workspace.

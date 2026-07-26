@@ -279,7 +279,7 @@ function OpportunityListSkeleton() {
       {[1, 2, 3].map((item) => (
         <div
           key={item}
-          className="h-44 animate-pulse rounded-2xl border border-slate-200 bg-slate-100 sm:h-36"
+          className="h-44 animate-pulse rounded-2xl border border-slate-200 bg-slate-100 motion-reduce:animate-none sm:h-36"
         />
       ))}
     </div>

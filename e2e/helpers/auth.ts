@@ -11,8 +11,10 @@ export async function loginWithTestUser(page: Page): Promise<void> {
   await page.getByLabel("Email").fill(E2E_USER_EMAIL);
   await page.getByLabel("Password").fill(E2E_USER_PASSWORD);
   await page.getByRole("button", { name: "Sign In" }).click();
-  await page.waitForURL("/");
-  await expect(page.getByRole("heading", { name: "Create a professional quote" })).toBeVisible();
+  await page.waitForURL("/command-center");
+  await expect(
+    page.getByRole("heading", { name: /^(Welcome|Good morning|Good afternoon|Good evening)/ })
+  ).toBeVisible();
 }
 
 export async function signUpNewUser(

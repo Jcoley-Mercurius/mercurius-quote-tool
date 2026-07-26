@@ -12,3 +12,11 @@ export function hasE2eLoginCredentials(): boolean {
 export const E2E_USER_EMAIL = process.env.E2E_USER_EMAIL ?? "";
 export const E2E_USER_PASSWORD = process.env.E2E_USER_PASSWORD ?? "TestPass123";
 export const E2E_SIGNUP_PASSWORD = process.env.E2E_SIGNUP_PASSWORD ?? "TestPass123";
+export const E2E_OPPORTUNITY_ID = process.env.E2E_OPPORTUNITY_ID ?? "";
+export const E2E_DIRECT_OPPORTUNITY_ID =
+  process.env.E2E_DIRECT_OPPORTUNITY_ID ?? "";
+export const E2E_CROSS_WORKSPACE_OPPORTUNITY_ID =
+  process.env.E2E_CROSS_WORKSPACE_OPPORTUNITY_ID ?? "";
+export const E2E_LINKED_QUOTE_ID = process.env.E2E_LINKED_QUOTE_ID ?? "";
+export const E2E_PUBLIC_QUOTE_TOKEN = process.env.E2E_PUBLIC_QUOTE_TOKEN ?? "";
+export const E2E_ALLOW_MUTATIONS = process.env.E2E_ALLOW_MUTATIONS === "true";

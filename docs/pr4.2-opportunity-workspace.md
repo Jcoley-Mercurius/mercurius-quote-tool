@@ -1,6 +1,6 @@
 # Opportunity Workspace
 
-## PR4.2B1 through B3 scope
+## Final PR4.2 feature overview
 
 PR4.2B1 replaces the `/opportunities` placeholder with a read-only operational
 list. It supports personal and organization workspaces, exact counts, bounded
@@ -15,6 +15,20 @@ status history, and bounded linked quote context.
 PR4.2B3 connects that detail workspace to the existing quote builder through
 `/quote?opportunityId=<uuid>`, persists the existing quote-to-opportunity
 relationship, and deep-links Business Command Center opportunity rows.
+
+PR4.2B4 adds final accessibility refinements, responsive and security regression
+coverage, environment-aware Playwright scenarios, and release validation. It
+does not add product behavior.
+
+Routes:
+
+- `/command-center` — recent opportunity deep links
+- `/opportunities` — filtered and paginated operational list
+- `/opportunities/[id]` — read-only detail workspace
+- `/quote?opportunityId=<uuid>` — workspace-bound opportunity prefill
+- `/quote?quoteId=<id>` — authoritative stored quote edit/view mode
+- `/quote?repairRequestId=<id>` — existing repair-request prefill
+- `/quote/[token]` — unchanged public quote route
 
 ## Data and security boundary
 
@@ -150,9 +164,94 @@ routes and blank/repair-request creation remain unchanged. Recent populated
 Business Command Center opportunities now link to `/opportunities/[id]`, while
 list-level links remain `/opportunities`.
 
-Deferred after B3:
+Deferred beyond PR4.2:
 
-- B4 broader validation/refinement
 - status and assignment mutations
 - photos, attachments, internal notes, messaging, scheduling, and job conversion
 - customer/property detail pages
+
+## Accessibility and responsive behavior
+
+The flow uses one page `h1`, logical section headings, native labeled selects,
+semantic definition lists and timeline lists, textual status/source labels,
+real links, labeled pagination navigation, disabled native pagination buttons,
+and accessible loading/error states. Opportunity cards, back links, and Create
+Quote links have visible keyboard focus.
+
+The opportunity quote context is an explicitly labelled complementary region.
+Mobile navigation traps focus, closes on Escape or backdrop selection, and
+returns focus to the opening control. Drawer controls and primary actions meet
+the approximately 44px touch-target goal and use visible focus rings.
+Opportunity skeletons honor reduced-motion preferences.
+
+List cards and detail sections stack without horizontal tables. Long customer
+contact details, addresses, descriptions, currency values, and context copy use
+wrapping-safe layouts. Playwright checks document overflow at 320px and a
+standard phone viewport.
+
+## E2E fixture requirements
+
+Playwright never embeds credentials or uses a service-role key. Authentication
+tests require:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `E2E_USER_EMAIL`
+- `E2E_USER_PASSWORD`
+
+The account should be a normal authenticated vendor in a disposable or staging
+Supabase project. Optional seeded coverage uses:
+
+- `E2E_OPPORTUNITY_ID` — visible opportunity on the first all-status page,
+  preferably with supported service and complete context
+- `E2E_DIRECT_OPPORTUNITY_ID` — visible direct opportunity
+- `E2E_CROSS_WORKSPACE_OPPORTUNITY_ID` — real opportunity hidden from the
+  active workspace
+- `E2E_LINKED_QUOTE_ID` — visible quote linked to `E2E_OPPORTUNITY_ID`
+- `E2E_PUBLIC_QUOTE_TOKEN` — valid seeded token used to verify the public route
+
+The quote-save scenario is skipped unless `E2E_ALLOW_MUTATIONS=true`. Enable it
+only against disposable test data; it generates a linked quote through ordinary
+authenticated browser access. Missing credentials or fixture IDs produce
+explicit Playwright skips, not fabricated passes.
+
+## Release validation notes
+
+PR4.2 adds no migration, dependency, API route, environment requirement, or
+service-role access. It does not modify the public quote route or call
+`transition_opportunity`. Workspace identity never comes from opportunity URL
+parameters.
+
+Known unrelated baseline diagnostics remain in:
+
+- ESLint: `QuoteResult.tsx`, `SendQuoteModal.tsx`, `SetupChecklist.tsx`, and
+  `VendorProfileNudge.tsx`
+- standalone TypeScript test fixtures: `public-quote.test.ts` and
+  `vendor-snapshot.test.ts`
+
+These files are outside PR4.2 and remain unchanged by B4.
+
+## Manual release checklist
+
+- Login redirects to `/command-center` and the Vendor Workspace loads.
+- Personal and organization Opportunities lists reload with scoped records.
+- Status, source, and assignment filters serialize safely and reset page 1.
+- Previous/Next states, count copy, filter preservation, and page clamping work.
+- List cards open detail and browser Back preserves the prior list URL.
+- Invalid, nonexistent, and cross-workspace IDs show the same not-found state.
+- Marketplace context is allowlisted and budget copy is homeowner-provided.
+- Direct opportunities omit Marketplace-only context.
+- Missing customer, property, assignee, description, history, and quotes use
+  honest fallbacks.
+- Create Quote prefills supported service, description, address, and ZIP.
+- Unsupported service codes require manual selection.
+- Opportunity quote workspace is locked and no alternate target is offered.
+- Saved quote appears under Linked Quotes after returning to detail.
+- Linked quote edits preserve linkage without `opportunityId` in the URL.
+- Conflicting parameters follow quote → opportunity → repair → blank precedence.
+- Business Command Center populated opportunity rows open detail.
+- Blank, repair-request, linked-edit, and public quote routes still work.
+- Quotes, Team, and Settings navigation still works.
+- Mobile drawer traps focus, closes with Escape, and restores focus.
+- List, detail, Create Quote, and context banner have no horizontal overflow.
+- Keyboard focus is visible and raw payloads/internal IDs never appear.

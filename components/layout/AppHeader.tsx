@@ -144,7 +144,7 @@ export function AppHeader() {
         {showNav && (
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 md:hidden"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-slate-600 outline-none transition-colors hover:bg-slate-50 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 md:hidden"
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-nav-menu"
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
@@ -201,7 +201,7 @@ export function AppHeader() {
               <span className="text-sm font-semibold text-slate-900">Menu</span>
               <button
                 type="button"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-slate-500 outline-none transition-colors hover:bg-slate-50 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
                 aria-label="Close menu"
                 onClick={closeMobileMenu}
               >
@@ -288,7 +288,7 @@ export function AppHeader() {
                       setCreateOrgOpen(true);
                     }}
                     disabled={!schemaAvailable}
-                    className="mx-4 mt-2 rounded-xl border border-dashed border-emerald-200 px-4 py-3 text-left text-sm font-medium text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:text-slate-400"
+                    className="mx-4 mt-2 min-h-11 rounded-xl border border-dashed border-emerald-200 px-4 py-3 text-left text-sm font-medium text-emerald-700 outline-none hover:bg-emerald-50 focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:text-slate-400"
                   >
                     Create organization
                   </button>
@@ -311,7 +311,7 @@ export function AppHeader() {
               <button
                 type="button"
                 onClick={() => void handleSignOut()}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                className="min-h-11 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
                 Sign Out
               </button>
@@ -342,7 +342,7 @@ function MobileWorkspaceOption({
       type="button"
       onClick={onSelect}
       className={[
-        "rounded-xl px-4 py-3 text-left text-base font-medium transition-colors",
+        "min-h-11 rounded-xl px-4 py-3 text-left text-base font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-inset",
         selected
           ? "bg-emerald-50 text-emerald-700"
           : "text-slate-700 hover:bg-slate-50 hover:text-slate-900",

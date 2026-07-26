@@ -43,7 +43,9 @@ test.describe("Authentication", () => {
     );
 
     await loginWithTestUser(page);
-    await expect(page.getByRole("navigation")).toBeVisible();
-    await expect(page.getByRole("link", { name: "History" })).toBeVisible();
+    await expect(page).toHaveURL("/command-center");
+    await expect(
+      page.getByRole("heading", { name: /^(Welcome|Good morning|Good afternoon|Good evening)/ })
+    ).toBeVisible();
   });
 });
