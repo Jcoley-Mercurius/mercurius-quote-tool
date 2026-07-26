@@ -37,7 +37,7 @@ describe("Opportunity list states", () => {
     onRetry: vi.fn(),
   };
 
-  it("renders populated partial records without a broken detail link", () => {
+  it("renders populated partial records with a working detail link", () => {
     render(
       <OpportunityListState
         {...common}
@@ -50,7 +50,9 @@ describe("Opportunity list states", () => {
     expect(screen.getByText("Customer details unavailable")).toBeInTheDocument();
     expect(screen.getByText("Property details unavailable")).toBeInTheDocument();
     expect(screen.getByText("Unassigned")).toBeInTheDocument();
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", {
+      name: "View opportunity: Air conditioner repair",
+    })).toHaveAttribute("href", "/opportunities/opp-1");
   });
 
   it("distinguishes loading, initial empty, filtered empty, and error", () => {

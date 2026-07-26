@@ -1,6 +1,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
-import { fetchOpportunityPage, OPPORTUNITY_LIST_SELECT } from "./repository";
+import {
+  fetchOpportunityDetail,
+  fetchOpportunityHistory,
+  fetchOpportunityPage,
+  fetchOpportunityQuotes,
+  OPPORTUNITY_DETAIL_SELECT,
+  OPPORTUNITY_HISTORY_SELECT,
+  OPPORTUNITY_LIST_SELECT,
+  OPPORTUNITY_QUOTES_SELECT,
+} from "./repository";
 
 function queryBuilder(result: {
   data?: unknown[];
@@ -15,6 +24,8 @@ function queryBuilder(result: {
     in: vi.fn(),
     order: vi.fn(),
     range: vi.fn(),
+    limit: vi.fn(),
+    maybeSingle: vi.fn(),
     then: (
       resolve: (value: {
         data: unknown[];
@@ -28,9 +39,13 @@ function queryBuilder(result: {
         error: result.error ?? null,
       }).then(resolve),
   };
-  for (const method of ["select", "eq", "is", "not", "in", "order", "range"] as const) {
+  for (const method of ["select", "eq", "is", "not", "in", "order", "range", "limit"] as const) {
     builder[method].mockReturnValue(builder);
   }
+  builder.maybeSingle.mockResolvedValue({
+    data: result.data?.[0] ?? null,
+    error: result.error ?? null,
+  });
   return builder;
 }
 
@@ -156,5 +171,117 @@ describe("fetchOpportunityPage", () => {
 
     expect(result.page).toBe(2);
     expect(list.range).toHaveBeenCalledWith(20, 39);
+  });
+});
+
+describe("opportunity detail repositories", () => {
+  it("scopes organization detail by both ID and active organization", async () => {
+    const query = queryBuilder({ data: [] });
+    const client = { from: vi.fn().mockReturnValue(query) } as unknown as SupabaseClient;
+    await expect(fetchOpportunityDetail(
+      "user-1",
+      { type: "organization", organizationId: "org-1", name: "Team" },
+      "opp-1",
+      client
+    )).resolves.toBeNull();
+    expect(query.select).toHaveBeenCalledWith(OPPORTUNITY_DETAIL_SELECT);
+    expect(query.eq).toHaveBeenCalledWith("id", "opp-1");
+    expect(query.eq).toHaveBeenCalledWith("organization_id", "org-1");
+    expect(OPPORTUNITY_DETAIL_SELECT).not.toMatch(
+      /payload|notes|property_data|marketplace_lead_id|marketplace_request_id/
+    );
+  });
+
+  it("scopes personal detail by ID, user, and null organization", async () => {
+    const query = queryBuilder({ data: [] });
+    const client = { from: vi.fn().mockReturnValue(query) } as unknown as SupabaseClient;
+    await fetchOpportunityDetail(
+      "user-1",
+      { type: "personal" },
+      "opp-1",
+      client
+    );
+    expect(query.eq).toHaveBeenCalledWith("id", "opp-1");
+    expect(query.eq).toHaveBeenCalledWith("user_id", "user-1");
+    expect(query.is).toHaveBeenCalledWith("organization_id", null);
+  });
+
+  it("maps missing customer and property joins safely", async () => {
+    const query = queryBuilder({ data: [{
+      id: "opp-1",
+      origin: "direct",
+      status: "new",
+      service_type: "HVAC",
+      summary: "",
+      description: "",
+      assigned_user_id: null,
+      source_snapshot: { raw: "ignored" },
+      opened_at: null,
+      declined_at: null,
+      closed_at: null,
+      created_at: "2026-07-20T12:00:00Z",
+      updated_at: "2026-07-20T12:00:00Z",
+      customer: null,
+      property: null,
+    }] });
+    const client = { from: vi.fn().mockReturnValue(query) } as unknown as SupabaseClient;
+    await expect(fetchOpportunityDetail(
+      "user-1",
+      { type: "personal" },
+      "opp-1",
+      client
+    )).resolves.toMatchObject({
+      title: "HVAC",
+      customer: null,
+      property: null,
+      marketplaceContext: null,
+    });
+  });
+
+  it("scopes and bounds history without selecting integration event IDs", async () => {
+    const query = queryBuilder({ data: [] });
+    const client = { from: vi.fn().mockReturnValue(query) } as unknown as SupabaseClient;
+    await fetchOpportunityHistory(
+      "user-1",
+      { type: "organization", organizationId: "org-1", name: "Team" },
+      "opp-1",
+      500,
+      client
+    );
+    expect(query.select).toHaveBeenCalledWith(OPPORTUNITY_HISTORY_SELECT);
+    expect(query.eq).toHaveBeenCalledWith("opportunity_id", "opp-1");
+    expect(query.eq).toHaveBeenCalledWith("opportunity.organization_id", "org-1");
+    expect(query.limit).toHaveBeenCalledWith(50);
+    expect(OPPORTUNITY_HISTORY_SELECT).not.toMatch(/integration_event_id|details/);
+  });
+
+  it("scopes and bounds linked quotes", async () => {
+    const query = queryBuilder({ data: [] });
+    const client = { from: vi.fn().mockReturnValue(query) } as unknown as SupabaseClient;
+    await fetchOpportunityQuotes(
+      "user-1",
+      { type: "personal" },
+      "opp-1",
+      500,
+      client
+    );
+    expect(query.select).toHaveBeenCalledWith(OPPORTUNITY_QUOTES_SELECT);
+    expect(query.eq).toHaveBeenCalledWith("opportunity_id", "opp-1");
+    expect(query.eq).toHaveBeenCalledWith("user_id", "user-1");
+    expect(query.is).toHaveBeenCalledWith("organization_id", null);
+    expect(query.limit).toHaveBeenCalledWith(20);
+  });
+
+  it("keeps secondary repository errors distinct", async () => {
+    const failure = new Error("secondary failed");
+    const query = queryBuilder({ error: failure });
+    const client = { from: vi.fn().mockReturnValue(query) } as unknown as SupabaseClient;
+    await expect(fetchOpportunityHistory(
+      "user-1",
+      { type: "personal" },
+      "opp-1",
+      25,
+      client
+    )).rejects.toBe(failure);
   });
 });

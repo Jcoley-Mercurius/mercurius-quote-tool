@@ -3,12 +3,15 @@ import { getSupabaseClient } from "@/lib/supabase/client";
 import type { Workspace } from "@/lib/organizations/types";
 import type {
   CustomerRow,
+  OpportunityStatusHistoryRow,
   OpportunityRow,
   PropertyRow,
+  QuoteRow,
 } from "@/lib/supabase/types";
 import {
   formatOpportunityTitle,
   formatPropertyAddress,
+  parseMarketplaceRequestContext,
 } from "./format";
 import {
   ACTIVE_OPPORTUNITY_STATUSES,
@@ -16,6 +19,9 @@ import {
   type OpportunityListFilters,
   type OpportunityListItem,
   type OpportunityPage,
+  type OpportunityDetail,
+  type OpportunityHistoryItem,
+  type OpportunityLinkedQuote,
 } from "./types";
 
 export const OPPORTUNITY_LIST_SELECT = `
@@ -23,6 +29,21 @@ export const OPPORTUNITY_LIST_SELECT = `
   customer:customers(id, display_name),
   property:properties(id, address_line1, address_line2, city, region, postal_code, country_code)
 `;
+
+export const OPPORTUNITY_DETAIL_SELECT = `
+  id, origin, status, service_type, summary, description, assigned_user_id,
+  source_snapshot, opened_at, declined_at, closed_at, created_at, updated_at,
+  customer:customers(id, display_name, email, phone, preferred_contact_method),
+  property:properties(id, address_line1, address_line2, city, region, postal_code, country_code)
+`;
+
+export const OPPORTUNITY_HISTORY_SELECT = `
+  id, from_status, to_status, actor_user_id, source_system, reason_code, occurred_at,
+  opportunity:opportunities!inner(id)
+`;
+
+export const OPPORTUNITY_QUOTES_SELECT =
+  "id, reference, job_name, status, created_at, updated_at";
 
 type CustomerSummary = Pick<CustomerRow, "id" | "display_name">;
 type PropertySummary = Pick<
@@ -103,6 +124,140 @@ function mapRow(row: OpportunityListRow): OpportunityListItem {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+type DetailCustomer = Pick<
+  CustomerRow,
+  "id" | "display_name" | "email" | "phone" | "preferred_contact_method"
+>;
+type DetailProperty = PropertySummary;
+type OpportunityDetailRow = Pick<
+  OpportunityRow,
+  | "id" | "origin" | "status" | "service_type" | "summary" | "description"
+  | "assigned_user_id" | "source_snapshot" | "opened_at" | "declined_at"
+  | "closed_at" | "created_at" | "updated_at"
+> & {
+  customer: DetailCustomer | DetailCustomer[] | null;
+  property: DetailProperty | DetailProperty[] | null;
+};
+
+function mapDetail(row: OpportunityDetailRow): OpportunityDetail {
+  const customer = first(row.customer);
+  const property = first(row.property);
+  return {
+    id: row.id,
+    title: formatOpportunityTitle(row.summary, row.service_type),
+    serviceType: row.service_type.trim() || "Service not specified",
+    origin: row.origin,
+    status: row.status,
+    description: row.description.trim() || null,
+    assignedUserId: row.assigned_user_id,
+    customer: customer ? {
+      id: customer.id,
+      displayName: customer.display_name.trim() || null,
+      email: customer.email?.trim() || null,
+      phone: customer.phone?.trim() || null,
+      preferredContactMethod: customer.preferred_contact_method,
+    } : null,
+    property: property ? {
+      id: property.id,
+      addressLine1: property.address_line1,
+      addressLine2: property.address_line2,
+      city: property.city,
+      region: property.region,
+      postalCode: property.postal_code,
+      countryCode: property.country_code,
+    } : null,
+    marketplaceContext: row.origin === "marketplace"
+      ? parseMarketplaceRequestContext(row.source_snapshot)
+      : null,
+    openedAt: row.opened_at,
+    declinedAt: row.declined_at,
+    closedAt: row.closed_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export async function fetchOpportunityDetail(
+  userId: string,
+  workspace: Workspace,
+  opportunityId: string,
+  client: SupabaseClient = getSupabaseClient()
+): Promise<OpportunityDetail | null> {
+  let query = client.from("opportunities")
+    .select(OPPORTUNITY_DETAIL_SELECT)
+    .eq("id", opportunityId);
+  query = scopeQuery(query, userId, workspace);
+  const { data, error } = await query.maybeSingle();
+  if (error) throw error;
+  return data ? mapDetail(data as unknown as OpportunityDetailRow) : null;
+}
+
+function scopeRelatedOpportunity<T extends {
+  eq: (column: string, value: string) => T;
+  is: (column: string, value: null) => T;
+}>(query: T, userId: string, workspace: Workspace): T {
+  return workspace.type === "organization"
+    ? query.eq("opportunity.organization_id", workspace.organizationId)
+    : query.eq("opportunity.user_id", userId)
+      .is("opportunity.organization_id", null);
+}
+
+export async function fetchOpportunityHistory(
+  userId: string,
+  workspace: Workspace,
+  opportunityId: string,
+  limit = 25,
+  client: SupabaseClient = getSupabaseClient()
+): Promise<OpportunityHistoryItem[]> {
+  const boundedLimit = Math.min(Math.max(Math.trunc(limit), 1), 50);
+  let query = client.from("opportunity_status_history")
+    .select(OPPORTUNITY_HISTORY_SELECT)
+    .eq("opportunity_id", opportunityId);
+  query = scopeRelatedOpportunity(query, userId, workspace);
+  const { data, error } = await query
+    .order("occurred_at", { ascending: false })
+    .limit(boundedLimit);
+  if (error) throw error;
+  return ((data ?? []) as unknown as OpportunityStatusHistoryRow[]).map((row) => ({
+    id: row.id,
+    fromStatus: row.from_status,
+    toStatus: row.to_status,
+    actorUserId: row.actor_user_id,
+    sourceSystem: row.source_system,
+    reason: row.reason_code?.trim() || null,
+    occurredAt: row.occurred_at,
+  }));
+}
+
+export async function fetchOpportunityQuotes(
+  userId: string,
+  workspace: Workspace,
+  opportunityId: string,
+  limit = 10,
+  client: SupabaseClient = getSupabaseClient()
+): Promise<OpportunityLinkedQuote[]> {
+  const boundedLimit = Math.min(Math.max(Math.trunc(limit), 1), 20);
+  let query = client.from("quotes")
+    .select(OPPORTUNITY_QUOTES_SELECT)
+    .eq("opportunity_id", opportunityId);
+  query = scopeQuery(query, userId, workspace);
+  const { data, error } = await query
+    .order("created_at", { ascending: false })
+    .limit(boundedLimit);
+  if (error) throw error;
+  return ((data ?? []) as Pick<
+    QuoteRow,
+    "id" | "reference" | "job_name" | "status" | "created_at" | "updated_at"
+  >[]).map((row) => ({
+    id: row.id,
+    reference: row.reference,
+    title: row.job_name.trim() || row.reference,
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }));
 }
 
 export async function fetchOpportunityPage(

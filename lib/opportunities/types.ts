@@ -1,7 +1,9 @@
 import type {
   OpportunityOrigin,
   OpportunityStatus,
+  PreferredContactMethod,
 } from "@/lib/supabase/types";
+import type { QuoteStatus } from "@/lib/quotes/types";
 
 export const OPPORTUNITY_STATUSES: OpportunityStatus[] = [
   "new",
@@ -87,6 +89,77 @@ export interface OpportunityPage {
   totalCount: number;
   workspaceTotalCount: number;
 }
+
+export interface MarketplaceRequestContext {
+  assignedAt: string | null;
+  serviceCategory: { code: string; displayName: string } | null;
+  requestTitle: string | null;
+  requestDescription: string | null;
+  preferredTiming: string | null;
+  budgetRange: {
+    minimumAmountMinor: number | null;
+    maximumAmountMinor: number | null;
+    currency: string;
+  } | null;
+}
+
+export interface OpportunityDetail {
+  id: string;
+  title: string;
+  serviceType: string;
+  origin: OpportunityOrigin;
+  status: OpportunityStatus;
+  description: string | null;
+  assignedUserId: string | null;
+  customer: {
+    id: string;
+    displayName: string | null;
+    email: string | null;
+    phone: string | null;
+    preferredContactMethod: PreferredContactMethod | null;
+  } | null;
+  property: {
+    id: string;
+    addressLine1: string | null;
+    addressLine2: string | null;
+    city: string | null;
+    region: string | null;
+    postalCode: string | null;
+    countryCode: string;
+  } | null;
+  marketplaceContext: MarketplaceRequestContext | null;
+  openedAt: string | null;
+  declinedAt: string | null;
+  closedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OpportunityHistoryItem {
+  id: string;
+  fromStatus: OpportunityStatus | null;
+  toStatus: OpportunityStatus;
+  actorUserId: string | null;
+  sourceSystem: "marketplace" | "vendor_os" | "migration";
+  reason: string | null;
+  occurredAt: string;
+}
+
+export interface OpportunityLinkedQuote {
+  id: string;
+  reference: string;
+  title: string;
+  status: QuoteStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type SecondaryResult<T> =
+  | { status: "ready"; value: T }
+  | { status: "error"; message: string };
+
+export const OPPORTUNITY_HISTORY_LIMIT = 25;
+export const OPPORTUNITY_QUOTES_LIMIT = 10;
 
 export const OPPORTUNITY_PAGE_SIZE = 20;
 export const DEFAULT_OPPORTUNITY_FILTERS: OpportunityListFilters = {

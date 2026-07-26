@@ -17,6 +17,11 @@ export function OpportunityListItem({
   assignmentLabel: string;
 }) {
   return (
+    <Link
+      href={`/opportunities/${encodeURIComponent(item.id)}`}
+      className="block rounded-2xl outline-none transition hover:shadow-md focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+      aria-label={`View opportunity: ${item.title}`}
+    >
     <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
@@ -55,6 +60,7 @@ export function OpportunityListItem({
         <Detail term="Updated" detail={formatOpportunityDate(item.updatedAt)} />
       </dl>
     </article>
+    </Link>
   );
 }
 
@@ -68,3 +74,4 @@ function Detail({ term, detail }: { term: string; detail: string }) {
     </div>
   );
 }
+import Link from "next/link";
