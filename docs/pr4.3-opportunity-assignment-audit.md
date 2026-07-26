@@ -707,3 +707,75 @@ narrow RPC and dedicated history transaction before any assignment control is
 enabled. Quote behavior, status transitions, trusted workspace reads, RLS,
 hidden/not-found behavior, and browser service-role prohibition must remain
 unchanged.
+
+## 24. PR4.3B1 implementation record
+
+PR4.3B1 implements the secure foundation in
+`022_opportunity_assignment_foundation.sql` without adding UI behavior.
+
+### Assignment RPC
+
+`public.assign_opportunity(p_opportunity_id, p_assigned_user_id,
+p_expected_updated_at, p_reason_code)` is the only supported assignment write
+boundary. It is `SECURITY DEFINER`, fixes `search_path` to
+`public, pg_temp`, requires `auth.uid()`, and never accepts an organization or
+workspace ID.
+
+The function selects the caller-visible opportunity `FOR UPDATE`, derives
+personal/organization scope from that row, validates current target membership
+and actor role, optionally compares `updated_at`, rejects no-ops, changes only
+`assigned_user_id`, and inserts history in the same transaction. It returns the
+authoritative opportunity ID, assignee, updated timestamp, history ID, and event
+timestamp.
+
+Hidden, missing, and cross-workspace opportunity IDs produce the same
+`P0002` result. Owners/admins may assign current organization members or clear;
+members may assign only themselves. Personal owners may retain the existing
+schema behavior of assigning themselves or clearing, but cannot target another
+user. No assignment changes status.
+
+`opportunities_require_assignment` mirrors the status-transition guard:
+direct changes to `assigned_user_id` fail unless the assignment RPC has enabled
+the transaction-local assignment context.
+
+### Assignment history
+
+`public.opportunity_assignment_history` stores the opportunity, previous and
+new assignees, actor, constrained source system, optional bounded reason, and
+timestamps. The RPC rejects no-op changes; the history table intentionally does
+not duplicate that as a check constraint because both user foreign keys use
+`ON DELETE SET NULL` and must not prevent eventual auth-user deletion.
+
+The authenticated role has SELECT only. Personal and organization SELECT
+policies follow visibility of the parent opportunity. Anonymous users have no
+access, and browser roles cannot insert, update, or delete history.
+
+### Repository and domain errors
+
+`lib/opportunities/assignment.ts` exposes `assignOpportunity()` using the normal
+authenticated Supabase client. Its payload contains only opportunity ID,
+assignee, optional expected timestamp, and optional reason. It maps database
+results to typed domain errors:
+
+- `not_authenticated`
+- `not_found`
+- `forbidden`
+- `conflict`
+- `invalid`
+- `unavailable`
+
+Local Supabase types now include the assignment-history row, source-system
+union, and RPC result row.
+
+### Validation and limitations
+
+The SQL validation script checks catalog security plus owner assign/reassign/
+clear, member self-assignment, forbidden other-member and clear actions,
+pending/removed/cross-workspace targets, hidden opportunities, personal
+cross-user rejection, atomic rollback/history, stale timestamps, no-ops, and
+the direct-update guard.
+
+B1 intentionally does not alter member-removal behavior. An opportunity already
+assigned to a subsequently removed member remains assigned until a later
+authorized change. B1 also does not expose history through an application
+repository or add Detail/List controls; those remain later stages.

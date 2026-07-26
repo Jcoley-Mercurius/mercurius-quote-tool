@@ -172,6 +172,31 @@ export interface OpportunityStatusHistoryRow {
   created_at: string;
 }
 
+export type OpportunityAssignmentSourceSystem =
+  | "marketplace"
+  | "vendor_os"
+  | "migration";
+
+export interface OpportunityAssignmentHistoryRow {
+  id: string;
+  opportunity_id: string;
+  previous_assigned_user_id: string | null;
+  new_assigned_user_id: string | null;
+  actor_user_id: string | null;
+  source_system: OpportunityAssignmentSourceSystem;
+  reason_code: string | null;
+  occurred_at: string;
+  created_at: string;
+}
+
+export interface AssignOpportunityRpcRow {
+  opportunity_id: string;
+  assigned_user_id: string | null;
+  updated_at: string;
+  history_id: string;
+  occurred_at: string;
+}
+
 export function vendorProfileToRow(
   userId: string,
   profile: VendorProfile,
