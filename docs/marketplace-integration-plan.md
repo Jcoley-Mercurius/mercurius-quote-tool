@@ -22,6 +22,8 @@ Date: 2026-07-25
 
 **Goal:** Establish compile-time/runtime v1 event contracts and compatibility rules without network or database changes.
 
+**Implementation status:** Implemented at the application-contract layer in `lib/integrations/events/`; not deployed as a Marketplace API.
+
 **Likely files:** `lib/integrations/events/envelope.ts`, `lib/integrations/events/v1/*.ts`, `lib/integrations/events/registry.ts`, colocated tests, documentation updates.
 
 **Database changes:** None.
@@ -185,4 +187,3 @@ Date: 2026-07-25
 Start with **PR 1 — Versioned contracts and fixtures**, after Marketplace confirms the identifier and assigned-lead payload questions. It is the smallest reversible change, exposes disagreement before schema/API commitments, and supplies fixtures used by every later PR.
 
 If the teams need a deployable product slice rather than a single review, PRs 1–6 together are the minimum first vertical slice.
-
