@@ -1,0 +1,462 @@
+# Marketplace Integration Architecture Audit
+
+Status: proposed foundation; documentation only  
+Date: 2026-07-25
+
+## Scope and assumptions
+
+This audit describes the repository at the time of review. It does not define Marketplace URLs, authentication, package names, retry schedules, or entitlement rules because none are present in this repository.
+
+Assumptions requiring confirmation are explicitly marked:
+
+- **Assumption:** Marketplace assignments target an organization, not a personal workspace.
+- **Assumption:** Marketplace entity identifiers are UUIDs generated once by the system that owns the entity.
+- **Assumption:** Vendor OS must retain enough event payload to retry delivery, but generic `metadata` must not contain homeowner PII, signatures, photo data, or secrets.
+- **Assumption:** direct quotes remain valid in personal and organization workspaces; they may acquire an opportunity lazily.
+
+## Current architecture summary
+
+The application is a Next.js 16.2.9 App Router client-heavy application. Pages live under `app/`, Route Handlers under `app/api/`, UI under `components/`, and domain/data helpers under `lib/`. Supabase is accessed with the public anon key and the signed-in user's bearer token (`lib/supabase/client.ts`, `lib/supabase/server.ts`). Public quote and repair-request operations use an anon client (`lib/supabase/anon.ts`) plus RLS or security-definer RPCs. No service-role client is present.
+
+The quote workflow is:
+
+1. `components/quote-flow/QuoteFlow.tsx` collects property/job data, calls `app/api/generate-quote/route.ts`, and persists a `SavedQuote`.
+2. `lib/quotes/store.ts` maintains a client-side cache. `lib/supabase/migrate-local.ts` maps handwritten TypeScript rows to `public.quotes`.
+3. `app/api/quotes/[id]/share/route.ts` creates a share token and moves a quote to `sent`.
+4. `app/api/quotes/share/[token]/route.ts` reads through `get_public_quote_by_share_token` and calls `mark_quote_viewed_by_share_token`.
+5. Public acceptance and change requests go through Route Handlers and security-definer RPCs.
+6. Supabase Realtime updates the vendor's in-browser quote cache (`lib/supabase/quotes-realtime.ts`).
+
+This is a workable quote product, but it has no first-class customer, property, opportunity, revision, job, integration-event, webhook receipt, queue, or reconciliation model.
+
+## Application directory structure
+
+| Path | Responsibility |
+| --- | --- |
+| `app/` | App Router pages, layouts, error boundaries, and Route Handlers |
+| `components/quote-flow`, `components/quote-form`, `components/quote-result` | Quote creation and editing workflow |
+| `components/quotes` | Quote dashboard, Realtime notifications, and repair-request inbox |
+| `components/client-portal` | Public share, acceptance, signature, and change-request UI |
+| `components/organizations` | Workspace, members, invites, ownership, and audit UI |
+| `lib/quote` | Generation schemas, prompts, Vision, photos, fallback, and totals |
+| `lib/quotes` | Persisted quote types, cache/store, sharing, expiry, and snapshots |
+| `lib/organizations` | Workspace state, RPC adapters, roles, invites, and audit formatting |
+| `lib/property` | External property lookup and address autocomplete; no persistence model |
+| `lib/repair` | Public repair-request mapping, reads, and quote prefill |
+| `lib/supabase` | Browser/server clients, handwritten rows, storage, Realtime, local migration |
+| `lib/email`, `lib/pdf` | Resend notifications and PDF export |
+| `supabase/migrations` | Sequential SQL migrations (with two files numbered `002`) |
+| `e2e/` | Playwright browser tests |
+
+There are no server actions (`"use server"` was not found). Mutation boundaries are browser Supabase calls, Route Handlers, and PostgreSQL RPCs.
+
+## Database inventory
+
+The schema is reconstructed from `supabase/migrations/*.sql`; there is no checked-in declarative schema dump.
+
+| Relation | Purpose and important relationships |
+| --- | --- |
+| `vendor_profiles` | User- or organization-scoped branding/pricing. Added organization scope in `007_organization_vendor_profiles.sql`. |
+| `quotes` | Central quote aggregate. Belongs to `auth.users` through `user_id`; optionally belongs to `organizations`. Stores form and generated result as `form_data`/`quote_data` JSONB. |
+| `organizations` | Team/workspace record. |
+| `organization_members` | Unique `(organization_id, user_id)` membership with enum role `owner`, `admin`, or `member`. |
+| `organization_invites` | Tokenized, expiring organization invitations. |
+| `organization_audit_log` | Append-only-looking team activity table populated by security-definer functions. |
+| `quote_acceptances` | One acceptance per quote; stores signer, signature data URL, IP, and acceptance timestamp. |
+| `quote_change_requests` | Multiple public change requests per quote. |
+| `repair_requests` | Public homeowner intake with contact details and photo data URLs in JSONB. It currently acts as an unassigned global lead inbox. |
+| `storage.objects` buckets | `logos`, public `quote-photos` thumbnails, and private `quote-photo-originals`; paths encode personal user or organization ownership. |
+
+### Quote relationships and lifecycle
+
+`public.quotes` begins in `001_initial_schema.sql` and is extended in:
+
+- `003_organizations.sql`: nullable `organization_id`;
+- `010_quote_vendor_snapshot.sql`: `vendor_snapshot` JSONB;
+- `013_quote_share_tokens.sql`: unique `share_token`, `shared_at`, and `viewed`;
+- `015_change_requests.sql`: `changes_requested`.
+
+Its final allowed stored statuses are `draft`, `sent`, `viewed`, `accepted`, and `changes_requested`. Expiry is computed from `quote_data.validityDays` and `created_at`, not persisted as a status (`lib/quotes/helpers.ts`, `016_quote_expiry_enforcement.sql`). There is no `declined` state, quote revision table/version number, explicit customer/property foreign key, lead/opportunity foreign key, or job foreign key.
+
+`quote_acceptances.quote_id` is unique and cascades on quote deletion. `quote_change_requests.quote_id` is one-to-many and also cascades. The public RPCs are token-based. Migration `017_quote_accepted_audit_log.sql` inserts an organization audit entry only for organization quotes.
+
+### Organizations and ownership
+
+`public.is_org_member` and `public.is_org_owner_or_admin` in `003_organizations.sql` are security-definer RLS helpers. Organization RPCs atomically create teams, handle invites/members, and transfer ownership (`003` through `009`). `Workspace` in `lib/organizations/types.ts` is either personal or organization; quote and vendor stores carry that distinction throughout.
+
+Marketplace-owned records should target organization workspaces. Reusing organization membership is preferable to creating a parallel vendor-team model.
+
+### Customer and property data
+
+No normalized customer or property tables exist.
+
+- Homeowner name/email/phone are columns on `repair_requests`.
+- Basic property facts (square footage, stories, year built, and ZIP) are inside `quotes.form_data` (`QuoteFormPayload` in `lib/quote/types.ts`). The quote form also collects `QuoteFormData.propertyAddress`, but `toPayload` deliberately omits it and `payloadToFormData` restores it as an empty string (`components/quote-form/types.ts`, `components/quote-flow/QuoteFlow.tsx`), so direct-quote street addresses are not persisted.
+- Repair-request prefill appends contact PII to `jobDescription` text in `lib/repair/to-quote-form.ts`.
+- Property enrichment is transient and accessed through `app/api/property-lookup/route.ts`, `app/api/address-autocomplete/route.ts`, and `lib/property/*`.
+
+This makes deduplication, deletion, correction, permissions, and ownership synchronization difficult. Existing JSON must remain as an immutable quote snapshot even after normalized records are introduced.
+
+### Photos and AI analysis
+
+There are no photo or AI-analysis tables.
+
+- Repair photos are base64 data URLs in `repair_requests.photos`.
+- Quote thumbnail references are embedded in `quote_data.photoThumbnails`.
+- Quote files are stored in Supabase Storage by `lib/supabase/quote-photo-storage.ts`; public thumbnails and private originals use separate buckets and RLS policies (`011_quote_photo_storage.sql`, `012_quote_photo_originals.sql`).
+- Vision output is validated by `photoVisionAnalysisSchema` (`lib/quote/vision-schema.ts`) and embedded in the generated quote payload, not persisted independently.
+
+The target design should reuse Storage and introduce attachment/analysis tables only in a separately reviewed design. It should not copy photo blobs into integration events.
+
+### Audit logs
+
+`organization_audit_log` is created in `008_organization_ownership_transfer.sql`. `log_organization_audit_event` is revoked from public callers and invoked by organization RPCs (`009_organization_audit_log.sql`). `get_organization_audit_log` joins auth user information and checks membership. The frontend union and formatter are in `lib/organizations/audit.ts`.
+
+This is an operator-facing audit trail, not an integration outbox: it has no event version, delivery state, retry information, source system, external event ID, or canonical entity references. Keep it separate, but log high-value integration actions to it where useful.
+
+## API routes and services
+
+| Route | Role |
+| --- | --- |
+| `POST /api/generate-quote` | Zod-validates generation input; AI with fallback |
+| `GET /api/address-autocomplete` | Address suggestions |
+| `POST /api/property-lookup` | Property enrichment |
+| `POST /api/repair-requests` | Public repair intake using anon Supabase |
+| `POST /api/quotes/[id]/share` | Authenticated share token and `sent` transition |
+| `POST /api/quotes/[id]/send-email` | Authenticated quote read and Resend delivery |
+| `GET /api/quotes/[id]/acceptance` | Authenticated acceptance read |
+| `GET /api/quotes/[id]/change-requests` | Authenticated change-request read |
+| `GET /api/quotes/[id]/photos/download` | Authenticated photo archive |
+| `GET /api/quotes/share/[token]` | Public quote read and viewed transition |
+| `POST /api/quotes/share/[token]/accept` | Public acceptance RPC and vendor email |
+| `POST /api/quotes/share/[token]/request-changes` | Public change RPC and vendor email |
+
+There is no webhook route, signature verifier, event dispatcher, queue consumer, cron task, dead-letter process, or reconciliation API. Supabase Realtime is used for UI synchronization only and is not a durable integration bus.
+
+Email delivery is a direct side effect after database actions (`lib/email/resend.ts` and the quote Route Handlers). Failures can therefore leave state committed without a notification. Marketplace delivery should use an outbox worker, not copy this coupling.
+
+## RLS audit
+
+Reusable strengths:
+
+- Quote and vendor data distinguish personal ownership from organization membership.
+- Public quote writes use narrow security-definer RPCs rather than broad anon table writes.
+- Private original photo paths are checked against quote ownership or organization membership.
+- Service-role credentials are not exposed or used.
+
+Material risks:
+
+1. `018_repair_requests.sql` permits every authenticated user to read every repair request. `019_repair_requests_vendor_update.sql` permits every authenticated user to update every row. This is incompatible with assigned Marketplace leads.
+2. `quote_acceptances` and `quote_change_requests` vendor SELECT policies check only `q.user_id = auth.uid()`. Organization teammates who can see the quote may not see related records.
+3. Corresponding `get_quote_acceptance` and `get_quote_change_requests` RPCs also check only creator ownership, unlike quote RLS.
+4. `get_vendor_email_for_notification` is granted to anon and accepts an arbitrary user UUID. Although it returns a narrow object, the callable surface should be replaced by server-controlled notification lookup.
+5. Organization members can update and delete any organization quote. That may be acceptable today, but opportunity/job roles need an explicit authorization decision.
+6. Public thumbnails in `quote-photos` can expose job imagery if URLs leak. Marketplace imports should default to the private originals pattern unless intentionally public.
+7. Security-definer functions require fixed `search_path`, explicit grants/revokes, input constraints, and tests. New webhook ingestion should not grant direct insert/update rights to anon.
+
+## TypeScript, validation, tests, and conventions
+
+Database types are handwritten in `lib/supabase/types.ts`, `lib/repair/types.ts`, and local route interfaces. They are not generated from Supabase. This makes schema drift a current risk; for example `QuoteRow` omits `share_token` and `shared_at` because each call site defines narrower shapes.
+
+Zod 4 is already installed. AI output and some Route Handler input use colocated schemas (`lib/quote/schema.ts`, `lib/quote/vision-schema.ts`, `app/api/generate-quote/route.ts`, `app/api/property-lookup/route.ts`). Other routes manually narrow optional interfaces. Integration contracts should consistently use exported Zod schemas with inferred types.
+
+Unit/component tests use Vitest, jsdom, Testing Library, and `*.test.ts(x)` colocated with source (`vitest.config.ts`, `vitest.setup.ts`). Playwright tests live in `e2e/` and run Chromium against a Next server (`playwright.config.ts`). No database integration-test harness or Supabase local config is checked in; existing “integration” coverage is browser/API interaction rather than migration/RLS tests.
+
+Naming conventions:
+
+- PostgreSQL: `snake_case`, plural tables, UUID PKs, `created_at`/`updated_at`, named indexes, descriptive sentence-case RLS policy names, `p_` parameters and `v_` locals in RPCs.
+- TypeScript: `camelCase`, PascalCase types/components, row adapters between cases, `@/` imports.
+- Routes: App Router `route.ts`, Web `Request`, `NextResponse`, dynamic params awaited.
+- Migrations: numeric prefix and descriptive name. The duplicate `002` prefix is a sequencing risk; future migrations need a single monotonic number and deployment ledger.
+
+## Reusable components
+
+- `organizations`, `organization_members`, membership RLS helpers, and `Workspace` are the vendor tenancy boundary.
+- `quotes` remains the proposal record; add an optional opportunity FK instead of replacing it.
+- Existing public quote token, viewed, acceptance, change-request, email, PDF, Vision, and Storage flows remain useful.
+- `repair_requests` and `repairRequestToQuoteFormData` are useful backfill/mapping references, but not a durable Marketplace contract.
+- `organization_audit_log` remains the human audit surface.
+- Zod is the contract library.
+- Supabase Realtime can update opportunity UI after durable database writes, but not deliver cross-system events.
+
+## Tight coupling and technical risks
+
+- `QuoteFormPayload` combines job scope and property facts, while repair contact data is flattened into `jobDescription`.
+- Quote persistence is initiated in the browser (`QuoteFlow`, `quotes/store`, `migrate-local`) and can update a repair request in a separate non-transactional call.
+- Quote lifecycle state is duplicated across a database check constraint, TypeScript union/labels, RPC branches, dashboard filters, and Route Handlers.
+- Acceptance RPC both changes quote state and writes audit data; email happens afterward in a Route Handler. Adding event publication directly to every call site would deepen coupling.
+- The single `quotes` row is overwritten during edits; there is no durable revision lineage.
+- `created_at + quote_data.validityDays` makes expiry dependent on mutable JSON and does not emit an event at the transition time.
+- Local-storage migration rewrites quote IDs with `crypto.randomUUID()` (`lib/supabase/migrate-local.ts`), so pre-Supabase IDs cannot be external identities.
+- The repair-request lead inbox is global, polling-based, and marks “quoted” after generation without recording which vendor or quote.
+- Handwritten row types and no schema-level integration tests increase migration/RLS regression risk.
+
+## Recommended domain boundaries
+
+| Domain | Canonical owner | Notes |
+| --- | --- | --- |
+| Marketplace account, service request, matching, assignment, public profile, package/entitlement, review/ranking | Marketplace | Vendor OS stores immutable external UUID references and operational projections only. |
+| Organization membership and vendor operating workspace | Vendor OS | Existing model remains authoritative unless identity federation is separately decided. |
+| Customer and property operational records | Vendor OS | Marketplace seeds owned fields; vendor enrichment stays Vendor OS-owned. Field ownership must be explicit. |
+| Opportunity and status history | Vendor OS | Central record connecting a Marketplace assignment or direct intake to proposals and later fulfillment. |
+| Quote and acceptance | Vendor OS | `quotes.opportunity_id` is nullable during migration; direct quotes remain supported. |
+| Job and follow-up | Vendor OS | Created from accepted quote in a later slice; do not overload quote status. |
+| Integration inbox/outbox and reconciliation | Each system for its side | Events are facts, not remote CRUD commands; reconciliation repairs missed delivery. |
+
+Every shared record should distinguish immutable external references from locally editable data. Avoid last-write-wins synchronization of whole rows.
+
+## Proposed non-destructive database design
+
+No migration is created in this change. The current schema is clear enough to propose columns, but not to finalize field ownership, webhook authentication, customer deduplication, or Marketplace identifiers.
+
+### Shared identifiers
+
+Use native `uuid`, never email. IDs are assigned once by the canonical owner and must be rejected if an update attempts to change them.
+
+| Change | Nullability / constraints | Index / backfill / RLS |
+| --- | --- | --- |
+| `organizations.marketplace_vendor_id uuid` | Nullable; partial unique while Marketplace onboarding is incomplete | Unique index where non-null. No backfill until Marketplace mapping is authoritative. Existing organization RLS applies; Marketplace writes only through a server integration function. |
+| `quotes.opportunity_id uuid` FK `opportunities(id)` `ON DELETE SET NULL` | Nullable to preserve legacy/direct quotes | Index `(opportunity_id, created_at desc)`. Backfill only when provenance is reliable. Quote RLS plus a trigger must prevent cross-workspace links. |
+| `repair_requests.marketplace_request_id uuid` | Nullable, partial unique; transitional only | Backfill only for requests known to originate in Marketplace. Do not make `repair_requests` the canonical opportunity. |
+
+Do not add Marketplace homeowner IDs to quotes. Put identity on `customers`; put service-request/lead IDs on `opportunities`.
+
+### `integration_events`
+
+One durable table can represent inbound inbox and outbound outbox rows while `direction` and delivery fields keep behavior explicit.
+
+| Column | Type | Nullability and purpose |
+| --- | --- | --- |
+| `id` | `uuid` | PK, default `gen_random_uuid()`; local row ID |
+| `event_id` | `uuid` | Not null; immutable cross-system event identity |
+| `direction` | text/enum | Not null, `inbound` or `outbound` |
+| `event_type` | `text` | Not null |
+| `event_version` | positive `integer` | Not null |
+| `source_system` | text/enum | Not null, initially `marketplace` or `vendor_os` |
+| `organization_id` | `uuid` | Not null FK organizations, restrict delete |
+| `occurred_at` | `timestamptz` | Not null; business fact time |
+| `received_at` | `timestamptz` | Nullable; set for inbound receipt |
+| `processed_at` | `timestamptz` | Nullable; inbound projection completed |
+| `available_at` | `timestamptz` | Not null default now; retry scheduling |
+| `published_at` | `timestamptz` | Nullable; outbound acknowledged/delivered |
+| `attempt_count` | integer | Not null default 0, non-negative |
+| `last_error` | text | Nullable; redacted diagnostic only |
+| `actor` | `jsonb` | Nullable; validated actor reference |
+| `entities` | `jsonb` | Not null default `[]`; validated non-PII references |
+| `metadata` | `jsonb` | Not null default `{}`; non-sensitive tracing only |
+| `payload` | `jsonb` | Not null; exact validated event-specific data |
+| `created_at`, `updated_at` | `timestamptz` | Not null |
+
+Constraints/indexes:
+
+- Unique `(source_system, event_id)` makes inbound replay idempotent.
+- Unique outbound `event_id`; an event ID must never be regenerated for a retry.
+- Worker indexes on `(direction, processed_at, available_at)` and `(direction, published_at, available_at)`.
+- Reconciliation index `(organization_id, event_type, occurred_at desc)`.
+- Check JSON values are objects/arrays as appropriate and `event_version > 0`.
+
+RLS: enable RLS; organization members may have SELECT only if the UI needs a delivery console, preferably admin/owner only. No browser INSERT/UPDATE/DELETE. Inbound insertion and worker state changes occur through narrowly granted server-side RPCs or a server-only credential. Payloads require retention/redaction policy. Backfill: none; do not synthesize historical integration facts.
+
+### `customers`
+
+| Column | Type | Nullability and purpose |
+| --- | --- | --- |
+| `id` | uuid | PK |
+| `organization_id` | uuid | Nullable FK organizations; null means personal workspace |
+| `user_id` | uuid | Not null FK auth.users; creator/owner for personal RLS |
+| `marketplace_homeowner_id` | uuid | Nullable immutable external reference |
+| `display_name` | text | Not null |
+| `email` | text | Nullable operational contact, not identity |
+| `phone` | text | Nullable |
+| `created_at`, `updated_at` | timestamptz | Not null |
+
+Use partial unique indexes:
+
+- `(organization_id, marketplace_homeowner_id)` where both non-null;
+- `(user_id, marketplace_homeowner_id)` where organization is null and external ID non-null.
+
+Add lookup indexes on `(organization_id, updated_at desc)` and personal `(user_id, updated_at desc)`. Do not globally unique email/phone. RLS mirrors quotes: personal creator access; organization member access, with an explicit future role policy for deletes. A check/trigger enforces that organization-scoped rows cannot be reassigned across tenants.
+
+Backfill conservatively from `repair_requests` only when a request is linked to an opportunity. Quote JSON/contact text is insufficiently reliable for automatic deduplication. Existing records may remain unlinked.
+
+### `properties`
+
+| Column | Type | Nullability and purpose |
+| --- | --- | --- |
+| `id` | uuid | PK |
+| `organization_id`, `user_id` | uuid | Same workspace pattern as customers |
+| `customer_id` | uuid | Nullable FK customers, `ON DELETE SET NULL` |
+| `marketplace_property_id` | uuid | Nullable immutable external reference |
+| `address_line1`, `address_line2`, `city`, `region`, `postal_code`, `country_code` | text | Address components; line1/city may initially be nullable for partial imports |
+| `latitude`, `longitude` | numeric | Nullable |
+| `property_data` | jsonb | Not null `{}`; vendor enrichment only, schema-versioned within domain |
+| `created_at`, `updated_at` | timestamptz | Not null |
+
+Use the same partial external-ID uniqueness and workspace indexes as customers, plus `(customer_id, updated_at desc)`. A trigger must ensure customer and property share a workspace. RLS mirrors customers. Backfill exact addresses from linked repair requests/quote forms only after normalization rules are agreed; retain quote snapshots.
+
+This extends the existing property lookup capability rather than duplicating a stored property concept (none exists).
+
+### `opportunities`
+
+| Column | Type | Nullability and purpose |
+| --- | --- | --- |
+| `id` | uuid | PK; Vendor OS canonical ID |
+| `organization_id` | uuid | Nullable for direct personal opportunities; FK organizations |
+| `user_id` | uuid | Not null creator/assignee owner for personal RLS |
+| `customer_id` | uuid | Nullable FK customers, set null |
+| `property_id` | uuid | Nullable FK properties, set null |
+| `marketplace_lead_id` | uuid | Nullable immutable assignment ID |
+| `marketplace_request_id` | uuid | Nullable Marketplace service-request reference |
+| `origin` | text/enum | Not null: `marketplace`, `direct`, `repair_request`, initially |
+| `status` | text/enum | Not null: proposed `new`, `opened`, `quoting`, `quoted`, `won`, `lost`, `declined`, `closed` |
+| `service_type` | text | Not null |
+| `summary` | text | Not null default empty |
+| `assigned_user_id` | uuid | Nullable FK auth.users |
+| `source_snapshot` | jsonb | Not null `{}`; minimal immutable intake snapshot, excluding photos/signatures |
+| `opened_at`, `declined_at`, `closed_at` | timestamptz | Nullable transition timestamps |
+| `created_at`, `updated_at` | timestamptz | Not null |
+
+Unique `marketplace_lead_id` where non-null prevents duplicate projection of the same assignment. Index `(organization_id, status, updated_at desc)`, personal `(user_id, status, updated_at desc)`, customer, property, and assignee. Checks enforce Marketplace origin has organization and lead IDs, and workspace consistency across references. Decline reason should be a controlled field or transition metadata after Marketplace confirms its taxonomy.
+
+RLS mirrors workspace access. Marketplace ingestion must call a transactional function that validates organization mapping and creates customer/property/opportunity/history atomically. Backfill: create `repair_request` opportunities only for active/useful rows, linked by a new nullable transitional `repair_request_id`; do not infer Marketplace provenance.
+
+### `opportunity_status_history`
+
+| Column | Type | Nullability and purpose |
+| --- | --- | --- |
+| `id` | uuid | PK |
+| `opportunity_id` | uuid | Not null FK opportunities cascade |
+| `from_status`, `to_status` | text/enum | `from_status` nullable for creation; `to_status` not null |
+| `actor_user_id` | uuid | Nullable FK auth.users |
+| `source_system` | text/enum | Not null |
+| `integration_event_id` | uuid | Nullable FK integration_events, set null |
+| `reason_code` | text | Nullable controlled value |
+| `details` | jsonb | Not null `{}`; non-sensitive transition context |
+| `occurred_at`, `created_at` | timestamptz | Not null |
+
+Index `(opportunity_id, occurred_at, id)`, and unique `integration_event_id` where non-null to prevent replayed transitions. Insert only via the same transaction/function that updates `opportunities.status`; organization members select through the parent opportunity. No update/delete browser policy. Backfill one synthetic “current status” row only if clearly labeled `source_system = 'migration'`.
+
+### Migration and rollback behavior
+
+Use expand/migrate/contract:
+
+1. Add nullable columns and new tables with RLS enabled before grants.
+2. Add transactional RPCs/triggers and database tests.
+3. Deploy dual-read/dual-write adapters behind a feature flag.
+4. Backfill in bounded, resumable batches with counts and exception reporting.
+5. Make application paths prefer normalized records.
+6. Only later consider stronger nullability; do not drop JSON snapshots or `repair_requests` in this program.
+
+Rollback disables consumers/routes and returns reads to existing quote/repair paths. Additive tables/columns remain in place; do not drop data as an application rollback.
+
+## Proposed versioned event contracts
+
+Place executable contracts in a future `lib/integrations/events/` module, with one schema per version and a registry keyed by `${eventType}:v${eventVersion}`. Parse the envelope first, then select exactly one payload schema. Never use `.passthrough()` at trust boundaries.
+
+```ts
+import { z } from "zod";
+
+const uuid = z.string().uuid();
+const entityRefSchema = z.object({
+  entityType: z.enum([
+    "marketplaceRequest", "marketplaceLead", "organization",
+    "customer", "property", "opportunity", "quote", "job",
+  ]),
+  entityId: uuid,
+});
+
+const actorSchema = z.discriminatedUnion("actorType", [
+  z.object({ actorType: z.literal("user"), userId: uuid }),
+  z.object({
+    actorType: z.literal("homeowner"),
+    marketplaceHomeownerId: uuid.optional(),
+  }),
+  z.object({ actorType: z.literal("system"), system: z.enum(["marketplace", "vendor_os"]) }),
+]);
+
+const eventEnvelopeSchema = z.object({
+  eventId: uuid,
+  eventType: z.string().min(1),
+  eventVersion: z.number().int().positive(),
+  occurredAt: z.string().datetime({ offset: true }),
+  sourceSystem: z.enum(["marketplace", "vendor_os"]),
+  organizationId: uuid,
+  actor: actorSchema.optional(),
+  entities: z.array(entityRefSchema).min(1),
+  metadata: z.record(z.string(), z.union([
+    z.string().max(500), z.number(), z.boolean(), z.null(),
+  ])).default({}),
+  data: z.unknown(),
+});
+
+type IntegrationEvent<TType extends string, TData> = {
+  eventId: string;
+  eventType: TType;
+  eventVersion: 1;
+  occurredAt: string;
+  sourceSystem: "marketplace" | "vendor_os";
+  organizationId: string;
+  actor?: z.infer<typeof actorSchema>;
+  entities: z.infer<typeof entityRefSchema>[];
+  metadata: Record<string, string | number | boolean | null>;
+  data: TData;
+};
+```
+
+Payload v1 proposals:
+
+| Event | Source | Required `data` |
+| --- | --- | --- |
+| `marketplace.lead.assigned` | Marketplace | `marketplaceLeadId`, `marketplaceRequestId`, `marketplaceVendorId`, optional `marketplaceHomeownerId`/`marketplacePropertyId`, customer contact object, property/address object, service type, summary, assignment timestamp |
+| `opportunity.created` | Vendor OS | `opportunityId`, `origin`, optional Marketplace lead/request IDs, `status: "new"` |
+| `opportunity.opened` | Vendor OS | `opportunityId`, `openedAt` |
+| `opportunity.declined` | Vendor OS | `opportunityId`, controlled `reasonCode`, optional bounded `reason`, `declinedAt` |
+| `quote.started` | Vendor OS | `quoteId`, `opportunityId`, `revisionNumber` |
+| `quote.generated` | Vendor OS | `quoteId`, `opportunityId`, `revisionNumber`, `generatedAt`, `source`; omit prompt, photo, and full line-item data |
+| `quote.sent` | Vendor OS | `quoteId`, `opportunityId`, `revisionNumber`, `sentAt`, `expiresAt`; omit share token and recipient address |
+| `quote.viewed` | Vendor OS | `quoteId`, `opportunityId`, `revisionNumber`, `viewedAt` |
+| `quote.change_requested` | Vendor OS | `quoteId`, `opportunityId`, `revisionNumber`, `changeRequestId`, `requestedAt`; omit free-text message |
+| `quote.accepted` | Vendor OS | `quoteId`, `opportunityId`, `revisionNumber`, `acceptanceId`, `acceptedAt`, `amount`, `currency`; omit signature/IP |
+| `quote.expired` | Vendor OS | `quoteId`, `opportunityId`, `revisionNumber`, `expiredAt` |
+| `job.created` | Vendor OS | `jobId`, `opportunityId`, `acceptedQuoteId`, `createdAt` |
+| `job.completed` | Vendor OS | `jobId`, `opportunityId`, `completedAt`; optional controlled completion code |
+
+Each schema should use `z.literal("<type>")` and `z.literal(1)` at the full-event level. Monetary amounts should use integer minor units (`amountMinor`) rather than floats in the executable contract; the table above says `amount` only conceptually. Contact/address data is allowed only in the assigned-lead payload because it is required to project owned records, not in generic metadata. Loggers must redact `data`.
+
+Compatibility rules:
+
+- Adding an optional field is compatible within v1; changing meaning, type, requiredness, or enum semantics requires v2.
+- Consumers reject unsupported versions to a retry/dead-letter state without partially projecting them.
+- Duplicate `(sourceSystem, eventId)` returns the original processing outcome.
+- Business projection and inbound `processed_at` update occur in one transaction.
+- Outbound domain mutation and event insert occur in one transaction.
+- Ordering is per entity using `occurredAt` plus state preconditions; global delivery order is not assumed.
+
+## Recommended implementation sequence
+
+1. Resolve ownership, identifier, authentication, and entitlement questions below.
+2. Add contract module and pure unit tests.
+3. Add organization Marketplace mapping, `integration_events`, customers, properties, opportunities, history, and nullable `quotes.opportunity_id` through additive migrations.
+4. Add RLS/database integration tests and transactional inbound lead-assignment RPC.
+5. Add authenticated, signed, size-limited webhook receipt with idempotent response behavior.
+6. Add opportunity repository/store, Realtime UI, and quote creation from opportunity.
+7. Emit quote lifecycle outbox events from database transaction boundaries.
+8. Add a worker/delivery mechanism and Marketplace reconciliation endpoints after endpoint/SLA decisions.
+9. Backfill selected repair requests/direct quotes; preserve legacy paths.
+10. Add jobs only after quote acceptance and revision semantics are settled.
+
+## Open questions / blockers
+
+1. What exact UUIDs exist for Marketplace vendor, lead assignment, request, homeowner, and property, and which are globally unique?
+2. Does an assignment always target one Vendor OS organization? Can one Marketplace vendor map to multiple organizations?
+3. What webhook authentication/signature scheme, replay window, payload size, retry policy, ordering guarantee, and acknowledgement semantics will Marketplace use?
+4. Which customer/property fields are Marketplace-canonical, which may Vendor OS edit, and how are corrections propagated?
+5. May Vendor OS retain homeowner data after Marketplace deletion/account closure, and what are retention/export/deletion obligations?
+6. What is the lead decline reason taxonomy and response SLA?
+7. Does “opened” mean a team member viewed the opportunity, explicitly accepted it, or started work?
+8. Are quote revisions separate proposals, immutable versions under one quote, or overwritten drafts? Which revision can be accepted?
+9. Does acceptance create a job immediately and transactionally, or only after vendor confirmation/deposit?
+10. What constitutes `quote.sent`, `viewed`, `expired`, and `job.completed` canonically, including timestamp/time-zone rules?
+11. How will entitlements be delivered and cached? The UI needs one capability service, not package-name checks.
+12. Which system initiates reconciliation, and what cursor/version/watermark contract is available?
+13. Where will the reliable event worker run (Supabase function/cron, hosted worker, or Marketplace pull)?
