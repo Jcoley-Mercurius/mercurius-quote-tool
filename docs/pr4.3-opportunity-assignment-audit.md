@@ -779,3 +779,65 @@ B1 intentionally does not alter member-removal behavior. An opportunity already
 assigned to a subsequently removed member remains assigned until a later
 authorized change. B1 also does not expose history through an application
 repository or add Detail/List controls; those remain later stages.
+
+## 25. PR4.3B2 Opportunity Detail controls
+
+PR4.3B2 adds role-aware assignment controls only to Opportunity Detail. It
+introduces no migration and does not load assignment history.
+
+### Role-aware presentation
+
+`OpportunityAssignmentCard` receives the active user's presentation role from
+the validated `WorkspaceProvider.memberships` entry for the active
+organization. The role never enters the mutation payload and the B1 RPC remains
+authoritative.
+
+- Owners and admins receive a labelled native select containing Unassigned and
+  the current members returned by `get_organization_members()`.
+- Members receive only Assign to me when another user or nobody is assigned.
+  Once assigned, they see Assigned to you.
+- Personal workspaces always display You and expose no assignment control,
+  regardless of the nullable stored assignee.
+- Missing role context remains read-only. Failed member loading keeps the core
+  detail visible, uses the existing safe assignee fallback, and withholds all
+  controls.
+- A former/unknown current assignee is displayed safely. For an owner/admin
+  select it is represented by a disabled unavailable option, not a selectable
+  target.
+
+Pending invites and removed members never enter the options because the
+component uses only the trusted current-member repository response.
+
+### Mutation and concurrency behavior
+
+All writes call `assignOpportunity()` with only opportunity ID, the chosen user
+ID or null, and the current authoritative `updatedAt`. No organization,
+workspace, role, status, quote, customer, or property identity is sent.
+
+Updates are pessimistic: the visible assignee and controlled selection remain
+authoritative while the control is disabled. Duplicate submissions are ignored.
+After success, the RPC's `assignedUserId` and `updatedAt` replace the local
+detail values before a success announcement and toast. This permits a later
+change without a false stale-version conflict.
+
+On a conflict, the parent reruns the existing trusted, workspace-scoped core
+detail fetch before enabling retry. A missing result enters the same
+Opportunity-not-found state used by ordinary hidden and cross-workspace reads.
+Other typed B1 errors become persistent, safe inline messages and existing
+error toasts; raw database messages and identifiers are never rendered.
+
+### Accessibility and responsive behavior
+
+The owner/admin control is a native select with a visible associated label,
+44px minimum height, focus ring, controlled disabled state, and related inline
+feedback. The member action is keyboard-native, uses meaningful copy, and is
+full width at narrow sizes. Pending, success, and error states use live status
+or alert semantics and do not move focus. Copy and controls use wrapping-safe,
+width-bounded layouts within the existing responsive Detail card.
+
+### B2 boundaries and limitations
+
+B2 does not merge assignment history into the status timeline, add list
+actions or filters, change the Command Center, notify assignees, or alter
+status, quotes, Marketplace data, or member removal. Assignment-history reads,
+timeline integration, and list refinement remain B3 work.

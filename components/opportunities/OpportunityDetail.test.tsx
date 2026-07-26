@@ -7,7 +7,6 @@ import type {
 } from "@/lib/opportunities/types";
 import {
   CustomerContextCard,
-  AssignmentContextCard,
   LinkedQuotesSection,
   OpportunityDetailPageState,
   OpportunityHeader,
@@ -97,14 +96,6 @@ describe("Opportunity detail sections", () => {
     expect(screen.getByText("Request description unavailable.")).toBeInTheDocument();
     expect(screen.getByText("Customer details unavailable.")).toBeInTheDocument();
     expect(screen.getByText("Property details unavailable")).toBeInTheDocument();
-  });
-
-  it("renders unassigned and unknown assignment fallbacks without controls", () => {
-    const { rerender } = render(<AssignmentContextCard assignmentLabel="Unassigned" />);
-    expect(screen.getByText("Unassigned")).toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
-    rerender(<AssignmentContextCard assignmentLabel="Assigned team member" />);
-    expect(screen.getByText("Assigned team member")).toBeInTheDocument();
   });
 
   it("renders linked quotes and their existing quote routes", () => {

@@ -5,7 +5,11 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useWorkspace } from "@/components/organizations/WorkspaceProvider";
 import { fetchOrganizationMembers } from "@/lib/organizations/members";
-import { getOrganizationMemberLabel } from "@/lib/organizations/types";
+import {
+  getOrganizationMemberLabel,
+  type OrganizationMember,
+} from "@/lib/organizations/types";
+import type { OpportunityAssignmentResult } from "@/lib/opportunities/assignment";
 import {
   formatMarketplaceBudget,
   formatOpportunityDate,
@@ -34,6 +38,7 @@ import {
   QUOTE_STATUS_LABELS,
   QUOTE_STATUS_STYLES,
 } from "@/lib/quotes/types";
+import { OpportunityAssignmentCard } from "./OpportunityAssignmentCard";
 
 interface ReadyState {
   key: string;
@@ -41,6 +46,7 @@ interface ReadyState {
   history: SecondaryResult<OpportunityHistoryItem[]>;
   quotes: SecondaryResult<OpportunityLinkedQuote[]>;
   memberLabels: Map<string, string>;
+  members: OrganizationMember[] | null;
 }
 
 export function OpportunityDetailWorkspace({
@@ -49,7 +55,11 @@ export function OpportunityDetailWorkspace({
   opportunityId: string;
 }) {
   const { user } = useAuth();
-  const { workspace, isLoading: workspaceLoading } = useWorkspace();
+  const {
+    workspace,
+    memberships,
+    isLoading: workspaceLoading,
+  } = useWorkspace();
   const workspaceKey = workspace.type === "organization"
     ? `org:${workspace.organizationId}`
     : "personal";
@@ -115,6 +125,8 @@ export function OpportunityDetailWorkspace({
           ? { status: "ready", value: quotesResult.value }
           : { status: "error", message: "Linked quotes are unavailable." },
         memberLabels,
+        members:
+          membersResult.status === "fulfilled" ? membersResult.value : null,
       });
       setState(null);
     }).catch(() => {
@@ -149,6 +161,48 @@ export function OpportunityDetailWorkspace({
   const assignmentLabel = current.detail.assignedUserId
     ? current.memberLabels.get(current.detail.assignedUserId) || "Assigned team member"
     : "Unassigned";
+  const currentRole = workspace.type === "organization"
+    ? memberships.find(
+      (membership) => membership.organizationId === workspace.organizationId
+    )?.role ?? null
+    : null;
+
+  function handleAssigned(result: OpportunityAssignmentResult) {
+    setReady((previous) => {
+      if (!previous || previous.key !== requestKey) return previous;
+      return {
+        ...previous,
+        detail: {
+          ...previous.detail,
+          assignedUserId: result.assignedUserId,
+          updatedAt: result.updatedAt,
+        },
+      };
+    });
+  }
+
+  async function refreshAssignmentAfterConflict() {
+    if (!user) return;
+    try {
+      const detail = await fetchOpportunityDetail(
+        user.id,
+        workspace,
+        opportunityId
+      );
+      if (!detail) {
+        setState({ key: requestKey, value: "not-found" });
+        return;
+      }
+      setReady((previous) =>
+        previous?.key === requestKey
+          ? { ...previous, detail }
+          : previous
+      );
+    } catch {
+      // The assignment card retains the last authoritative state and safe error.
+    }
+  }
+
   return (
     <div className="space-y-6 pb-10">
       <OpportunityHeader detail={current.detail} />
@@ -160,7 +214,22 @@ export function OpportunityDetailWorkspace({
         <div className="space-y-6">
           <CustomerContextCard detail={current.detail} />
           <PropertyContextCard detail={current.detail} />
-          <AssignmentContextCard assignmentLabel={assignmentLabel} />
+          <OpportunityAssignmentCard
+            key={requestKey}
+            opportunityId={current.detail.id}
+            assignedUserId={current.detail.assignedUserId}
+            updatedAt={current.detail.updatedAt}
+            assignmentLabel={assignmentLabel}
+            personal={workspace.type === "personal"}
+            currentUserId={user!.id}
+            currentRole={currentRole}
+            members={current.members}
+            onAssigned={handleAssigned}
+            onNotFound={() =>
+              setState({ key: requestKey, value: "not-found" })
+            }
+            onConflict={refreshAssignmentAfterConflict}
+          />
           <OpportunityTimeline
             result={current.history}
             createdAt={current.detail.createdAt}
@@ -302,18 +371,6 @@ export function PropertyContextCard({ detail }: { detail: OpportunityDetail }) {
   return (
     <ContextCard title="Property">
       <p className="break-words text-sm font-medium leading-6 text-slate-700">{address}</p>
-    </ContextCard>
-  );
-}
-
-export function AssignmentContextCard({
-  assignmentLabel,
-}: {
-  assignmentLabel: string;
-}) {
-  return (
-    <ContextCard title="Assignment">
-      <Metadata term="Assigned to" detail={assignmentLabel} />
     </ContextCard>
   );
 }
