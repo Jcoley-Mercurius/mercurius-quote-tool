@@ -44,7 +44,7 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
 
     if (user && isLoginPage) {
       const redirect = new URLSearchParams(window.location.search).get("redirect");
-      router.replace(isSafeRedirect(redirect) ? redirect : "/");
+      router.replace(isSafeRedirect(redirect) ? redirect : "/command-center");
     }
   }, [user, isLoading, isConfigured, isAuthPublicPage, isLoginPage, router]);
 

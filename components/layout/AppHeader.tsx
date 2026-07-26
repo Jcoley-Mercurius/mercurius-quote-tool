@@ -13,30 +13,7 @@ import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
 import { workspaceLabel as formatWorkspaceLabel, type Workspace } from "@/lib/organizations/types";
 import { toastError, toastInfo, toastSuccess } from "@/lib/ui/toast";
 import { getVendorLogoSrc, hasCustomLogo } from "@/lib/vendor/logo";
-
-const NAV_ITEMS = [
-  { href: "/quote", label: "New Quote" },
-  { href: "/quotes", label: "History" },
-  { href: "/settings", label: "Settings" },
-] as const;
-
-function navLinkClass(active: boolean, mobile = false): string {
-  if (mobile) {
-    return [
-      "block rounded-xl px-4 py-3 text-base font-medium transition-colors",
-      active
-        ? "bg-emerald-50 text-emerald-700"
-        : "text-slate-700 hover:bg-slate-50 hover:text-slate-900",
-    ].join(" ");
-  }
-
-  return [
-    "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-    active
-      ? "bg-emerald-50 text-emerald-700"
-      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
-  ].join(" ");
-}
+import { WorkspaceNavigation } from "./workspace-navigation";
 
 export function AppHeader() {
   const pathname = usePathname();
@@ -117,39 +94,27 @@ export function AppHeader() {
     return null;
   }
 
-  const renderNavLinks = (mobile = false) =>
-    NAV_ITEMS.map(({ href, label }) => (
-      <Link
-        key={href}
-        href={href}
-        className={navLinkClass(pathname === href, mobile)}
-        onClick={() => mobile && closeMobileMenu()}
-      >
-        {label}
-      </Link>
-    ));
-
   return (
-    <nav className="border-b bg-white shadow-sm">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
-        <Link href={user ? "/" : "/login"} className="flex min-w-0 items-center gap-3 sm:gap-4">
+    <nav className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div className="mx-auto flex h-[72px] max-w-[1600px] items-center justify-between px-4 sm:px-6">
+        <Link href={user ? "/command-center" : "/"} className="flex min-w-0 items-center gap-3">
           {hasCustomLogo(profile) ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={getVendorLogoSrc(profile) ?? undefined}
               alt={profile.businessName || "Company logo"}
-              className="h-10 w-auto max-w-[100px] shrink-0 object-contain sm:h-12 sm:max-w-[120px]"
+              className="h-9 w-auto max-w-[90px] shrink-0 object-contain"
             />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src="/mercurius-logo.png"
               alt="Mercurius Logo"
-              className="h-11 w-auto shrink-0 sm:h-14"
+              className="h-10 w-auto shrink-0"
             />
           )}
           <div className="min-w-0">
-            <span className="block truncate text-lg font-semibold tracking-tight text-neutral-900 sm:text-2xl">
+            <span className="block truncate text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
               {profile.businessName || "Mercurius"}
             </span>
             {profile.businessName && (
@@ -161,8 +126,7 @@ export function AppHeader() {
         </Link>
 
         {showNav && (
-          <div className="hidden items-center gap-1 md:flex md:gap-2">
-            {renderNavLinks()}
+          <div className="hidden items-center gap-2 md:flex">
             <WorkspaceSwitcher />
             <span className="hidden max-w-[140px] truncate px-2 text-xs text-slate-400 lg:inline">
               {user?.email}
@@ -333,7 +297,7 @@ export function AppHeader() {
               <p className="mt-4 px-4 pb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Navigation
               </p>
-              {renderNavLinks(true)}
+              <WorkspaceNavigation mobile onNavigate={closeMobileMenu} />
             </div>
 
             <div className="border-t border-slate-100 px-5 py-4">

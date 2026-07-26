@@ -106,7 +106,7 @@ describe("AppHeader mobile navigation", () => {
     const menuToggle = getMobileMenuToggle(nav);
     expect(menuToggle).toBeInTheDocument();
     expect(menuToggle).toHaveClass("md:hidden");
-    expect(within(nav).getByRole("link", { name: "New Quote" }).parentElement).toHaveClass(
+    expect(within(nav).getByRole("button", { name: "Sign Out" }).parentElement).toHaveClass(
       "hidden",
       "md:flex"
     );
@@ -128,7 +128,7 @@ describe("AppHeader mobile navigation", () => {
 
     await user.click(getMobileMenuToggle(nav));
     const drawer = screen.getByRole("dialog", { name: "Navigation menu" });
-    await user.click(within(drawer).getByRole("link", { name: "History" }));
+    await user.click(within(drawer).getByRole("link", { name: /Quotes/ }));
 
     expect(screen.queryByRole("dialog", { name: "Navigation menu" })).not.toBeInTheDocument();
   });
@@ -164,16 +164,14 @@ describe("AppHeader mobile navigation", () => {
     const { nav } = renderHeader();
 
     expect(within(nav).queryByRole("button", { name: "Open menu" })).not.toBeInTheDocument();
-    expect(within(nav).queryByRole("link", { name: "New Quote" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: /Business Command Center/ })).not.toBeInTheDocument();
   });
 
   it("hides mobile navigation on auth pages even when logged in", () => {
     mockUsePathname.mockReturnValue("/login");
 
-    const { nav } = renderHeader();
-
-    expect(within(nav).queryByRole("button", { name: "Open menu" })).not.toBeInTheDocument();
-    expect(within(nav).queryByRole("link", { name: "New Quote" })).not.toBeInTheDocument();
+    render(<AppHeader />);
+    expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
   });
 
   it("traps focus inside the drawer and wraps from last to first item", async () => {

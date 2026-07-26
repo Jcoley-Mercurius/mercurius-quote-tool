@@ -19,7 +19,8 @@ test.describe("Mobile navigation", () => {
     await menuToggle.click();
     const drawer = page.getByRole("dialog", { name: "Navigation menu" });
     await expect(drawer).toBeVisible();
-    await expect(drawer.getByRole("link", { name: "History" })).toBeVisible();
+    await expect(drawer.getByRole("link", { name: /Business Command Center/ })).toBeVisible();
+    await expect(drawer.getByRole("link", { name: /Quotes/ })).toBeVisible();
 
     await page.getByRole("button", { name: "Close menu", expanded: true }).click();
     await expect(drawer).not.toBeVisible();
@@ -29,6 +30,16 @@ test.describe("Mobile navigation", () => {
     await expect(page).toHaveURL("/settings");
     await expect(page.getByRole("heading", { name: "Vendor Profile" })).toBeVisible();
     await expect(page.getByRole("dialog", { name: "Navigation menu" })).not.toBeVisible();
+  });
+
+  test("command center fits a narrow viewport", async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 720 });
+    await page.goto("/command-center");
+    await expect(page.getByRole("heading", { name: /Good |Welcome/ })).toBeVisible();
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth
+    );
+    expect(overflow).toBe(false);
   });
 
   test("drawer closes when the backdrop is clicked", async ({ page }) => {
