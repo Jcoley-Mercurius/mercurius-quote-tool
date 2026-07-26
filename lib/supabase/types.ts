@@ -91,7 +91,7 @@ export type PreferredContactMethod = "email" | "phone" | "text" | "none";
 export interface CustomerRow {
   id: string;
   organization_id: string | null;
-  user_id: string;
+  user_id: string | null;
   marketplace_homeowner_id: string | null;
   display_name: string;
   email: string | null;
@@ -106,7 +106,7 @@ export interface CustomerRow {
 export interface PropertyRow {
   id: string;
   organization_id: string | null;
-  user_id: string;
+  user_id: string | null;
   customer_id: string | null;
   marketplace_property_id: string | null;
   address_line1: string | null;
@@ -139,7 +139,7 @@ export type OpportunityStatus =
 export interface OpportunityRow {
   id: string;
   organization_id: string | null;
-  user_id: string;
+  user_id: string | null;
   customer_id: string | null;
   property_id: string | null;
   marketplace_lead_id: string | null;

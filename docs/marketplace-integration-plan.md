@@ -62,6 +62,11 @@ Date: 2026-07-25
 
 **Goal:** Receive one signed `marketplace.lead.assigned` v1 event and atomically project it.
 
+**Implementation status:** Implemented by
+`supabase/migrations/021_marketplace_lead_assignment_ingestion.sql` and
+`POST /api/integrations/marketplace/events`; operational details are in
+`docs/marketplace-lead-ingestion.md`.
+
 **Likely files:** `app/api/integrations/marketplace/events/route.ts`, `lib/integrations/marketplace/auth.ts`, `lib/integrations/inbox.ts`, a migration adding `process_marketplace_lead_assigned`, tests.
 
 **Database changes:** Transactional RPC/function that locks/deduplicates receipt, resolves `marketplace_vendor_id`, upserts customer/property by immutable external IDs, creates exactly one opportunity, writes initial history, and marks receipt processed.
