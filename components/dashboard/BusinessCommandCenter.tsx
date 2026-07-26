@@ -229,7 +229,7 @@ function GrowthScoreCard({
   );
 }
 
-function Priorities({
+export function Priorities({
   loading,
   newOpportunities,
   unassignedOpportunities,
@@ -256,7 +256,7 @@ function Priorities({
           ? unassignedOpportunities.value
           : null,
       description: "Make ownership clear for active requests.",
-      href: "/opportunities",
+      href: "/opportunities?assignment=unassigned",
     },
     {
       label: "Quotes needing changes",

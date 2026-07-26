@@ -10,6 +10,7 @@ import {
 import { getOrganizationMemberLabel } from "@/lib/organizations/types";
 import {
   clampPage,
+  opportunityFiltersForWorkspace,
   parseOpportunityFilters,
 } from "@/lib/opportunities/format";
 import { fetchOpportunityPage } from "@/lib/opportunities/repository";
@@ -33,14 +34,17 @@ export function OpportunitiesWorkspace() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const filters = useMemo(
-    () =>
-      parseOpportunityFilters({
+  const parsedFilters = useMemo(
+    () => parseOpportunityFilters({
         status: searchParams.get("status"),
         origin: searchParams.get("origin"),
         assignment: searchParams.get("assignment"),
       }),
     [searchParams]
+  );
+  const filters = useMemo(
+    () => opportunityFiltersForWorkspace(parsedFilters, workspace),
+    [parsedFilters, workspace]
   );
   const requestedPage = clampPage(searchParams.get("page"));
   const [retryVersion, setRetryVersion] = useState(0);
@@ -147,6 +151,7 @@ export function OpportunitiesWorkspace() {
 
       <OpportunityFilters
         filters={filters}
+        showAssignment={workspace.type === "organization"}
         onChange={(next) => navigate(next, 1)}
       />
 

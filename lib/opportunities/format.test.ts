@@ -5,6 +5,7 @@ import {
   formatOpportunityTitle,
   formatMarketplaceBudget,
   formatPropertyAddress,
+  opportunityFiltersForWorkspace,
   parseMarketplaceRequestContext,
   parseOpportunityFilters,
 } from "./format";
@@ -66,6 +67,16 @@ describe("opportunity domain formatting", () => {
     expect(clampPage("-5")).toBe(1);
     expect(clampPage("3")).toBe(3);
     expect(clampPage("not-a-page")).toBe(1);
+    expect(parseOpportunityFilters({ assignment: "mine" }).assignment)
+      .toBe("mine");
+    expect(opportunityFiltersForWorkspace(
+      { status: "active", origin: "all", assignment: "mine" },
+      { type: "personal" }
+    )).toEqual({
+      status: "active",
+      origin: "all",
+      assignment: "all",
+    });
   });
 
   it("allowlists valid Marketplace request context and ignores unknown keys", () => {

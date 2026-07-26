@@ -10,15 +10,23 @@ import {
 
 export function OpportunityFilters({
   filters,
+  showAssignment = true,
   onChange,
 }: {
   filters: OpportunityListFilters;
+  showAssignment?: boolean;
   onChange: (filters: OpportunityListFilters) => void;
 }) {
   return (
     <fieldset className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <legend className="sr-only">Filter opportunities</legend>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div
+        className={
+          showAssignment
+            ? "grid gap-4 sm:grid-cols-3"
+            : "grid gap-4 sm:grid-cols-2"
+        }
+      >
         <FilterSelect
           label="Status"
           value={filters.status}
@@ -50,20 +58,23 @@ export function OpportunityFilters({
           ))}
         </FilterSelect>
 
-        <FilterSelect
-          label="Assignment"
-          value={filters.assignment}
-          onChange={(assignment) =>
-            onChange({
-              ...filters,
-              assignment: assignment as OpportunityListFilters["assignment"],
-            })
-          }
-        >
-          <option value="all">All assignments</option>
-          <option value="assigned">Assigned</option>
-          <option value="unassigned">Unassigned</option>
-        </FilterSelect>
+        {showAssignment ? (
+          <FilterSelect
+            label="Assignment"
+            value={filters.assignment}
+            onChange={(assignment) =>
+              onChange({
+                ...filters,
+                assignment: assignment as OpportunityListFilters["assignment"],
+              })
+            }
+          >
+            <option value="all">All</option>
+            <option value="assigned">Assigned</option>
+            <option value="unassigned">Unassigned</option>
+            <option value="mine">Mine</option>
+          </FilterSelect>
+        ) : null}
       </div>
     </fieldset>
   );

@@ -1,4 +1,5 @@
 import type { CustomerRow, PropertyRow } from "@/lib/supabase/types";
+import type { Workspace } from "@/lib/organizations/types";
 import {
   DEFAULT_OPPORTUNITY_FILTERS,
   OPPORTUNITY_ORIGINS,
@@ -80,10 +81,20 @@ export function parseOpportunityFilters(
   const assignment: OpportunityAssignmentFilter =
     values.assignment === "all" ||
     values.assignment === "assigned" ||
-    values.assignment === "unassigned"
+    values.assignment === "unassigned" ||
+    values.assignment === "mine"
       ? values.assignment
       : DEFAULT_OPPORTUNITY_FILTERS.assignment;
   return { status, origin, assignment };
+}
+
+export function opportunityFiltersForWorkspace(
+  filters: OpportunityListFilters,
+  workspace: Workspace
+): OpportunityListFilters {
+  return workspace.type === "personal"
+    ? { ...filters, assignment: "all" }
+    : filters;
 }
 
 export function hasNonDefaultOpportunityFilters(

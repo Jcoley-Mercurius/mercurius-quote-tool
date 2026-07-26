@@ -90,7 +90,7 @@ function applyFilters<T extends {
   is: (column: string, value: null) => T;
   not: (column: string, operator: string, value: null) => T;
   in: (column: string, values: readonly string[]) => T;
-}>(query: T, filters: OpportunityListFilters): T {
+}>(query: T, filters: OpportunityListFilters, userId: string): T {
   if (filters.status === "active") {
     query = query.in("status", ACTIVE_OPPORTUNITY_STATUSES);
   } else if (filters.status !== "all") {
@@ -103,6 +103,8 @@ function applyFilters<T extends {
     query = query.not("assigned_user_id", "is", null);
   } else if (filters.assignment === "unassigned") {
     query = query.is("assigned_user_id", null);
+  } else if (filters.assignment === "mine") {
+    query = query.eq("assigned_user_id", userId);
   }
   return query;
 }
@@ -276,7 +278,7 @@ export async function fetchOpportunityPage(
     head: true,
   });
   filteredCountQuery = scopeQuery(filteredCountQuery, userId, workspace);
-  filteredCountQuery = applyFilters(filteredCountQuery, filters);
+  filteredCountQuery = applyFilters(filteredCountQuery, filters, userId);
 
   let totalQuery = client.from("opportunities").select("id", {
     count: "exact",
@@ -305,7 +307,7 @@ export async function fetchOpportunityPage(
     .from("opportunities")
     .select(OPPORTUNITY_LIST_SELECT);
   listQuery = scopeQuery(listQuery, userId, workspace);
-  listQuery = applyFilters(listQuery, filters);
+  listQuery = applyFilters(listQuery, filters, userId);
   const listResult = await listQuery
     .order("updated_at", { ascending: false })
     .range(from, from + OPPORTUNITY_PAGE_SIZE - 1);

@@ -59,7 +59,11 @@ export const OPPORTUNITY_ORIGIN_LABELS: Record<OpportunityOrigin, string> = {
 
 export type OpportunityStatusFilter = "active" | "all" | OpportunityStatus;
 export type OpportunityOriginFilter = "all" | OpportunityOrigin;
-export type OpportunityAssignmentFilter = "all" | "assigned" | "unassigned";
+export type OpportunityAssignmentFilter =
+  | "all"
+  | "assigned"
+  | "unassigned"
+  | "mine";
 
 export interface OpportunityListFilters {
   status: OpportunityStatusFilter;
@@ -145,6 +149,20 @@ export interface OpportunityHistoryItem {
   occurredAt: string;
 }
 
+export interface OpportunityAssignmentHistoryItem {
+  id: string;
+  previousAssignedUserId: string | null;
+  newAssignedUserId: string | null;
+  actorUserId: string | null;
+  sourceSystem: "marketplace" | "vendor_os" | "migration";
+  reason: string | null;
+  occurredAt: string;
+}
+
+export type OpportunityTimelineItem =
+  | ({ kind: "status" } & OpportunityHistoryItem)
+  | ({ kind: "assignment" } & OpportunityAssignmentHistoryItem);
+
 export interface OpportunityLinkedQuote {
   id: string;
   reference: string;
@@ -159,6 +177,7 @@ export type SecondaryResult<T> =
   | { status: "error"; message: string };
 
 export const OPPORTUNITY_HISTORY_LIMIT = 25;
+export const OPPORTUNITY_ASSIGNMENT_HISTORY_LIMIT = 25;
 export const OPPORTUNITY_QUOTES_LIMIT = 10;
 
 export const OPPORTUNITY_PAGE_SIZE = 20;

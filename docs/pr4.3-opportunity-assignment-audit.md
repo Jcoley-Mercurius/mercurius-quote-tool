@@ -841,3 +841,55 @@ B2 does not merge assignment history into the status timeline, add list
 actions or filters, change the Command Center, notify assignees, or alter
 status, quotes, Marketplace data, or member removal. Assignment-history reads,
 timeline integration, and list refinement remain B3 work.
+
+## 26. PR4.3B3 assignment history, timeline, and list refinement
+
+PR4.3B3 surfaces the append-only history created by B1 without changing the
+assignment RPC, permissions, database schema, or assignment controls.
+
+### Assignment-history read and merged timeline
+
+`lib/opportunities/assignment-history.ts` is the only application SQL boundary
+for `opportunity_assignment_history`. It uses the authenticated Supabase client,
+scopes through the joined opportunity using the trusted active workspace,
+bounds results, and maps database rows into typed domain events.
+
+Opportunity Detail loads assignment history as secondary data independently of
+status history, linked quotes, and current members. A failed assignment-history
+read produces restrained safe copy while core detail and successfully loaded
+status events remain visible. A successful assignment refreshes assignment
+history without reloading the route.
+
+The UI keeps assignment and status records separate and merges their typed
+events by `occurredAt` descending. Existing status event copy and the created
+fallback remain unchanged. Assignment records render as Assigned, Reassigned,
+Self-assigned, or Assignment cleared. Current member names use the existing
+display-name/email fallback. Missing current members render as Former team
+member when the member list is authoritative, or Unknown team member when
+identity cannot safely be resolved. User IDs are never rendered.
+
+Because B1 intentionally uses nullable user foreign keys with `ON DELETE SET
+NULL`, a deleted auth account cannot retain an immutable historical name.
+Unknown team member is the safe fallback; adding identity snapshots would
+require a separately approved privacy and migration decision.
+
+### Opportunity list and Command Center
+
+Organization workspaces now expose All, Assigned, Unassigned, and Mine
+assignment filters. The URL stores only the allowlisted token `mine`; the
+repository resolves it to the authenticated user ID internally. Personal
+workspaces normalize assignment filtering to All and hide the assignment
+selector because responsibility is already represented as You.
+
+No assignment mutation action is present on list rows. Pagination and the
+existing status/source URL filters are unchanged. The existing Unassigned
+opportunities priority in the Business Command Center now links to
+`/opportunities?assignment=unassigned`; the dashboard layout and data model are
+otherwise unchanged.
+
+### B3 boundaries
+
+B3 adds no migration, RPC change, permission change, notification, list-card
+assignment action, dashboard redesign, status behavior, quote behavior,
+Marketplace change, messaging, scheduling, analytics, or workload reporting.
+Further collaboration refinement remains outside this implementation.

@@ -1,11 +1,13 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { OpportunityPage } from "@/lib/opportunities/types";
 import { OpportunityFilters } from "./OpportunityFilters";
 import {
   OpportunityListState,
   OpportunityPagination,
 } from "./OpportunitiesWorkspace";
+
+afterEach(cleanup);
 
 const populated: OpportunityPage = {
   page: 1,
@@ -135,6 +137,20 @@ describe("Opportunity controls", () => {
       origin: "marketplace",
       assignment: "all",
     });
+    expect(screen.getByRole("option", { name: "Mine" })).toBeInTheDocument();
+  });
+
+  it("hides assignment-only filters for personal workspaces", () => {
+    render(
+      <OpportunityFilters
+        filters={{ status: "active", origin: "all", assignment: "all" }}
+        showAssignment={false}
+        onChange={vi.fn()}
+      />
+    );
+    expect(screen.queryByLabelText("Assignment")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Status")).toBeInTheDocument();
+    expect(screen.getByLabelText("Source")).toBeInTheDocument();
   });
 
   it("renders bounded previous and next pagination controls", () => {

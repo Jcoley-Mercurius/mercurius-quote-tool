@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import type { OpportunitySummary } from "@/lib/dashboard/types";
-import { OpportunityRow } from "./BusinessCommandCenter";
+import { OpportunityRow, Priorities } from "./BusinessCommandCenter";
 
 afterEach(cleanup);
 
@@ -23,5 +23,20 @@ describe("Business Command Center opportunity links", () => {
       "href",
       "/opportunities/opp-1"
     );
+  });
+
+  it("deep-links Unassigned opportunities to the refined list", () => {
+    render(
+      <Priorities
+        loading={false}
+        newOpportunities={{ status: "ready", value: 2 }}
+        unassignedOpportunities={{ status: "ready", value: 1 }}
+        profileIncomplete={false}
+        quoteChanges={0}
+      />
+    );
+    expect(screen.getByRole("link", {
+      name: /Unassigned opportunities/i,
+    })).toHaveAttribute("href", "/opportunities?assignment=unassigned");
   });
 });

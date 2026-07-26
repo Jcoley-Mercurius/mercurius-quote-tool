@@ -126,6 +126,28 @@ describe("fetchOpportunityPage", () => {
     expect(total.is).toHaveBeenCalledWith("organization_id", null);
   });
 
+  it("resolves Mine with the authenticated user ID inside the repository", async () => {
+    const filteredCount = queryBuilder({ count: 2 });
+    const total = queryBuilder({ count: 5 });
+    const list = queryBuilder({});
+    await fetchOpportunityPage(
+      "authenticated-user",
+      { type: "organization", organizationId: "org-1", name: "Team" },
+      { status: "all", origin: "all", assignment: "mine" },
+      1,
+      clientWith(filteredCount, total, list)
+    );
+
+    expect(filteredCount.eq).toHaveBeenCalledWith(
+      "assigned_user_id",
+      "authenticated-user"
+    );
+    expect(list.eq).toHaveBeenCalledWith(
+      "assigned_user_id",
+      "authenticated-user"
+    );
+  });
+
   it("keeps repository errors distinct from successful zero results", async () => {
     const failure = new Error("query failed");
     await expect(

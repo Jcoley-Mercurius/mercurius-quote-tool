@@ -9,6 +9,7 @@ import {
   getOrganizationMemberLabel,
   type OrganizationMember,
 } from "@/lib/organizations/types";
+import { fetchOpportunityAssignmentHistory } from "@/lib/opportunities/assignment-history";
 import type { OpportunityAssignmentResult } from "@/lib/opportunities/assignment";
 import {
   formatMarketplaceBudget,
@@ -18,6 +19,7 @@ import {
   formatReasonCode,
   isUuid,
 } from "@/lib/opportunities/format";
+import { mergeOpportunityTimeline } from "@/lib/opportunities/history";
 import {
   fetchOpportunityDetail,
   fetchOpportunityHistory,
@@ -25,11 +27,13 @@ import {
 } from "@/lib/opportunities/repository";
 import {
   OPPORTUNITY_HISTORY_LIMIT,
+  OPPORTUNITY_ASSIGNMENT_HISTORY_LIMIT,
   OPPORTUNITY_ORIGIN_LABELS,
   OPPORTUNITY_QUOTES_LIMIT,
   OPPORTUNITY_STATUS_LABELS,
   OPPORTUNITY_STATUS_STYLES,
   type OpportunityDetail,
+  type OpportunityAssignmentHistoryItem,
   type OpportunityHistoryItem,
   type OpportunityLinkedQuote,
   type SecondaryResult,
@@ -44,6 +48,7 @@ interface ReadyState {
   key: string;
   detail: OpportunityDetail;
   history: SecondaryResult<OpportunityHistoryItem[]>;
+  assignmentHistory: SecondaryResult<OpportunityAssignmentHistoryItem[]>;
   quotes: SecondaryResult<OpportunityLinkedQuote[]>;
   memberLabels: Map<string, string>;
   members: OrganizationMember[] | null;
@@ -88,6 +93,12 @@ export function OpportunityDetailWorkspace({
           opportunityId,
           OPPORTUNITY_HISTORY_LIMIT
         ),
+        fetchOpportunityAssignmentHistory(
+          user.id,
+          workspace,
+          opportunityId,
+          OPPORTUNITY_ASSIGNMENT_HISTORY_LIMIT
+        ),
         fetchOpportunityQuotes(
           user.id,
           workspace,
@@ -102,7 +113,12 @@ export function OpportunityDetailWorkspace({
         setState({ key: requestKey, value: "not-found" });
         return;
       }
-      const [historyResult, quotesResult, membersResult] = secondary;
+      const [
+        historyResult,
+        assignmentHistoryResult,
+        quotesResult,
+        membersResult,
+      ] = secondary;
       const memberLabels = new Map<string, string>();
       if (membersResult.status === "fulfilled") {
         for (const member of membersResult.value) {
@@ -121,6 +137,12 @@ export function OpportunityDetailWorkspace({
         history: historyResult.status === "fulfilled"
           ? { status: "ready", value: historyResult.value }
           : { status: "error", message: "Status history is unavailable." },
+        assignmentHistory: assignmentHistoryResult.status === "fulfilled"
+          ? { status: "ready", value: assignmentHistoryResult.value }
+          : {
+              status: "error",
+              message: "Assignment history is temporarily unavailable.",
+            },
         quotes: quotesResult.status === "fulfilled"
           ? { status: "ready", value: quotesResult.value }
           : { status: "error", message: "Linked quotes are unavailable." },
@@ -179,6 +201,34 @@ export function OpportunityDetailWorkspace({
         },
       };
     });
+    if (!user) return;
+    void fetchOpportunityAssignmentHistory(
+      user.id,
+      workspace,
+      opportunityId,
+      OPPORTUNITY_ASSIGNMENT_HISTORY_LIMIT
+    ).then((assignmentHistory) => {
+      setReady((previous) =>
+        previous?.key === requestKey
+          ? {
+              ...previous,
+              assignmentHistory: { status: "ready", value: assignmentHistory },
+            }
+          : previous
+      );
+    }).catch(() => {
+      setReady((previous) =>
+        previous?.key === requestKey
+          ? {
+              ...previous,
+              assignmentHistory: {
+                status: "error",
+                message: "Assignment history is temporarily unavailable.",
+              },
+            }
+          : previous
+      );
+    });
   }
 
   async function refreshAssignmentAfterConflict() {
@@ -231,9 +281,11 @@ export function OpportunityDetailWorkspace({
             onConflict={refreshAssignmentAfterConflict}
           />
           <OpportunityTimeline
-            result={current.history}
+            statusResult={current.history}
+            assignmentResult={current.assignmentHistory}
             createdAt={current.detail.createdAt}
             memberLabels={current.memberLabels}
+            membersAvailable={current.members !== null}
           />
         </div>
       </main>
@@ -418,53 +470,163 @@ export function LinkedQuotesSection({
 }
 
 export function OpportunityTimeline({
-  result,
+  statusResult,
+  assignmentResult,
   createdAt,
   memberLabels,
+  membersAvailable,
 }: {
-  result: SecondaryResult<OpportunityHistoryItem[]>;
+  statusResult: SecondaryResult<OpportunityHistoryItem[]>;
+  assignmentResult: SecondaryResult<OpportunityAssignmentHistoryItem[]>;
   createdAt: string;
   memberLabels: Map<string, string>;
+  membersAvailable: boolean;
 }) {
+  const events = mergeOpportunityTimeline(
+    statusResult.status === "ready" ? statusResult.value : [],
+    assignmentResult.status === "ready" ? assignmentResult.value : [],
+    statusResult.status === "ready" ? createdAt : null
+  );
   return (
-    <ContextCard title="Status timeline">
-      {result.status === "error" ? <Unavailable>{result.message}</Unavailable>
-      : (
+    <ContextCard title="Activity timeline">
+      <div className="space-y-3" role="status" aria-live="polite">
+        {statusResult.status === "error" ? (
+          <Unavailable>{statusResult.message}</Unavailable>
+        ) : null}
+        {assignmentResult.status === "error" ? (
+          <Unavailable>{assignmentResult.message}</Unavailable>
+        ) : null}
+      </div>
+      {events.length ? (
         <ol className="space-y-5">
-          {(result.value.length ? result.value : [{
-            id: "created",
-            fromStatus: null,
-            toStatus: "new" as const,
-            actorUserId: null,
-            sourceSystem: "vendor_os" as const,
-            reason: null,
-            occurredAt: createdAt,
-          }]).map((event) => (
-            <li key={event.id} className="relative border-l-2 border-emerald-200 pl-4">
-              <p className="text-sm font-semibold text-slate-900">
-                {event.fromStatus
-                  ? `${OPPORTUNITY_STATUS_LABELS[event.fromStatus]} → ${OPPORTUNITY_STATUS_LABELS[event.toStatus]}`
-                  : `Created as ${OPPORTUNITY_STATUS_LABELS[event.toStatus]}`}
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                {formatOpportunityDateTime(event.occurredAt)} · {sourceLabel(event.sourceSystem)}
-              </p>
-              {event.actorUserId ? (
-                <p className="mt-1 text-xs text-slate-600">
-                  Actor: {memberLabels.get(event.actorUserId) || "Team member"}
-                </p>
-              ) : null}
-              {formatReasonCode(event.reason) ? (
-                <p className="mt-1 text-xs text-slate-600">
-                  Reason: {formatReasonCode(event.reason)}
-                </p>
-              ) : null}
+          {events.map((event) => (
+            <li
+              key={`${event.kind}:${event.id}`}
+              className="relative border-l-2 border-emerald-200 pl-4"
+            >
+              {event.kind === "status" ? (
+                <StatusTimelineContent
+                  event={event}
+                  memberLabels={memberLabels}
+                />
+              ) : (
+                <AssignmentTimelineContent
+                  event={event}
+                  memberLabels={memberLabels}
+                  membersAvailable={membersAvailable}
+                />
+              )}
             </li>
           ))}
         </ol>
-      )}
+      ) : null}
     </ContextCard>
   );
+}
+
+function StatusTimelineContent({
+  event,
+  memberLabels,
+}: {
+  event: OpportunityHistoryItem;
+  memberLabels: Map<string, string>;
+}) {
+  return (
+    <>
+      <p className="text-sm font-semibold text-slate-900">
+        {event.fromStatus
+          ? `${OPPORTUNITY_STATUS_LABELS[event.fromStatus]} → ${OPPORTUNITY_STATUS_LABELS[event.toStatus]}`
+          : `Created as ${OPPORTUNITY_STATUS_LABELS[event.toStatus]}`}
+      </p>
+      <TimelineMetadata occurredAt={event.occurredAt} source={event.sourceSystem} />
+      {event.actorUserId ? (
+        <p className="mt-1 text-xs text-slate-600">
+          Actor: {memberLabels.get(event.actorUserId) || "Team member"}
+        </p>
+      ) : null}
+      {formatReasonCode(event.reason) ? (
+        <p className="mt-1 text-xs text-slate-600">
+          Reason: {formatReasonCode(event.reason)}
+        </p>
+      ) : null}
+    </>
+  );
+}
+
+function AssignmentTimelineContent({
+  event,
+  memberLabels,
+  membersAvailable,
+}: {
+  event: OpportunityAssignmentHistoryItem;
+  memberLabels: Map<string, string>;
+  membersAvailable: boolean;
+}) {
+  const previous = historicalMemberLabel(
+    event.previousAssignedUserId,
+    memberLabels,
+    membersAvailable
+  );
+  const next = historicalMemberLabel(
+    event.newAssignedUserId,
+    memberLabels,
+    membersAvailable
+  );
+  const selfAssigned =
+    event.newAssignedUserId !== null &&
+    event.newAssignedUserId === event.actorUserId;
+  const title = event.newAssignedUserId === null
+    ? `Assignment cleared · ${previous}`
+    : selfAssigned
+      ? `Self-assigned · ${next}`
+      : event.previousAssignedUserId === null
+        ? `Assigned · ${next}`
+        : `Reassigned · ${previous} → ${next}`;
+
+  return (
+    <>
+      <p className="text-sm font-semibold text-slate-900">{title}</p>
+      <TimelineMetadata occurredAt={event.occurredAt} source={event.sourceSystem} />
+      {event.actorUserId ? (
+        <p className="mt-1 text-xs text-slate-600">
+          Actor: {historicalMemberLabel(
+            event.actorUserId,
+            memberLabels,
+            membersAvailable
+          )}
+        </p>
+      ) : null}
+      {formatReasonCode(event.reason) ? (
+        <p className="mt-1 text-xs text-slate-600">
+          Reason: {formatReasonCode(event.reason)}
+        </p>
+      ) : null}
+    </>
+  );
+}
+
+function TimelineMetadata({
+  occurredAt,
+  source,
+}: {
+  occurredAt: string;
+  source: OpportunityHistoryItem["sourceSystem"];
+}) {
+  return (
+    <p className="mt-1 text-xs text-slate-500">
+      {formatOpportunityDateTime(occurredAt)} · {sourceLabel(source)}
+    </p>
+  );
+}
+
+function historicalMemberLabel(
+  userId: string | null,
+  memberLabels: Map<string, string>,
+  membersAvailable: boolean
+): string {
+  if (!userId) return "Unknown team member";
+  return memberLabels.get(userId) ||
+    (membersAvailable ? "Former team member" : "Unknown team member");
 }
 
 function sourceLabel(source: OpportunityHistoryItem["sourceSystem"]): string {

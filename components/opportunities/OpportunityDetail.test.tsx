@@ -132,22 +132,150 @@ describe("Opportunity detail sections", () => {
     };
     const { rerender } = render(
       <OpportunityTimeline
-        result={{ status: "ready", value: [history] }}
+        statusResult={{ status: "ready", value: [history] }}
+        assignmentResult={{ status: "ready", value: [] }}
         createdAt={detail.createdAt}
         memberLabels={new Map([["member-1", "Alex Morgan"]])}
+        membersAvailable
       />
     );
     expect(screen.getByText("New → Opened")).toBeInTheDocument();
     expect(screen.getByText("Actor: Alex Morgan")).toBeInTheDocument();
+    expect(screen.getByText("Actor: Alex Morgan")).toBeInTheDocument();
     expect(screen.getByText("Reason: Customer Contacted")).toBeInTheDocument();
     rerender(
       <OpportunityTimeline
-        result={{ status: "ready", value: [] }}
+        statusResult={{ status: "ready", value: [] }}
+        assignmentResult={{ status: "ready", value: [] }}
         createdAt={detail.createdAt}
         memberLabels={new Map()}
+        membersAvailable
       />
     );
     expect(screen.getByText("Created as New")).toBeInTheDocument();
+  });
+
+  it("preserves the existing status actor fallback", () => {
+    render(
+      <OpportunityTimeline
+        statusResult={{
+          status: "ready",
+          value: [{
+            id: "status-unknown-actor",
+            fromStatus: "new",
+            toStatus: "opened",
+            actorUserId: "missing-status-actor",
+            sourceSystem: "vendor_os",
+            reason: null,
+            occurredAt: detail.updatedAt,
+          }],
+        }}
+        assignmentResult={{ status: "ready", value: [] }}
+        createdAt={detail.createdAt}
+        memberLabels={new Map()}
+        membersAvailable
+      />
+    );
+    expect(screen.getByText("Actor: Team member")).toBeInTheDocument();
+    expect(screen.queryByText("Former team member")).not.toBeInTheDocument();
+  });
+
+  it("renders assignment events with safe current, former, and unknown labels", () => {
+    render(
+      <OpportunityTimeline
+        statusResult={{ status: "ready", value: [] }}
+        assignmentResult={{
+          status: "ready",
+          value: [
+            {
+              id: "self-assigned",
+              previousAssignedUserId: "former-1",
+              newAssignedUserId: "member-1",
+              actorUserId: "member-1",
+              sourceSystem: "vendor_os",
+              reason: null,
+              occurredAt: "2026-07-24T12:00:00Z",
+            },
+            {
+              id: "assigned",
+              previousAssignedUserId: null,
+              newAssignedUserId: "member-1",
+              actorUserId: "owner-1",
+              sourceSystem: "vendor_os",
+              reason: null,
+              occurredAt: "2026-07-23T12:00:00Z",
+            },
+            {
+              id: "reassigned",
+              previousAssignedUserId: "former-1",
+              newAssignedUserId: "member-1",
+              actorUserId: null,
+              sourceSystem: "vendor_os",
+              reason: null,
+              occurredAt: "2026-07-22T12:00:00Z",
+            },
+            {
+              id: "cleared",
+              previousAssignedUserId: null,
+              newAssignedUserId: null,
+              actorUserId: null,
+              sourceSystem: "vendor_os",
+              reason: null,
+              occurredAt: "2026-07-21T12:00:00Z",
+            },
+          ],
+        }}
+        createdAt={detail.createdAt}
+        memberLabels={new Map([
+          ["member-1", "Alex Morgan"],
+          ["owner-1", "owner@example.com"],
+        ])}
+        membersAvailable
+      />
+    );
+
+    expect(screen.getByText("Assigned · Alex Morgan")).toBeInTheDocument();
+    expect(screen.getByText("Self-assigned · Alex Morgan")).toBeInTheDocument();
+    expect(screen.getByText(
+      "Reassigned · Former team member → Alex Morgan"
+    )).toBeInTheDocument();
+    expect(screen.getByText(
+      "Assignment cleared · Unknown team member"
+    )).toBeInTheDocument();
+    expect(screen.getByText("Actor: owner@example.com")).toBeInTheDocument();
+    expect(screen.queryByText(/former-1|member-1|owner-1/)).not.toBeInTheDocument();
+  });
+
+  it("keeps status history visible when assignment history fails safely", () => {
+    render(
+      <OpportunityTimeline
+        statusResult={{
+          status: "ready",
+          value: [{
+            id: "status-1",
+            fromStatus: "new",
+            toStatus: "opened",
+            actorUserId: null,
+            sourceSystem: "vendor_os",
+            reason: null,
+            occurredAt: detail.updatedAt,
+          }],
+        }}
+        assignmentResult={{
+          status: "error",
+          message: "Assignment history is temporarily unavailable.",
+        }}
+        createdAt={detail.createdAt}
+        memberLabels={new Map()}
+        membersAvailable={false}
+      />
+    );
+
+    expect(screen.getByText("New → Opened")).toBeInTheDocument();
+    expect(screen.getByText(
+      "Assignment history is temporarily unavailable."
+    )).toBeInTheDocument();
+    expect(screen.queryByText(/SQL|UUID/i)).not.toBeInTheDocument();
   });
 
   it("renders indistinguishable not-found navigation and a core error state", () => {
