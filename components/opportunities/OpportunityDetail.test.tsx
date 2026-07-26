@@ -66,6 +66,10 @@ describe("Opportunity detail sections", () => {
     render(<><OpportunityHeader detail={detail} /><OpportunityRequestCard detail={detail} /></>);
     expect(screen.getByRole("heading", { level: 1, name: detail.title })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /back to opportunities/i })).toHaveAttribute("href", "/opportunities");
+    expect(screen.getByRole("link", { name: "Create Quote" })).toHaveAttribute(
+      "href",
+      "/quote?opportunityId=opp-1"
+    );
     expect(screen.getByText(detail.description!)).toBeInTheDocument();
     expect(screen.getByText("Weekday morning")).toBeInTheDocument();
     expect(screen.getByText("$125.00–$250.00")).toBeInTheDocument();

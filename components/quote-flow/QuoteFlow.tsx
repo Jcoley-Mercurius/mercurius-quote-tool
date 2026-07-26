@@ -39,6 +39,41 @@ import {
 import { repairRequestToQuoteFormData } from "@/lib/repair/to-quote-form";
 import type { RepairRequestDetail } from "@/lib/repair/types";
 import { REPAIR_URGENCY_LABELS } from "@/lib/repair/types";
+import { isUuid } from "@/lib/opportunities/format";
+import { fetchOpportunityDetail } from "@/lib/opportunities/repository";
+import { opportunityToQuoteFormData } from "@/lib/opportunities/to-quote-form";
+import type { OpportunityDetail } from "@/lib/opportunities/types";
+
+export type QuoteRouteMode =
+  | { type: "quote"; id: string }
+  | { type: "opportunity"; id: string }
+  | { type: "repair"; id: string }
+  | { type: "blank" };
+
+export function resolveQuoteRouteMode({
+  quoteId,
+  opportunityId,
+  repairRequestId,
+}: {
+  quoteId: string | null;
+  opportunityId: string | null;
+  repairRequestId: string | null;
+}): QuoteRouteMode {
+  if (quoteId) return { type: "quote", id: quoteId };
+  if (opportunityId) return { type: "opportunity", id: opportunityId };
+  if (repairRequestId) return { type: "repair", id: repairRequestId };
+  return { type: "blank" };
+}
+
+export function resolveQuoteSaveContext(
+  opportunity: OpportunityDetail | null,
+  activeWorkspace: Workspace,
+  selectedTarget: Workspace
+): { target: Workspace; opportunityId: string | null } {
+  return opportunity
+    ? { target: activeWorkspace, opportunityId: opportunity.id }
+    : { target: selectedTarget, opportunityId: null };
+}
 
 function toPayload(form: QuoteFormData): QuoteFormPayload {
   return {
@@ -80,8 +115,15 @@ function preservePhotoMetadata(
 export function QuoteFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const quoteIdParam = searchParams.get("quoteId");
-  const repairRequestIdParam = searchParams.get("repairRequestId");
+  const routeMode = resolveQuoteRouteMode({
+    quoteId: searchParams.get("quoteId"),
+    opportunityId: searchParams.get("opportunityId"),
+    repairRequestId: searchParams.get("repairRequestId"),
+  });
+  const quoteIdParam = routeMode.type === "quote" ? routeMode.id : null;
+  const opportunityIdParam =
+    routeMode.type === "opportunity" ? routeMode.id : null;
+  const repairRequestIdParam = routeMode.type === "repair" ? routeMode.id : null;
   const { user } = useAuth();
   const { profile, pricingSettings } = useVendorProfile();
   const { workspace, isLoading: workspaceLoading } = useWorkspace();
@@ -132,6 +174,74 @@ export function QuoteFlow() {
   const [repairPrefillError, setRepairPrefillError] = useState<string | null>(
     null
   );
+
+  const opportunityRequestKey = user && opportunityIdParam
+    ? `${user.id}:${activeWorkspaceKey}:${opportunityIdParam}`
+    : null;
+  const [opportunityPrefill, setOpportunityPrefill] = useState<{
+    key: string;
+    detail: OpportunityDetail;
+    form: QuoteFormData;
+  } | null>(null);
+  const [opportunityPrefillError, setOpportunityPrefillError] = useState<{
+    key: string;
+    type: "not-found" | "error";
+  } | null>(null);
+  const currentOpportunityPrefill =
+    opportunityPrefill?.key === opportunityRequestKey
+      ? opportunityPrefill
+      : null;
+  const currentOpportunityError =
+    !opportunityIdParam || isUuid(opportunityIdParam)
+      ? opportunityPrefillError?.key === opportunityRequestKey
+        ? opportunityPrefillError.type
+        : null
+      : "not-found";
+
+  useEffect(() => {
+    if (
+      !opportunityIdParam ||
+      !isUuid(opportunityIdParam) ||
+      !user ||
+      workspaceLoading ||
+      !opportunityRequestKey
+    ) return;
+    let cancelled = false;
+    void fetchOpportunityDetail(user.id, workspace, opportunityIdParam)
+      .then((detail) => {
+        if (cancelled) return;
+        if (!detail) {
+          setOpportunityPrefillError({
+            key: opportunityRequestKey,
+            type: "not-found",
+          });
+          return;
+        }
+        setOpportunityPrefill({
+          key: opportunityRequestKey,
+          detail,
+          form: opportunityToQuoteFormData(detail),
+        });
+        setOpportunityPrefillError(null);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setOpportunityPrefillError({
+            key: opportunityRequestKey,
+            type: "error",
+          });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    opportunityIdParam,
+    opportunityRequestKey,
+    user,
+    workspace,
+    workspaceLoading,
+  ]);
 
   useEffect(() => {
     if (!repairRequestIdParam || quoteIdParam) return;
@@ -247,6 +357,11 @@ export function QuoteFlow() {
     );
 
     try {
+      const saveContext = resolveQuoteSaveContext(
+        currentOpportunityPrefill?.detail ?? null,
+        workspace,
+        saveTarget
+      );
       const encodedPhotos = hasPhotos
         ? await encodePhotosForApi(formData.photos)
         : undefined;
@@ -258,8 +373,9 @@ export function QuoteFlow() {
         payload,
         result.quote,
         result.source,
-        saveTarget,
-        profile
+        saveContext.target,
+        profile,
+        saveContext.opportunityId
       );
       const quoteWithPhotos = await attachPhotoThumbnails(
         saved.id,
@@ -463,6 +579,22 @@ export function QuoteFlow() {
     );
   }
 
+  if (
+    opportunityIdParam &&
+    !currentOpportunityPrefill &&
+    !currentOpportunityError
+  ) {
+    return <LoadingState message="Loading opportunity..." />;
+  }
+
+  if (opportunityIdParam && currentOpportunityError) {
+    return (
+      <OpportunityPrefillError
+        repositoryError={currentOpportunityError === "error"}
+      />
+    );
+  }
+
   if (savedQuote && editFormQuoteId === quoteIdParam) {
     return (
       <>
@@ -561,6 +693,9 @@ export function QuoteFlow() {
 
   return (
     <>
+      {currentOpportunityPrefill ? (
+        <OpportunityQuoteContext detail={currentOpportunityPrefill.detail} workspace={workspace} />
+      ) : null}
       {repairLead && (
         <div className="mx-auto mb-6 max-w-3xl rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 sm:px-5">
           <p className="font-semibold">
@@ -574,16 +709,69 @@ export function QuoteFlow() {
         </div>
       )}
       <QuoteForm
-        key={repairRequestIdParam ?? "new-quote"}
+        key={opportunityIdParam ?? repairRequestIdParam ?? "new-quote"}
         onSubmit={handleNewQuoteSubmit}
-        initialData={repairPrefill ?? undefined}
-        saveTarget={saveTarget}
-        onSaveTargetChange={setSaveTarget}
+        initialData={currentOpportunityPrefill?.form ?? repairPrefill ?? undefined}
+        saveTarget={currentOpportunityPrefill ? undefined : saveTarget}
+        onSaveTargetChange={currentOpportunityPrefill ? undefined : setSaveTarget}
         submitLabel={
-          repairLead ? "Generate Quote for this Request" : undefined
+          currentOpportunityPrefill
+            ? "Generate Quote for this Opportunity"
+            : repairLead ? "Generate Quote for this Request" : undefined
         }
       />
     </>
+  );
+}
+
+export function OpportunityQuoteContext({
+  detail,
+  workspace,
+}: {
+  detail: OpportunityDetail;
+  workspace: Workspace;
+}) {
+  return (
+    <aside className="mx-auto mb-6 max-w-3xl rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-950 sm:px-5">
+      <p className="font-semibold">Creating a quote for {detail.title}</p>
+      <p className="mt-1 text-emerald-900/80">
+        This quote will remain associated with the opportunity and will be saved
+        to the {workspaceLabel(workspace)} workspace.
+      </p>
+      <Link
+        href={`/opportunities/${encodeURIComponent(detail.id)}`}
+        className="mt-3 inline-flex min-h-11 items-center font-semibold text-emerald-800 underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-emerald-500"
+      >
+        Back to opportunity
+      </Link>
+    </aside>
+  );
+}
+
+export function OpportunityPrefillError({
+  repositoryError,
+}: {
+  repositoryError: boolean;
+}) {
+  return (
+    <section className="mx-auto max-w-lg rounded-2xl border border-amber-200 bg-amber-50 px-6 py-10 text-center">
+      <h2 className="text-lg font-semibold text-slate-900">
+        {repositoryError
+          ? "Opportunity couldn’t be loaded"
+          : "Opportunity not found"}
+      </h2>
+      <p className="mt-2 text-sm text-slate-600">
+        {repositoryError
+          ? "Try returning to Opportunities and opening it again."
+          : "This opportunity is unavailable in the active workspace."}
+      </p>
+      <Link
+        href="/opportunities"
+        className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+      >
+        Back to Opportunities
+      </Link>
+    </section>
   );
 }
 
@@ -760,4 +948,3 @@ function QuoteNotFound({
     </div>
   );
 }
-

@@ -20,6 +20,8 @@ export interface SavedQuote {
   source: "ai" | "fallback";
   /** null/undefined = personal workspace */
   organizationId?: string | null;
+  /** Existing database linkage; absent/null quotes remain unlinked. */
+  opportunityId?: string | null;
   /** Vendor branding/pricing frozen at quote creation (or last regeneration) */
   vendorSnapshot?: VendorProfile | null;
   createdAt: string;

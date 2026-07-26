@@ -1,6 +1,6 @@
 # Opportunity Workspace
 
-## PR4.2B1 and B2 scope
+## PR4.2B1 through B3 scope
 
 PR4.2B1 replaces the `/opportunities` placeholder with a read-only operational
 list. It supports personal and organization workspaces, exact counts, bounded
@@ -10,8 +10,11 @@ Business Command Center deep links.
 
 PR4.2B2 adds the read-only `/opportunities/[id]` workspace and enables list-card
 links to it. Detail includes request, customer, property, assignment, bounded
-status history, and bounded linked quote context. Quote creation and prefill
-remain deferred to B3.
+status history, and bounded linked quote context.
+
+PR4.2B3 connects that detail workspace to the existing quote builder through
+`/quote?opportunityId=<uuid>`, persists the existing quote-to-opportunity
+relationship, and deep-links Business Command Center opportunity rows.
 
 ## Data and security boundary
 
@@ -65,12 +68,11 @@ Deferred:
 
 - text search and new indexes
 - status and assignment changes
-- quote creation/prefill
 - photos, attachments, and internal notes
 - customer and property detail pages
 - messaging, scheduling, and job conversion
 
-No migration or environment variable is added by B1 or B2.
+No migration or environment variable is added by B1, B2, or B3.
 
 ## Detail data and workspace boundary
 
@@ -112,9 +114,45 @@ Linked quotes are workspace-scoped, newest-first, and capped at 10. Each result
 uses the existing `/quote?quoteId=...` route. History and quote errors remain
 section-local so the core opportunity stays visible.
 
-Deferred after B2:
+## Opportunity-to-quote integration
 
-- B3 quote prefill and opportunity-to-quote creation
+Opportunity detail provides a real Create Quote link using the encoded
+opportunity ID. Quote route parameters use explicit precedence: `quoteId`,
+`opportunityId`, `repairRequestId`, then blank creation. Therefore, a stored
+quote opened for editing is authoritative and cannot be silently relinked by an
+additional opportunity parameter.
+
+Opportunity prefill reuses `fetchOpportunityDetail` with the authenticated user
+and trusted active workspace. Invalid, missing, cross-workspace, and RLS-hidden
+IDs never fall through to a blank quote. Repository errors use a separate safe
+message.
+
+The pure adapter prefills:
+
+- explicitly recognized service codes
+- operational description, with opportunity title fallback
+- structured property address and postal code
+
+Unsupported service values leave service selection empty for the vendor to
+choose. Customer fields are not added, photos remain empty, and Marketplace
+budget or snapshot data never becomes quote form pricing.
+
+Opportunity-originated quotes are locked to the active workspace that
+successfully loaded the opportunity; the ordinary save-target selector is not
+shown. `SavedQuote.opportunityId` maps bidirectionally to
+`quotes.opportunity_id`. Existing null or missing linkage remains compatible,
+and edits spread the stored model so linkage is preserved without requiring the
+URL parameter.
+
+No action in B3 changes opportunity status. Viewing, starting, generating, and
+saving a quote do not call the opportunity transition function. Public quote
+routes and blank/repair-request creation remain unchanged. Recent populated
+Business Command Center opportunities now link to `/opportunities/[id]`, while
+list-level links remain `/opportunities`.
+
+Deferred after B3:
+
+- B4 broader validation/refinement
 - status and assignment mutations
 - photos, attachments, internal notes, messaging, scheduling, and job conversion
-- customer/property detail pages and Business Command Center deep links
+- customer/property detail pages

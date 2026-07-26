@@ -188,11 +188,19 @@ export function OpportunityHeader({ detail }: { detail: OpportunityDetail }) {
           </h1>
           <p className="mt-2 text-base text-slate-600">{detail.serviceType}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Badge>Source: {OPPORTUNITY_ORIGIN_LABELS[detail.origin]}</Badge>
-          <Badge className={OPPORTUNITY_STATUS_STYLES[detail.status]}>
-            Status: {OPPORTUNITY_STATUS_LABELS[detail.status]}
-          </Badge>
+        <div className="flex flex-col items-start gap-3 sm:items-end">
+          <div className="flex flex-wrap gap-2">
+            <Badge>Source: {OPPORTUNITY_ORIGIN_LABELS[detail.origin]}</Badge>
+            <Badge className={OPPORTUNITY_STATUS_STYLES[detail.status]}>
+              Status: {OPPORTUNITY_STATUS_LABELS[detail.status]}
+            </Badge>
+          </div>
+          <Link
+            href={`/quote?opportunityId=${encodeURIComponent(detail.id)}`}
+            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white shadow-sm outline-none hover:bg-emerald-800 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+          >
+            Create Quote
+          </Link>
         </div>
       </div>
       <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-3 text-sm">

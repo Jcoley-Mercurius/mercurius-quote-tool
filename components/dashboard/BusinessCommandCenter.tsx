@@ -372,10 +372,10 @@ function RecentOpportunities({
   );
 }
 
-function OpportunityRow({ item, now }: { item: OpportunitySummary; now: Date | null }) {
+export function OpportunityRow({ item, now }: { item: OpportunitySummary; now: Date | null }) {
   return (
     <Link
-      href="/opportunities"
+      href={`/opportunities/${encodeURIComponent(item.id)}`}
       className="grid gap-3 p-5 outline-none hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-500 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
     >
       <div className="min-w-0">

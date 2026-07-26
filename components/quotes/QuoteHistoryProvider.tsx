@@ -50,7 +50,8 @@ interface QuoteHistoryContextValue {
     quote: GeneratedQuote,
     source: "ai" | "fallback",
     saveTarget?: Workspace,
-    vendorProfile?: VendorProfile
+    vendorProfile?: VendorProfile,
+    opportunityId?: string | null
   ) => Promise<SavedQuote>;
   updateQuote: (
     id: string,
@@ -119,12 +120,14 @@ export function QuoteHistoryProvider({
       quote: GeneratedQuote,
       source: "ai" | "fallback",
       saveTarget?: Workspace,
-      vendorProfile?: VendorProfile
+      vendorProfile?: VendorProfile,
+      opportunityId?: string | null
     ): Promise<SavedQuote> => {
       const target = saveTarget ?? workspace;
       const saved = createSavedQuote(form, quote, source);
       saved.organizationId =
         target.type === "organization" ? target.organizationId : null;
+      saved.opportunityId = opportunityId ?? null;
       saved.vendorSnapshot = captureVendorSnapshot(
         vendorProfile ?? liveVendorProfile
       );
