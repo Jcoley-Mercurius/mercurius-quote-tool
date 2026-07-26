@@ -42,6 +42,8 @@ Date: 2026-07-25
 
 **Goal:** Create the tenant-safe persistence foundation.
 
+**Implementation status:** Implemented by `supabase/migrations/020_marketplace_persistence_foundation.sql`, with catalog validation and a documented role-based RLS procedure. No legacy backfill or integration transport is included.
+
 **Likely files:** one monotonic `supabase/migrations/020_*.sql` (or next verified production number), schema/RLS test scripts, `lib/supabase/types.ts` or generated-type workflow decision.
 
 **Database changes:** Add `organizations.marketplace_vendor_id`; add `integration_events`, `customers`, `properties`, `opportunities`, `opportunity_status_history`; add nullable `quotes.opportunity_id`; add constraints, indexes, updated-at triggers, and RLS. No destructive backfill.

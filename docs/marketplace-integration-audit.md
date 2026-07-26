@@ -210,7 +210,7 @@ Every shared record should distinguish immutable external references from locall
 
 ## Proposed non-destructive database design
 
-No migration is created in this change. The current schema is clear enough to propose columns, but not to finalize field ownership, webhook authentication, customer deduplication, or Marketplace identifiers.
+The additive persistence foundation is implemented in `supabase/migrations/020_marketplace_persistence_foundation.sql`; the detailed deployed design, RLS behavior, transition matrix, retention policy, and verification procedure are recorded in `docs/marketplace-persistence-schema.md`. No legacy data is backfilled. Webhook authentication and ingestion remain intentionally unresolved for PR 3.
 
 ### Shared identifiers
 

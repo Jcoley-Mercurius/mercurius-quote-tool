@@ -4,6 +4,22 @@ import type { GeneratedQuote, QuoteFormPayload } from "@/lib/quote/types";
 import type { QuoteStatus, SavedQuote } from "@/lib/quotes/types";
 import type { VendorProfile } from "@/lib/vendor/types";
 
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
+export interface OrganizationRow {
+  id: string;
+  name: string;
+  marketplace_vendor_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface VendorProfileRow {
   id: string;
   user_id: string;
@@ -31,6 +47,7 @@ export interface QuoteRow {
   id: string;
   user_id: string;
   organization_id: string | null;
+  opportunity_id: string | null;
   reference: string;
   status: QuoteStatus;
   service_type: string;
@@ -41,6 +58,118 @@ export interface QuoteRow {
   vendor_snapshot?: VendorProfile | null;
   created_at: string;
   updated_at: string;
+}
+
+export type IntegrationEventDirection = "inbound" | "outbound";
+export type IntegrationEventSourceSystem = "marketplace" | "vendor_os";
+
+export interface IntegrationEventRow {
+  id: string;
+  event_id: string;
+  direction: IntegrationEventDirection;
+  event_type: string;
+  event_version: number;
+  source_system: IntegrationEventSourceSystem;
+  organization_id: string;
+  occurred_at: string;
+  received_at: string | null;
+  processed_at: string | null;
+  available_at: string;
+  published_at: string | null;
+  attempt_count: number;
+  last_error: string | null;
+  actor: Json | null;
+  entities: Json[];
+  metadata: { [key: string]: Json | undefined };
+  payload: { [key: string]: Json | undefined };
+  created_at: string;
+  updated_at: string;
+}
+
+export type PreferredContactMethod = "email" | "phone" | "text" | "none";
+
+export interface CustomerRow {
+  id: string;
+  organization_id: string | null;
+  user_id: string;
+  marketplace_homeowner_id: string | null;
+  display_name: string;
+  email: string | null;
+  phone: string | null;
+  preferred_contact_method: PreferredContactMethod | null;
+  notes: string | null;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PropertyRow {
+  id: string;
+  organization_id: string | null;
+  user_id: string;
+  customer_id: string | null;
+  marketplace_property_id: string | null;
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  region: string | null;
+  postal_code: string | null;
+  country_code: string;
+  latitude: number | null;
+  longitude: number | null;
+  property_data: { [key: string]: Json | undefined };
+  notes: string | null;
+  access_instructions: string | null;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export type OpportunityOrigin = "marketplace" | "direct" | "repair_request";
+export type OpportunityStatus =
+  | "new"
+  | "opened"
+  | "quoting"
+  | "quoted"
+  | "won"
+  | "lost"
+  | "declined"
+  | "closed";
+
+export interface OpportunityRow {
+  id: string;
+  organization_id: string | null;
+  user_id: string;
+  customer_id: string | null;
+  property_id: string | null;
+  marketplace_lead_id: string | null;
+  marketplace_request_id: string | null;
+  origin: OpportunityOrigin;
+  status: OpportunityStatus;
+  service_type: string;
+  summary: string;
+  description: string;
+  assigned_user_id: string | null;
+  source_snapshot: { [key: string]: Json | undefined };
+  opened_at: string | null;
+  declined_at: string | null;
+  closed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OpportunityStatusHistoryRow {
+  id: string;
+  opportunity_id: string;
+  from_status: OpportunityStatus | null;
+  to_status: OpportunityStatus;
+  actor_user_id: string | null;
+  source_system: IntegrationEventSourceSystem | "migration";
+  integration_event_id: string | null;
+  reason_code: string | null;
+  details: { [key: string]: Json | undefined };
+  occurred_at: string;
+  created_at: string;
 }
 
 export function vendorProfileToRow(
@@ -98,6 +227,7 @@ export function savedQuoteToRow(
     id: quote.id,
     user_id: userId,
     organization_id: quote.organizationId ?? null,
+    opportunity_id: null,
     reference: quote.reference,
     status: quote.status,
     service_type: quote.serviceType,
