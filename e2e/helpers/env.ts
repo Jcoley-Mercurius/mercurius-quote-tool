@@ -13,6 +13,12 @@ export const E2E_USER_EMAIL = process.env.E2E_USER_EMAIL ?? "";
 export const E2E_USER_PASSWORD = process.env.E2E_USER_PASSWORD ?? "TestPass123";
 export const E2E_SIGNUP_PASSWORD = process.env.E2E_SIGNUP_PASSWORD ?? "TestPass123";
 export const E2E_OPPORTUNITY_ID = process.env.E2E_OPPORTUNITY_ID ?? "";
+export const E2E_PERSONAL_OPPORTUNITY_ID =
+  process.env.E2E_PERSONAL_OPPORTUNITY_ID ?? "";
+export const E2E_ASSIGNMENT_TARGET_USER_ID =
+  process.env.E2E_ASSIGNMENT_TARGET_USER_ID ?? "";
+export const E2E_MEMBER_OPPORTUNITY_ID =
+  process.env.E2E_MEMBER_OPPORTUNITY_ID ?? "";
 export const E2E_DIRECT_OPPORTUNITY_ID =
   process.env.E2E_DIRECT_OPPORTUNITY_ID ?? "";
 export const E2E_CROSS_WORKSPACE_OPPORTUNITY_ID =

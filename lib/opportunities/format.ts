@@ -97,6 +97,14 @@ export function opportunityFiltersForWorkspace(
     : filters;
 }
 
+export function personalOpportunitySearch(
+  searchParams: URLSearchParams
+): string {
+  const normalized = new URLSearchParams(searchParams);
+  normalized.delete("assignment");
+  return normalized.toString();
+}
+
 export function hasNonDefaultOpportunityFilters(
   filters: OpportunityListFilters
 ): boolean {

@@ -6,6 +6,7 @@ import {
   formatMarketplaceBudget,
   formatPropertyAddress,
   opportunityFiltersForWorkspace,
+  personalOpportunitySearch,
   parseMarketplaceRequestContext,
   parseOpportunityFilters,
 } from "./format";
@@ -77,6 +78,9 @@ describe("opportunity domain formatting", () => {
       origin: "all",
       assignment: "all",
     });
+    expect(personalOpportunitySearch(new URLSearchParams(
+      "status=all&assignment=mine&page=2"
+    ))).toBe("status=all&page=2");
   });
 
   it("allowlists valid Marketplace request context and ignores unknown keys", () => {

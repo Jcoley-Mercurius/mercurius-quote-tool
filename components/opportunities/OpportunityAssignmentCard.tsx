@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   assignOpportunity,
   OpportunityAssignmentError,
@@ -24,7 +24,7 @@ interface OpportunityAssignmentCardProps {
   members: OrganizationMember[] | null;
   onAssigned: (result: OpportunityAssignmentResult) => void;
   onNotFound: () => void;
-  onConflict: () => Promise<void>;
+  onConflict: () => Promise<boolean>;
 }
 
 type Feedback =
@@ -67,14 +67,32 @@ export function OpportunityAssignmentCard({
 }: OpportunityAssignmentCardProps) {
   const controlId = useId();
   const feedbackId = useId();
-  const [pending, setPending] = useState(false);
+  const progressId = useId();
+  const [operation, setOperation] = useState<"assignment" | "refresh" | null>(
+    null
+  );
+  const [conflictUnresolved, setConflictUnresolved] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
   const mutationActive = useRef(false);
+  const selectRef = useRef<HTMLSelectElement>(null);
+  const memberButtonRef = useRef<HTMLButtonElement>(null);
+  const hadUnresolvedConflict = useRef(false);
+
+  useEffect(() => {
+    if (conflictUnresolved) {
+      hadUnresolvedConflict.current = true;
+      return;
+    }
+    if (hadUnresolvedConflict.current) {
+      hadUnresolvedConflict.current = false;
+      (selectRef.current || memberButtonRef.current)?.focus();
+    }
+  }, [conflictUnresolved]);
 
   async function updateAssignment(nextAssignedUserId: string | null) {
     if (mutationActive.current || personal) return;
     mutationActive.current = true;
-    setPending(true);
+    setOperation("assignment");
     setFeedback(null);
     try {
       const result = await assignOpportunity({
@@ -97,24 +115,59 @@ export function OpportunityAssignmentCard({
         error instanceof OpportunityAssignmentError &&
         error.code === "conflict"
       ) {
-        await onConflict();
+        const restored = await onConflict();
+        setConflictUnresolved(!restored);
+        const message = restored
+          ? safeAssignmentMessage(error)
+          : "This opportunity changed, but its current assignment could not be refreshed. Refresh the assignment before retrying.";
+        setFeedback({ tone: "error", message });
+        toastError(null, message);
+        return;
       }
       const message = safeAssignmentMessage(error);
       setFeedback({ tone: "error", message });
       toastError(null, message);
     } finally {
       mutationActive.current = false;
-      setPending(false);
+      setOperation(null);
     }
   }
 
+  async function retryConflictRefresh() {
+    if (mutationActive.current || !conflictUnresolved) return;
+    mutationActive.current = true;
+    setOperation("refresh");
+    try {
+      const restored = await onConflict();
+      if (restored) {
+        setConflictUnresolved(false);
+        setFeedback({
+          tone: "success",
+          message: "Current assignment restored. Review it and try again.",
+        });
+      } else {
+        setFeedback({
+          tone: "error",
+          message: "The current assignment is still unavailable. Try refreshing again.",
+        });
+      }
+    } finally {
+      mutationActive.current = false;
+      setOperation(null);
+    }
+  }
+
+  const pending = operation !== null;
   const canManage =
     currentRole === "owner" || currentRole === "admin";
   const assignedToCurrentUser = assignedUserId === currentUserId;
   const knownCurrentAssignee =
     assignedUserId === null ||
     Boolean(members?.some((member) => member.userId === assignedUserId));
-  const feedbackDescription = feedback ? feedbackId : undefined;
+  const describedBy = [
+    feedback ? feedbackId : null,
+    pending ? progressId : null,
+  ].filter(Boolean).join(" ") || undefined;
 
   return (
     <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
@@ -132,7 +185,7 @@ export function OpportunityAssignmentCard({
         </div>
 
         {!personal && members === null ? (
-          <p className="text-sm leading-6 text-slate-500">
+          <p role="status" className="text-sm leading-6 text-slate-500">
             Assignment controls are temporarily unavailable.
           </p>
         ) : !personal && canManage && members ? (
@@ -144,11 +197,12 @@ export function OpportunityAssignmentCard({
               Assign opportunity
             </label>
             <select
+              ref={selectRef}
               id={controlId}
               value={assignedUserId ?? ""}
-              disabled={pending}
+              disabled={pending || conflictUnresolved}
               aria-busy={pending}
-              aria-describedby={feedbackDescription}
+              aria-describedby={describedBy}
               onChange={(event) => {
                 void updateAssignment(event.target.value || null);
               }}
@@ -157,7 +211,7 @@ export function OpportunityAssignmentCard({
               <option value="">Unassigned</option>
               {!knownCurrentAssignee && assignedUserId ? (
                 <option value={assignedUserId} disabled>
-                  Assigned team member (unavailable)
+                  {assignmentLabel} (unavailable)
                 </option>
               ) : null}
               {members.map((member) => (
@@ -174,14 +228,15 @@ export function OpportunityAssignmentCard({
             </p>
           ) : (
             <button
+              ref={memberButtonRef}
               type="button"
-              disabled={pending}
+              disabled={pending || conflictUnresolved}
               aria-busy={pending}
-              aria-describedby={feedbackDescription}
+              aria-describedby={describedBy}
               onClick={() => void updateAssignment(currentUserId)}
               className="min-h-11 w-full rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white outline-none transition hover:bg-emerald-800 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-60 sm:w-auto"
             >
-              {pending ? "Assigning…" : "Assign to me"}
+              {operation === "assignment" ? "Assigning…" : "Assign to me"}
             </button>
           )
         ) : !personal ? (
@@ -190,16 +245,27 @@ export function OpportunityAssignmentCard({
           </p>
         ) : null}
 
+        {conflictUnresolved ? (
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => void retryConflictRefresh()}
+            className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-60 sm:w-auto"
+          >
+            {operation === "refresh" ? "Refreshing…" : "Refresh assignment"}
+          </button>
+        ) : null}
         {pending ? (
-          <p role="status" aria-live="polite" className="text-sm text-slate-600">
-            Updating assignment…
+          <p id={progressId} role="status" className="text-sm text-slate-600">
+            {operation === "refresh"
+              ? "Refreshing current assignment…"
+              : "Updating assignment…"}
           </p>
         ) : null}
         {feedback ? (
           <p
             id={feedbackId}
             role={feedback.tone === "error" ? "alert" : "status"}
-            aria-live={feedback.tone === "error" ? "assertive" : "polite"}
             className={
               feedback.tone === "error"
                 ? "break-words text-sm text-red-700"

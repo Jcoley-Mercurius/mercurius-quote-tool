@@ -77,6 +77,21 @@ test.describe("Mobile navigation", () => {
     expect(overflow).toBe(false);
   });
 
+  test("assignment surfaces do not overflow supported widths", async ({ page }) => {
+    for (const width of [320, 375, 768, 1280]) {
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto("/opportunities?assignment=mine");
+      await expect(page.getByRole("heading", {
+        name: "Opportunities",
+      })).toBeVisible();
+      expect(await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth >
+          document.documentElement.clientWidth
+      )).toBe(false);
+    }
+  });
+
   test("seeded detail and quote context wrap at phone width", async ({ page }) => {
     test.skip(
       !E2E_OPPORTUNITY_ID,

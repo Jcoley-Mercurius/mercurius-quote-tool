@@ -2,10 +2,13 @@ import { expect, test, type Page } from "@playwright/test";
 import { loginWithTestUser } from "./helpers/auth";
 import {
   E2E_ALLOW_MUTATIONS,
+  E2E_ASSIGNMENT_TARGET_USER_ID,
   E2E_CROSS_WORKSPACE_OPPORTUNITY_ID,
   E2E_DIRECT_OPPORTUNITY_ID,
   E2E_LINKED_QUOTE_ID,
+  E2E_MEMBER_OPPORTUNITY_ID,
   E2E_OPPORTUNITY_ID,
+  E2E_PERSONAL_OPPORTUNITY_ID,
   E2E_PUBLIC_QUOTE_TOKEN,
   hasE2eLoginCredentials,
   isSupabaseConfigured,
@@ -47,7 +50,37 @@ test.describe("Opportunity workspace", () => {
     await expect(page).toHaveURL(/origin=marketplace/);
     await page.getByLabel("Assignment").selectOption("unassigned");
     await expect(page).toHaveURL(/assignment=unassigned/);
+    await page.getByLabel("Assignment").selectOption("mine");
+    await expect(page).toHaveURL(/assignment=mine/);
+    await expect(page).not.toHaveURL(/user-owner|[0-9a-f]{8}-[0-9a-f-]{27,}/i);
     await expectNoHorizontalOverflow(page);
+  });
+
+  test("assignment filter survives Detail navigation and browser back", async ({ page }) => {
+    await page.goto("/opportunities?status=all&assignment=mine");
+    const opportunityLink = page.getByRole("link", {
+      name: /^View opportunity:/,
+    }).first();
+    test.skip(
+      !(await opportunityLink.isVisible()),
+      "Requires an opportunity assigned to the authenticated E2E user."
+    );
+    await opportunityLink.click();
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await page.goBack();
+    await expect(page).toHaveURL("/opportunities?status=all&assignment=mine");
+    await expect(page.getByLabel("Assignment")).toHaveValue("mine");
+  });
+
+  test("Command Center unassigned priority opens the filtered list", async ({ page }) => {
+    await page.goto("/command-center");
+    const link = page.getByRole("link", {
+      name: /Unassigned opportunities/i,
+    });
+    await expect(link).toHaveAttribute(
+      "href",
+      "/opportunities?assignment=unassigned"
+    );
   });
 
   test("list renders either records or the honest initial empty state", async ({ page }) => {
@@ -116,7 +149,7 @@ test.describe("Opportunity workspace", () => {
       "Customer",
       "Property",
       "Assignment",
-      "Status timeline",
+      "Activity timeline",
       "Linked quotes",
     ]) {
       await expect(page.getByRole("heading", { name: heading })).toBeVisible();
@@ -138,6 +171,58 @@ test.describe("Opportunity workspace", () => {
       "href",
       `/opportunities/${E2E_OPPORTUNITY_ID}`
     );
+  });
+
+  test("personal opportunity shows You without assignment controls", async ({ page }) => {
+    test.skip(
+      !E2E_PERSONAL_OPPORTUNITY_ID,
+      "Set E2E_PERSONAL_OPPORTUNITY_ID to a visible personal opportunity."
+    );
+    await page.goto(`/opportunities/${E2E_PERSONAL_OPPORTUNITY_ID}`);
+    await expect(page.getByRole("heading", { name: "Assignment" })).toBeVisible();
+    await expect(page.getByText("You", { exact: true })).toBeVisible();
+    await expect(page.getByRole("combobox", {
+      name: "Assign opportunity",
+    })).not.toBeVisible();
+    await expect(page.getByRole("button", {
+      name: "Assign to me",
+    })).not.toBeVisible();
+  });
+
+  test("owner or admin assignment appears once in the timeline", async ({ page }) => {
+    test.skip(
+      !E2E_ALLOW_MUTATIONS ||
+      !E2E_OPPORTUNITY_ID ||
+      !E2E_ASSIGNMENT_TARGET_USER_ID,
+      "Requires mutation opt-in and disposable owner/admin assignment fixtures."
+    );
+    await page.goto(`/opportunities/${E2E_OPPORTUNITY_ID}`);
+    const assignment = page.getByRole("combobox", {
+      name: "Assign opportunity",
+    });
+    await assignment.selectOption(E2E_ASSIGNMENT_TARGET_USER_ID);
+    await expect(page.getByText("Assignment updated.")).toBeVisible();
+    await expect(page.getByRole("heading", {
+      name: "Activity timeline",
+    })).toBeVisible();
+    await expect(page.getByText(
+      /^(Assigned|Reassigned|Self-assigned) ·/
+    ).first()).toBeVisible();
+  });
+
+  test("member can self-assign with no elevated selector", async ({ page }) => {
+    test.skip(
+      !E2E_ALLOW_MUTATIONS || !E2E_MEMBER_OPPORTUNITY_ID,
+      "Requires mutation opt-in and credentials for a disposable ordinary-member fixture."
+    );
+    await page.goto(`/opportunities/${E2E_MEMBER_OPPORTUNITY_ID}`);
+    await expect(page.getByRole("combobox", {
+      name: "Assign opportunity",
+    })).not.toBeVisible();
+    const selfAssign = page.getByRole("button", { name: "Assign to me" });
+    await selfAssign.click();
+    await expect(page.getByText("Assigned to you")).toBeVisible();
+    await expect(page.getByText(/^Self-assigned ·/)).toBeVisible();
   });
 
   test("direct opportunity omits Marketplace-only context", async ({ page }) => {

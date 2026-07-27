@@ -77,7 +77,7 @@ function props(overrides: Partial<React.ComponentProps<
     members,
     onAssigned: vi.fn(),
     onNotFound: vi.fn(),
-    onConflict: vi.fn().mockResolvedValue(undefined),
+    onConflict: vi.fn().mockResolvedValue(true),
     ...overrides,
   };
 }
@@ -234,6 +234,26 @@ describe("OpportunityAssignmentCard", () => {
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 
+  it("keeps a former assignee visible but unavailable for reselection", () => {
+    render(<OpportunityAssignmentCard {...props({
+      assignedUserId: "former-user-id",
+      assignmentLabel: "Former team member",
+    })} />);
+
+    expect(screen.getByText("Former team member")).toBeInTheDocument();
+    const unavailable = screen.getByRole("option", {
+      name: "Former team member (unavailable)",
+    });
+    expect(unavailable).toBeDisabled();
+    expect(screen.queryByText("former-user-id")).not.toBeInTheDocument();
+    expect(screen.getByRole("option", {
+      name: "Unassigned",
+    })).toBeInTheDocument();
+    expect(screen.getByRole("option", {
+      name: "Olivia Owner",
+    })).toBeInTheDocument();
+  });
+
   it.each([
     ["not_authenticated", /session is no longer available/i],
     ["forbidden", /do not have permission/i],
@@ -255,9 +275,14 @@ describe("OpportunityAssignmentCard", () => {
     expect(screen.getByRole("combobox")).toHaveValue("");
   });
 
-  it("refreshes authoritative detail after a conflict before allowing retry", async () => {
+  it("keeps controls disabled until conflict refresh restores authoritative state", async () => {
     const user = userEvent.setup();
-    const onConflict = vi.fn().mockResolvedValue(undefined);
+    let resolveRefresh!: (restored: boolean) => void;
+    const onConflict = vi.fn().mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        resolveRefresh = resolve;
+      })
+    );
     assignOpportunity.mockRejectedValueOnce(
       new OpportunityAssignmentError("conflict", "raw stale details")
     );
@@ -268,10 +293,93 @@ describe("OpportunityAssignmentCard", () => {
       "user-member"
     );
     expect(onConflict).toHaveBeenCalledOnce();
+    expect(screen.getByRole("combobox")).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Updating assignment"
+    );
+    resolveRefresh(true);
     expect(await screen.findByRole("alert")).toHaveTextContent(
       /review the current assignment/i
     );
+    expect(screen.getByRole("combobox")).not.toBeDisabled();
     expect(screen.getByRole("combobox")).toHaveValue("");
+  });
+
+  it("retries a failed conflict refresh before permitting another assignment", async () => {
+    const user = userEvent.setup();
+    const onConflict = vi.fn()
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    assignOpportunity.mockRejectedValueOnce(
+      new OpportunityAssignmentError("conflict", "raw stale details")
+    );
+    render(<OpportunityAssignmentCard {...props({ onConflict })} />);
+
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Assign opportunity" }),
+      "user-member"
+    );
+    expect(await screen.findByRole("button", {
+      name: "Refresh assignment",
+    })).toBeInTheDocument();
+    expect(screen.getByRole("combobox")).toBeDisabled();
+
+    await user.click(screen.getByRole("button", {
+      name: "Refresh assignment",
+    }));
+    expect(onConflict).toHaveBeenCalledTimes(2);
+    expect(await screen.findByText(/current assignment restored/i))
+      .toBeInTheDocument();
+    expect(screen.getByRole("combobox")).not.toBeDisabled();
+    expect(screen.getByRole("combobox")).toHaveFocus();
+  });
+
+  it("uses the refreshed concurrency token on the successful retry", async () => {
+    const user = userEvent.setup();
+    assignOpportunity
+      .mockRejectedValueOnce(
+        new OpportunityAssignmentError("conflict", "raw stale details")
+      )
+      .mockResolvedValueOnce(result("user-member", "2026-07-27T12:00:00Z"));
+
+    function Harness() {
+      const [assignedUserId, setAssignedUserId] = useState<string | null>(null);
+      const [updatedAt, setUpdatedAt] = useState("2026-07-27T10:00:00Z");
+      return (
+        <OpportunityAssignmentCard
+          {...props({
+            assignedUserId,
+            updatedAt,
+            assignmentLabel: assignedUserId
+              ? "member@example.com"
+              : "Unassigned",
+            onConflict: vi.fn().mockImplementation(async () => {
+              setUpdatedAt("2026-07-27T11:00:00Z");
+              return true;
+            }),
+            onAssigned: (next) => {
+              setAssignedUserId(next.assignedUserId);
+              setUpdatedAt(next.updatedAt);
+            },
+          })}
+        />
+      );
+    }
+
+    render(<Harness />);
+    const select = screen.getByRole("combobox", {
+      name: "Assign opportunity",
+    });
+    await user.selectOptions(select, "user-member");
+    await screen.findByText(/review the current assignment/i);
+    await user.selectOptions(select, "user-member");
+
+    expect(assignOpportunity).toHaveBeenNthCalledWith(2, {
+      opportunityId: "opp-1",
+      assignedUserId: "user-member",
+      expectedUpdatedAt: "2026-07-27T11:00:00Z",
+    });
+    await waitFor(() => expect(select).toHaveValue("user-member"));
   });
 
   it("uses the existing hidden state callback for not-found responses", async () => {

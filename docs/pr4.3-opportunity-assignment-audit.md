@@ -893,3 +893,101 @@ B3 adds no migration, RPC change, permission change, notification, list-card
 assignment action, dashboard redesign, status behavior, quote behavior,
 Marketplace change, messaging, scheduling, analytics, or workload reporting.
 Further collaboration refinement remains outside this implementation.
+
+## 27. PR4.3B4 collaboration refinement
+
+PR4.3B4 applies the approved member-removal decision and hardens the existing
+assignment UI across workspace changes, concurrency recovery, history refresh,
+accessibility, responsive layouts, and environment-gated browser validation.
+
+### Atomic member removal
+
+Migration `023_member_removal_assignment_cleanup.sql` replaces only
+`remove_organization_member(uuid)`. The RPC retains its existing authenticated
+owner/admin authorization, owner protections, organization audit event, and
+browser contract. It locks the target membership row and derives the target
+organization and user from that trusted row.
+
+Before membership deletion, the function enables the existing transaction-local
+assignment guard context, clears every active (`new`, `opened`, `quoting`, or
+`quoted`) opportunity currently assigned to the target user in that
+organization, and inserts one assignment-history row per cleared opportunity.
+Terminal opportunity assignments remain unchanged. Each new history row records the removed user as the previous
+assignee, null as the new assignee, the owner/admin caller as actor,
+`vendor_os` as source, and the allowlisted `member_removed` reason. It then
+writes the existing organization audit event and deletes membership.
+
+The update, assignment history, organization audit, and membership deletion
+share one database transaction. Any trigger, history, audit, or delete failure
+rolls back all effects. Opportunity status and quote rows are not touched.
+Assignments in other organizations remain unchanged, including when the same
+user belongs to multiple organizations. Existing assignment history remains
+append-only and readable to remaining authorized organization members.
+
+### Workspace and concurrency hardening
+
+Detail and list request identity includes the authenticated user and active
+workspace. Detail loading, assignment-history refresh, conflict recovery, role
+lookup, and member data now reject late results whose request key no longer
+matches. Switching workspaces immediately withholds the previous Detail state
+and controls; an opportunity hidden in the new workspace uses the established
+not-found state.
+
+On an assignment conflict, the assignment control remains pessimistic and
+disabled while exactly one trusted, workspace-scoped Detail refresh runs.
+Successful recovery installs the authoritative assignee and `updatedAt`, shows
+retry guidance, and returns focus to the assignment control. If recovery fails,
+the assignment control stays disabled and a separate Refresh assignment action
+can retry without submitting another mutation. A later assignment therefore
+uses the refreshed concurrency token.
+
+### History refresh and member presentation
+
+A successful assignment updates the authoritative card immediately and starts
+one assignment-history refresh without refetching status history, quotes, or
+core Detail. The returned history replaces rather than appends to local events,
+preventing duplicate timeline entries. A history failure does not reverse or
+misreport assignment success; it shows safe secondary warning copy and a retry
+action.
+
+Current stale assignments from pre-B4 data show Former team member when the
+current member list is authoritative. Owners/admins can clear or reassign them,
+but the unavailable identity is represented by a disabled option and cannot be
+selected. Historical non-current IDs use Former team member, deleted/null
+identities use Unknown team member, and UUIDs are not rendered. No immutable
+identity snapshot was added.
+
+### Filters, accessibility, responsive behavior, and browser coverage
+
+Organization filters remain All, Assigned, Unassigned, and Mine. Mine resolves
+to the authenticated user only inside the repository and never writes a UUID
+to the URL. Personal workspaces hide assignment filters, normalize their
+effective value to All, and remove a stale assignment token from the URL while
+preserving supported status, source, and page state. Browser back retains valid
+organization filter state.
+
+Assignment controls and retry actions use native keyboard controls, visible
+labels, 44px minimum targets, focus-visible rings, associated progress/error
+copy, non-color status text, and single live-region semantics. Conflict
+recovery restores focus. Timeline labels and former-member copy use wrapping
+safe styles; selects remain width-bounded and filter grids use existing
+responsive columns at phone, tablet, and desktop widths.
+
+Playwright coverage extends the existing credential/fixture-gated suite for
+Mine URL state and browser back, the Unassigned Command Center link, personal
+You behavior, owner/admin assignment plus timeline appearance, member
+self-assignment, cross-workspace protection, and widths from 320px through
+desktop. Mutation scenarios require explicit disposable-fixture opt-in and
+never use a browser service role. Deterministic browser conflict and
+member-removal fixtures remain B5 validation work when a seeded disposable
+environment is available.
+
+### Remaining limitations and B5 scope
+
+Deleted auth identities still cannot retain historical names because B1 uses
+nullable user foreign keys and no immutable snapshots. B5 should run migration
+023 and its SQL validation against a disposable Supabase database, exercise
+owner/admin/member and removal flows with seeded browser fixtures, add a
+deterministic two-session conflict scenario, and complete release regression
+review. B4 does not add notifications, messaging, scheduling, analytics,
+workload dashboards, list-card assignment actions, or dashboard redesign.

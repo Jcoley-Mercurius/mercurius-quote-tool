@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useWorkspace } from "@/components/organizations/WorkspaceProvider";
 import { fetchOrganizationMembers } from "@/lib/organizations/members";
@@ -69,8 +69,14 @@ export function OpportunityDetailWorkspace({
     ? `org:${workspace.organizationId}`
     : "personal";
   const requestKey = user ? `${user.id}:${workspaceKey}:${opportunityId}` : "signed-out";
+  const requestKeyRef = useRef(requestKey);
+  requestKeyRef.current = requestKey;
+  const historyRefreshActiveKeyRef = useRef<string | null>(null);
   const [ready, setReady] = useState<ReadyState | null>(null);
   const [state, setState] = useState<{ key: string; value: "not-found" | "error" } | null>(null);
+  const [historyRefreshKey, setHistoryRefreshKey] = useState<string | null>(
+    null
+  );
   const current = ready?.key === requestKey ? ready : null;
   const currentState = !isUuid(opportunityId)
     ? "not-found"
@@ -181,7 +187,8 @@ export function OpportunityDetailWorkspace({
   if (!current) return <DetailLoading />;
 
   const assignmentLabel = current.detail.assignedUserId
-    ? current.memberLabels.get(current.detail.assignedUserId) || "Assigned team member"
+    ? current.memberLabels.get(current.detail.assignedUserId) ||
+      (current.members ? "Former team member" : "Assigned team member")
     : "Unassigned";
   const currentRole = workspace.type === "organization"
     ? memberships.find(
@@ -201,22 +208,37 @@ export function OpportunityDetailWorkspace({
         },
       };
     });
-    if (!user) return;
-    void fetchOpportunityAssignmentHistory(
-      user.id,
-      workspace,
-      opportunityId,
-      OPPORTUNITY_ASSIGNMENT_HISTORY_LIMIT
-    ).then((assignmentHistory) => {
+    void refreshAssignmentHistory();
+  }
+
+  async function refreshAssignmentHistory(): Promise<boolean> {
+    if (!user || historyRefreshActiveKeyRef.current === requestKey) {
+      return false;
+    }
+    historyRefreshActiveKeyRef.current = requestKey;
+    setHistoryRefreshKey(requestKey);
+    try {
+      const assignmentHistory = await fetchOpportunityAssignmentHistory(
+        user.id,
+        workspace,
+        opportunityId,
+        OPPORTUNITY_ASSIGNMENT_HISTORY_LIMIT
+      );
+      if (requestKeyRef.current !== requestKey) return false;
       setReady((previous) =>
         previous?.key === requestKey
           ? {
               ...previous,
-              assignmentHistory: { status: "ready", value: assignmentHistory },
+              assignmentHistory: {
+                status: "ready",
+                value: assignmentHistory,
+              },
             }
           : previous
       );
-    }).catch(() => {
+      return true;
+    } catch {
+      if (requestKeyRef.current !== requestKey) return false;
       setReady((previous) =>
         previous?.key === requestKey
           ? {
@@ -228,28 +250,38 @@ export function OpportunityDetailWorkspace({
             }
           : previous
       );
-    });
+      return false;
+    } finally {
+      if (historyRefreshActiveKeyRef.current === requestKey) {
+        historyRefreshActiveKeyRef.current = null;
+      }
+      setHistoryRefreshKey((activeKey) =>
+        activeKey === requestKey ? null : activeKey
+      );
+    }
   }
 
-  async function refreshAssignmentAfterConflict() {
-    if (!user) return;
+  async function refreshAssignmentAfterConflict(): Promise<boolean> {
+    if (!user) return false;
     try {
       const detail = await fetchOpportunityDetail(
         user.id,
         workspace,
         opportunityId
       );
+      if (requestKeyRef.current !== requestKey) return false;
       if (!detail) {
         setState({ key: requestKey, value: "not-found" });
-        return;
+        return false;
       }
       setReady((previous) =>
         previous?.key === requestKey
           ? { ...previous, detail }
           : previous
       );
+      return true;
     } catch {
-      // The assignment card retains the last authoritative state and safe error.
+      return false;
     }
   }
 
@@ -286,6 +318,10 @@ export function OpportunityDetailWorkspace({
             createdAt={current.detail.createdAt}
             memberLabels={current.memberLabels}
             membersAvailable={current.members !== null}
+            assignmentHistoryRefreshing={historyRefreshKey === requestKey}
+            onRetryAssignmentHistory={() => {
+              void refreshAssignmentHistory();
+            }}
           />
         </div>
       </main>
@@ -475,12 +511,16 @@ export function OpportunityTimeline({
   createdAt,
   memberLabels,
   membersAvailable,
+  assignmentHistoryRefreshing = false,
+  onRetryAssignmentHistory,
 }: {
   statusResult: SecondaryResult<OpportunityHistoryItem[]>;
   assignmentResult: SecondaryResult<OpportunityAssignmentHistoryItem[]>;
   createdAt: string;
   memberLabels: Map<string, string>;
   membersAvailable: boolean;
+  assignmentHistoryRefreshing?: boolean;
+  onRetryAssignmentHistory?: () => void;
 }) {
   const events = mergeOpportunityTimeline(
     statusResult.status === "ready" ? statusResult.value : [],
@@ -489,16 +529,30 @@ export function OpportunityTimeline({
   );
   return (
     <ContextCard title="Activity timeline">
-      <div className="space-y-3" role="status" aria-live="polite">
+      <div className="space-y-3" role="status">
         {statusResult.status === "error" ? (
           <Unavailable>{statusResult.message}</Unavailable>
         ) : null}
         {assignmentResult.status === "error" ? (
-          <Unavailable>{assignmentResult.message}</Unavailable>
+          <div className="space-y-2">
+            <Unavailable>{assignmentResult.message}</Unavailable>
+            {onRetryAssignmentHistory ? (
+              <button
+                type="button"
+                disabled={assignmentHistoryRefreshing}
+                onClick={onRetryAssignmentHistory}
+                className="min-h-11 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-60"
+              >
+                {assignmentHistoryRefreshing
+                  ? "Refreshing history…"
+                  : "Retry assignment history"}
+              </button>
+            ) : null}
+          </div>
         ) : null}
       </div>
       {events.length ? (
-        <ol className="space-y-5">
+        <ol className="mt-5 space-y-5">
           {events.map((event) => (
             <li
               key={`${event.kind}:${event.id}`}
@@ -533,19 +587,19 @@ function StatusTimelineContent({
 }) {
   return (
     <>
-      <p className="text-sm font-semibold text-slate-900">
+      <p className="break-words text-sm font-semibold text-slate-900">
         {event.fromStatus
           ? `${OPPORTUNITY_STATUS_LABELS[event.fromStatus]} → ${OPPORTUNITY_STATUS_LABELS[event.toStatus]}`
           : `Created as ${OPPORTUNITY_STATUS_LABELS[event.toStatus]}`}
       </p>
       <TimelineMetadata occurredAt={event.occurredAt} source={event.sourceSystem} />
       {event.actorUserId ? (
-        <p className="mt-1 text-xs text-slate-600">
+        <p className="mt-1 break-words text-xs text-slate-600">
           Actor: {memberLabels.get(event.actorUserId) || "Team member"}
         </p>
       ) : null}
       {formatReasonCode(event.reason) ? (
-        <p className="mt-1 text-xs text-slate-600">
+        <p className="mt-1 break-words text-xs text-slate-600">
           Reason: {formatReasonCode(event.reason)}
         </p>
       ) : null}
@@ -585,10 +639,12 @@ function AssignmentTimelineContent({
 
   return (
     <>
-      <p className="text-sm font-semibold text-slate-900">{title}</p>
+      <p className="break-words text-sm font-semibold text-slate-900">
+        {title}
+      </p>
       <TimelineMetadata occurredAt={event.occurredAt} source={event.sourceSystem} />
       {event.actorUserId ? (
-        <p className="mt-1 text-xs text-slate-600">
+        <p className="mt-1 break-words text-xs text-slate-600">
           Actor: {historicalMemberLabel(
             event.actorUserId,
             memberLabels,
@@ -597,7 +653,7 @@ function AssignmentTimelineContent({
         </p>
       ) : null}
       {formatReasonCode(event.reason) ? (
-        <p className="mt-1 text-xs text-slate-600">
+        <p className="mt-1 break-words text-xs text-slate-600">
           Reason: {formatReasonCode(event.reason)}
         </p>
       ) : null}
@@ -613,7 +669,7 @@ function TimelineMetadata({
   source: OpportunityHistoryItem["sourceSystem"];
 }) {
   return (
-    <p className="mt-1 text-xs text-slate-500">
+    <p className="mt-1 break-words text-xs text-slate-500">
       {formatOpportunityDateTime(occurredAt)} · {sourceLabel(source)}
     </p>
   );

@@ -12,6 +12,7 @@ import {
   clampPage,
   opportunityFiltersForWorkspace,
   parseOpportunityFilters,
+  personalOpportunitySearch,
 } from "@/lib/opportunities/format";
 import { fetchOpportunityPage } from "@/lib/opportunities/repository";
 import {
@@ -60,6 +61,19 @@ export function OpportunitiesWorkspace() {
   const current = ready?.key === requestKey ? ready : null;
   const currentError = error?.key === requestKey ? error.message : null;
   const loading = !workspaceLoading && Boolean(user) && !current && !currentError;
+
+  useEffect(() => {
+    if (
+      workspace.type !== "personal" ||
+      !searchParams.has("assignment")
+    ) {
+      return;
+    }
+    const query = personalOpportunitySearch(
+      new URLSearchParams(searchParams.toString())
+    );
+    router.replace(query ? `${pathname}?${query}` : pathname);
+  }, [pathname, router, searchParams, workspace.type]);
 
   useEffect(() => {
     if (!user || workspaceLoading) return;
