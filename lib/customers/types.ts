@@ -15,10 +15,12 @@ export interface CustomerCursor {
 }
 
 export type CustomerSource = "marketplace" | "direct";
+export type CustomerArchiveFilter = "active" | "archived";
 
 export interface CustomerDirectoryItem {
   id: string;
   displayName: string;
+  companyName: string | null;
   email: string | null;
   phone: string | null;
   preferredContactMethod: PreferredContactMethod | null;
@@ -29,6 +31,7 @@ export interface CustomerDirectoryItem {
   latestActivityAt: string;
   createdAt: string;
   updatedAt: string;
+  archivedAt: string | null;
 }
 
 export interface CustomerDirectoryPage {
@@ -90,15 +93,34 @@ export type CustomerTimelineItem =
       detail: string;
       occurredAt: string;
       actorUserId: null;
+    }
+  | {
+      id: string;
+      kind: "customer";
+      title: string;
+      detail: string;
+      occurredAt: string;
+      actorUserId: string | null;
     };
 
 export interface CustomerDetail {
   id: string;
   displayName: string;
+  companyName: string | null;
   email: string | null;
   phone: string | null;
   preferredContactMethod: PreferredContactMethod | null;
   source: CustomerSource;
+  summary: string | null;
+  tags: string[];
+  archivedAt: string | null;
+  archivedBy: string | null;
+  archiveReason: string | null;
+  customerSince: string;
+  health: {
+    label: "New relationship" | "Returning customer" | "Profile incomplete";
+    detail: string;
+  };
   createdAt: string;
   updatedAt: string;
   properties: { status: "ready"; value: CustomerProperty[] } | { status: "error" };
@@ -107,4 +129,12 @@ export interface CustomerDetail {
   timeline:
     | { status: "ready"; value: CustomerTimelineItem[]; complete: boolean }
     | { status: "error" };
+}
+
+export interface CustomerDuplicateCandidate {
+  id: string;
+  displayName: string;
+  companyName: string | null;
+  archived: boolean;
+  reasons: string[];
 }

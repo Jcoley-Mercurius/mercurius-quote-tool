@@ -8,6 +8,7 @@ afterEach(cleanup);
 const item: CustomerDirectoryItem = {
   id: "11111111-1111-4111-8111-111111111111",
   displayName: "Jordan Lee",
+  companyName: null,
   email: "jordan@example.com",
   phone: "239-555-0100",
   preferredContactMethod: "email",
@@ -18,6 +19,7 @@ const item: CustomerDirectoryItem = {
   latestActivityAt: "2026-07-25T10:00:00Z",
   createdAt: "2026-07-20T10:00:00Z",
   updatedAt: "2026-07-25T10:00:00Z",
+  archivedAt: null,
 };
 
 describe("CustomerCard", () => {

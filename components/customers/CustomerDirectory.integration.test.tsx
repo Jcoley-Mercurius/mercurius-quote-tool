@@ -40,6 +40,7 @@ function page(name: string): CustomerDirectoryPage {
         ? "11111111-1111-4111-8111-111111111111"
         : "22222222-2222-4222-8222-222222222222",
       displayName: name,
+      companyName: null,
       email: null,
       phone: null,
       preferredContactMethod: null,
@@ -50,6 +51,7 @@ function page(name: string): CustomerDirectoryPage {
       latestActivityAt: "2026-07-25T10:00:00Z",
       createdAt: "2026-07-25T10:00:00Z",
       updatedAt: "2026-07-25T10:00:00Z",
+      archivedAt: null,
     }],
     nextCursor: null,
     resultCount: 1,

@@ -28,13 +28,16 @@ import {
   QUOTE_STATUS_LABELS,
   QUOTE_STATUS_STYLES,
 } from "@/lib/quotes/types";
+import { CustomerManagementActions } from "./CustomerManagementDialogs";
 
 export function CustomerDetailWorkspace({ customerId }: { customerId: string }) {
   const { user } = useAuth();
   const { workspace, isLoading: workspaceLoading } = useWorkspace();
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const [refresh, setRefresh] = useState(0);
+  const [announcement, setAnnouncement] = useState("");
   const requestKey = user
-    ? `${user.id}:${workspaceKey(workspace)}:${customerId}`
+    ? `${user.id}:${workspaceKey(workspace)}:${customerId}:${refresh}`
     : "signed-out";
   const [ready, setReady] = useState<{
     key: string;
@@ -109,6 +112,7 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
 
   return (
     <div className="space-y-6 pb-10">
+      <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
       <header className="border-b border-slate-200 pb-6">
         <Link href="/customers" className="inline-flex min-h-11 items-center text-sm font-semibold text-emerald-700 hover:text-emerald-800">
           ← Back to Customers
@@ -124,17 +128,36 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
               {current.detail.displayName}
             </h1>
           </div>
-          <SourceBadge source={current.detail.source} />
+          <div className="flex flex-col items-end gap-2">
+            <SourceBadge source={current.detail.source} />
+            <CustomerManagementActions
+              detail={current.detail}
+              user={user!}
+              workspace={workspace}
+              onChanged={(message) => {
+                if (message) setAnnouncement(message);
+                setRefresh((value) => value + 1);
+              }}
+            />
+          </div>
         </div>
         <p className="mt-3 text-sm text-slate-500">
-          Customer since {formatCustomerDate(current.detail.createdAt)}
+          Customer since {formatCustomerDate(current.detail.customerSince)}
         </p>
+        {current.detail.archivedAt ? (
+          <div role="status" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+            <p className="font-semibold">Archived {formatCustomerDate(current.detail.archivedAt)}</p>
+            {current.detail.archiveReason ? <p className="mt-1">Reason: {current.detail.archiveReason}</p> : null}
+            <p className="mt-1">Linked records and history remain available.</p>
+          </div>
+        ) : null}
       </header>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Section title="Overview">
           <dl className="space-y-4 text-sm">
             <DetailFact label="Email" value={current.detail.email || "Unavailable"} breakAll />
+            <DetailFact label="Company" value={current.detail.companyName || "Not specified"} />
             <DetailFact label="Phone" value={current.detail.phone || "Unavailable"} />
             <DetailFact
               label="Preferred contact"
@@ -143,6 +166,10 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
                 : "Not specified"}
             />
             <DetailFact label="Latest record update" value={formatCustomerDate(current.detail.updatedAt)} />
+            <DetailFact label="Customer health" value={current.detail.health.label} />
+            <DetailFact label="Health signals" value={current.detail.health.detail} />
+            <DetailFact label="Summary" value={current.detail.summary || "Not specified"} />
+            <DetailFact label="Tags" value={current.detail.tags.join(", ") || "None"} />
           </dl>
         </Section>
         <Section title="Properties">

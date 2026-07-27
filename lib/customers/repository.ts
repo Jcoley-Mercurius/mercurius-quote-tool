@@ -23,6 +23,7 @@ import {
   CUSTOMER_TIMELINE_LIMIT,
   type CustomerCursor,
   type CustomerDetail,
+  type CustomerDuplicateCandidate,
   type CustomerDirectoryItem,
   type CustomerDirectoryPage,
   type CustomerLinkedQuote,
@@ -31,8 +32,55 @@ import {
   type CustomerTimelineItem,
 } from "./types";
 
+function comparablePhone(value: string | null): string {
+  return value?.replace(/\D/g, "") ?? "";
+}
+
+export async function findCustomerDuplicates(
+  userId: string,
+  workspace: Workspace,
+  customerId: string,
+  values: { displayName: string; email: string | null; phone: string | null },
+  client: SupabaseClient = getSupabaseClient()
+): Promise<CustomerDuplicateCandidate[]> {
+  const email = values.email?.trim().toLowerCase() || "";
+  const phone = comparablePhone(values.phone);
+  const name = values.displayName.trim().toLowerCase();
+  if (!email && !phone && !name) return [];
+
+  let query = client.from("customers")
+    .select("id, display_name, company_name, email, phone, normalized_email, normalized_phone, archived_at")
+    .neq("id", customerId);
+  query = scope(query, userId, workspace);
+  const filters = [
+    ...(email ? [`normalized_email.eq.${email}`] : []),
+    ...(phone ? [`normalized_phone.eq.${phone}`] : []),
+    ...(name ? [`display_name.ilike.${postgrestSearchPattern(name)}`] : []),
+  ];
+  const result = await query.or(filters.join(",")).limit(8);
+  if (result.error) throw result.error;
+  return ((result.data ?? []) as {
+    id: string;
+    display_name: string;
+    company_name: string | null;
+    normalized_email: string | null;
+    normalized_phone: string | null;
+    archived_at: string | null;
+  }[]).map((row) => ({
+    id: row.id,
+    displayName: row.display_name,
+    companyName: row.company_name,
+    archived: Boolean(row.archived_at),
+    reasons: [
+      ...(email && row.normalized_email === email ? ["same email"] : []),
+      ...(phone && row.normalized_phone === phone ? ["same phone"] : []),
+      ...(name && row.display_name.trim().toLowerCase() === name ? ["same name"] : []),
+    ],
+  })).filter((row) => row.reasons.length > 0);
+}
+
 const CUSTOMER_SELECT =
-  "id, marketplace_homeowner_id, display_name, email, phone, preferred_contact_method, created_at, updated_at";
+  "id, marketplace_homeowner_id, display_name, company_name, email, phone, preferred_contact_method, notes, tags, archived_at, archived_by, archive_reason, created_at, updated_at";
 const PROPERTY_SELECT =
   "id, customer_id, marketplace_property_id, address_line1, address_line2, city, region, postal_code, tags, updated_at";
 const OPPORTUNITY_SELECT =
@@ -42,7 +90,8 @@ const QUOTE_SELECT =
 
 type CustomerBase = Pick<CustomerRow,
   "id" | "marketplace_homeowner_id" | "display_name" | "email" | "phone" |
-  "preferred_contact_method" | "created_at" | "updated_at">;
+  "company_name" | "preferred_contact_method" | "notes" | "tags" | "archived_at" |
+  "archived_by" | "archive_reason" | "created_at" | "updated_at">;
 type PropertyBase = Pick<PropertyRow,
   "id" | "customer_id" | "marketplace_property_id" | "address_line1" |
   "address_line2" | "city" | "region" | "postal_code" | "tags" | "updated_at">;
@@ -83,7 +132,8 @@ async function customerRows(
   workspace: Workspace,
   search: string,
   cursor: CustomerCursor | null,
-  client: SupabaseClient
+  client: SupabaseClient,
+  archiveFilter: "active" | "archived"
 ): Promise<CustomerBase[]> {
   const cleaned = cleanCustomerSearch(search);
   const pattern = postgrestSearchPattern(cleaned);
@@ -111,6 +161,9 @@ async function customerRows(
   function baseQuery() {
     let query = client.from("customers").select(CUSTOMER_SELECT);
     query = scope(query, userId, workspace);
+    query = archiveFilter === "active"
+      ? query.is("archived_at", null)
+      : query.not("archived_at", "is", null);
     query = afterCursor(query, cursor);
     return query;
   }
@@ -127,6 +180,7 @@ async function customerRows(
   const directQuery = baseQuery().or(
     [
       `display_name.ilike.%${pattern}%`,
+      `company_name.ilike.%${pattern}%`,
       `email.ilike.%${pattern}%`,
       `phone.ilike.%${pattern}%`,
       ...(phone.length >= 3 ? [`phone.ilike.%${phone}%`] : []),
@@ -157,9 +211,10 @@ export async function fetchCustomerDirectoryPage(
   workspace: Workspace,
   search = "",
   cursor: CustomerCursor | null = null,
-  client: SupabaseClient = getSupabaseClient()
+  client: SupabaseClient = getSupabaseClient(),
+  archiveFilter: "active" | "archived" = "active"
 ): Promise<CustomerDirectoryPage> {
-  const rows = await customerRows(userId, workspace, search, cursor, client);
+  const rows = await customerRows(userId, workspace, search, cursor, client, archiveFilter);
   const hasMore = rows.length > CUSTOMER_PAGE_SIZE;
   const pageRows = rows.slice(0, CUSTOMER_PAGE_SIZE);
   const customerIds = pageRows.map((row) => row.id);
@@ -209,6 +264,7 @@ export async function fetchCustomerDirectoryPage(
     return {
       id: customer.id,
       displayName: customer.display_name.trim() || "Customer",
+      companyName: customer.company_name?.trim() || null,
       email: customer.email?.trim() || null,
       phone: customer.phone?.trim() || null,
       preferredContactMethod: customer.preferred_contact_method,
@@ -224,6 +280,7 @@ export async function fetchCustomerDirectoryPage(
       latestActivityAt: activity,
       createdAt: customer.created_at,
       updatedAt: customer.updated_at,
+      archivedAt: customer.archived_at,
     };
   });
   const last = pageRows.at(-1);
@@ -288,8 +345,23 @@ export async function fetchCustomerDetail(
     if (result.error) throw result.error;
     return (result.data ?? []) as OpportunityAssignmentHistoryRow[];
   };
-  const [quotesSettled, statusSettled, assignmentSettled] =
-    await Promise.allSettled([quotePromise(), statusPromise(), assignmentPromise()]);
+  const auditPromise = async () => {
+    const result = await client.from("customer_audit_history")
+      .select("id, action, changed_fields, actor_user_id, occurred_at")
+      .eq("customer_id", customerId)
+      .order("occurred_at", { ascending: false })
+      .limit(CUSTOMER_TIMELINE_LIMIT);
+    if (result.error) throw result.error;
+    return (result.data ?? []) as {
+      id: string;
+      action: "customer_updated" | "customer_archived" | "customer_restored";
+      changed_fields: string[];
+      actor_user_id: string | null;
+      occurred_at: string;
+    }[];
+  };
+  const [quotesSettled, statusSettled, assignmentSettled, auditSettled] =
+    await Promise.allSettled([quotePromise(), statusPromise(), assignmentPromise(), auditPromise()]);
   const quoteRows = quotesSettled.status === "fulfilled" ? quotesSettled.value : null;
   const quoteIds = quoteRows?.map((row) => row.id) ?? [];
   const [acceptancesSettled, changesSettled] = await Promise.allSettled([
@@ -458,12 +530,28 @@ export async function fetchCustomerDetail(
       });
     }
   }
+  if (auditSettled.status === "fulfilled") {
+    for (const row of auditSettled.value) {
+      const labels = row.changed_fields.map((field) => field.replaceAll("_", " ")).join(", ");
+      timeline.push({
+        id: `customer:${row.id}`,
+        kind: "customer",
+        title: row.action === "customer_archived"
+          ? "Customer archived"
+          : row.action === "customer_restored" ? "Customer restored" : "Customer details updated",
+        detail: labels ? `Changed: ${labels}` : "Customer record",
+        occurredAt: row.occurred_at,
+        actorUserId: row.actor_user_id,
+      });
+    }
+  }
   const timelineComplete =
     statusSettled.status === "fulfilled" &&
     assignmentSettled.status === "fulfilled" &&
     quotesSettled.status === "fulfilled" &&
     acceptancesSettled.status === "fulfilled" &&
     changesSettled.status === "fulfilled";
+  const completeTimeline = timelineComplete && auditSettled.status === "fulfilled";
   const uniqueTimeline = [...new Map(timeline.map((item) => [item.id, item])).values()]
     .sort((a, b) =>
       b.occurredAt.localeCompare(a.occurredAt) || a.id.localeCompare(b.id)
@@ -472,17 +560,38 @@ export async function fetchCustomerDetail(
   return {
     id: customer.id,
     displayName: customer.display_name.trim() || "Customer",
+    companyName: customer.company_name?.trim() || null,
     email: customer.email?.trim() || null,
     phone: customer.phone?.trim() || null,
     preferredContactMethod: customer.preferred_contact_method,
     source: customer.marketplace_homeowner_id ? "marketplace" : "direct",
+    summary: customer.notes?.trim() || null,
+    tags: customer.tags,
+    archivedAt: customer.archived_at,
+    archivedBy: customer.archived_by,
+    archiveReason: customer.archive_reason?.trim() || null,
+    customerSince: [
+      customer.created_at,
+      ...(opportunityRows ?? []).map((row) => row.created_at),
+      ...(quoteRows ?? []).map((row) => row.created_at),
+    ].sort()[0] ?? customer.created_at,
+    health: {
+      label: !customer.email && !customer.phone
+        ? "Profile incomplete"
+        : (opportunityRows?.length ?? 0) > 1 || (quoteRows?.length ?? 0) > 1
+          ? "Returning customer"
+          : "New relationship",
+      detail: propertyRows && opportunityRows && quoteRows
+        ? `${propertyRows.length} linked ${propertyRows.length === 1 ? "property" : "properties"} · ${opportunityRows.length} ${opportunityRows.length === 1 ? "opportunity" : "opportunities"} · ${quoteRows.length} linked ${quoteRows.length === 1 ? "quote" : "quotes"}`
+        : "Some relationship signals are temporarily unavailable.",
+    },
     createdAt: customer.created_at,
     updatedAt: customer.updated_at,
     properties: propertyRows ? { status: "ready", value: properties ?? [] } : { status: "error" },
     opportunities: opportunityRows ? { status: "ready", value: opportunities ?? [] } : { status: "error" },
     quotes: quoteRows ? { status: "ready", value: quotes ?? [] } : { status: "error" },
     timeline: opportunityRows
-      ? { status: "ready", value: uniqueTimeline, complete: timelineComplete }
+      ? { status: "ready", value: uniqueTimeline, complete: completeTimeline }
       : { status: "error" },
   };
 }

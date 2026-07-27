@@ -94,11 +94,17 @@ export interface CustomerRow {
   user_id: string | null;
   marketplace_homeowner_id: string | null;
   display_name: string;
+  company_name: string | null;
   email: string | null;
   phone: string | null;
+  normalized_email: string | null;
+  normalized_phone: string | null;
   preferred_contact_method: PreferredContactMethod | null;
   notes: string | null;
   tags: string[];
+  archived_at: string | null;
+  archived_by: string | null;
+  archive_reason: string | null;
   created_at: string;
   updated_at: string;
 }

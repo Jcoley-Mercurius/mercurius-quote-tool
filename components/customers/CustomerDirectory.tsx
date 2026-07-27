@@ -54,6 +54,7 @@ function CustomerDirectoryScope({
   const [cursor, setCursor] = useState<CustomerCursor | null>(null);
   const [loadMore, setLoadMore] = useState(false);
   const [retry, setRetry] = useState(0);
+  const [archiveFilter, setArchiveFilter] = useState<"active" | "archived">("active");
   const [ready, setReady] = useState<DirectoryState | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
 
@@ -64,14 +65,17 @@ function CustomerDirectoryScope({
 
   const requestKey = useMemo(
     () =>
-      `${scopeKey}:${search}:${cursor?.updatedAt ?? "first"}:${cursor?.id ?? ""}:${retry}`,
-    [cursor, retry, scopeKey, search]
+      `${scopeKey}:${archiveFilter}:${search}:${cursor?.updatedAt ?? "first"}:${cursor?.id ?? ""}:${retry}`,
+    [archiveFilter, cursor, retry, scopeKey, search]
   );
 
   useEffect(() => {
     if (!user || workspaceLoading) return;
     let active = true;
-    void fetchCustomerDirectoryPage(user.id, workspace, search, cursor)
+    const pageRequest = archiveFilter === "active"
+      ? fetchCustomerDirectoryPage(user.id, workspace, search, cursor)
+      : fetchCustomerDirectoryPage(user.id, workspace, search, cursor, undefined, archiveFilter);
+    void pageRequest
       .then((page) => {
         if (!active) return;
         setReady((previous) => ({
@@ -97,7 +101,7 @@ function CustomerDirectoryScope({
     return () => {
       active = false;
     };
-  }, [cursor, requestKey, search, user, workspace, workspaceLoading]);
+  }, [archiveFilter, cursor, requestKey, search, user, workspace, workspaceLoading]);
 
   const current =
     ready && (ready.key === requestKey || (cursor && loadMore)) ? ready : null;
@@ -136,6 +140,30 @@ function CustomerDirectoryScope({
         <p className="mt-2 text-xs leading-5 text-slate-500">
           Search stays in this page and is not added to the URL.
         </p>
+        <fieldset className="mt-4">
+          <legend className="text-sm font-semibold text-slate-900">Record status</legend>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {(["active", "archived"] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={archiveFilter === value}
+                onClick={() => {
+                  setArchiveFilter(value);
+                  setCursor(null);
+                  setReady(null);
+                }}
+                className={`min-h-11 rounded-xl px-4 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
+                  archiveFilter === value
+                    ? "bg-emerald-700 text-white"
+                    : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                {value === "active" ? "Active" : "Archived"}
+              </button>
+            ))}
+          </div>
+        </fieldset>
       </div>
 
       {current ? (
@@ -208,7 +236,7 @@ function DirectoryState({
   if (!items.length) {
     return (
       <DirectoryMessage
-        title={search ? "No customers match this search" : "No customers yet"}
+        title={search ? "No customers match this search" : "No customers in this view"}
         detail={search
           ? "Try a different name, contact detail, or property."
           : "Customer records connected to this workspace will appear here."}
@@ -238,9 +266,10 @@ export function CustomerCard({ item }: { item: CustomerDirectoryItem }) {
           <p className="break-all text-sm text-slate-600">
             {[item.email, item.phone].filter(Boolean).join(" · ") || "Contact details unavailable"}
           </p>
+          {item.companyName ? <p className="text-sm text-slate-500">{item.companyName}</p> : null}
         </div>
         <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-          Source: {customerSourceLabel(item.source)}
+          {item.archivedAt ? "Archived · " : ""}Source: {customerSourceLabel(item.source)}
         </span>
       </div>
       <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
