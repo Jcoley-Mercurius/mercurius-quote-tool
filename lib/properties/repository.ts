@@ -13,6 +13,7 @@ import {
   type PropertyLinkedQuote,
   type PropertyTimelineItem,
 } from "./types";
+import { fetchCrmTimelineFacts } from "@/lib/crm/repository";
 
 const PROPERTY_SELECT = "id, customer_id, marketplace_property_id, address_line1, address_line2, city, region, postal_code, country_code, property_data, notes, access_instructions, tags, created_at, updated_at";
 const OPPORTUNITY_SELECT = "id, customer_id, property_id, summary, service_type, status, origin, assigned_user_id, created_at, updated_at";
@@ -78,8 +79,11 @@ export async function fetchPropertyDetail(
     if (result.error) throw result.error;
     return (result.data ?? []) as { id: string; action: string; changed_fields: string[]; actor_user_id: string | null; occurred_at: string }[];
   };
-  const [customerResult, opportunitiesResult, auditResult] =
-    await Promise.allSettled([customerPromise(), opportunitiesPromise(), auditPromise()]);
+  const [customerResult, opportunitiesResult, auditResult, crmResult] =
+    await Promise.allSettled([
+      customerPromise(), opportunitiesPromise(), auditPromise(),
+      fetchCrmTimelineFacts(userId, workspace, { type: "property", id: propertyId }, client),
+    ]);
   const opportunityRows = opportunitiesResult.status === "fulfilled" ? opportunitiesResult.value : null;
   const opportunityIds = opportunityRows?.map((row) => row.id) ?? [];
 
@@ -163,6 +167,10 @@ export async function fetchPropertyDetail(
     detail: `Changed: ${row.changed_fields.map((field) => field.replaceAll("_", " ")).join(", ")}`,
     occurredAt: row.occurred_at, actorUserId: row.actor_user_id,
   });
+  if (crmResult.status === "fulfilled") for (const row of crmResult.value) timeline.push({
+    id: `crm:${row.id}`, title: row.title, detail: row.detail,
+    occurredAt: row.occurredAt, actorUserId: row.actorUserId,
+  });
   if (statusResult.status === "fulfilled") for (const row of statusResult.value) timeline.push({
     id: `status:${row.id}`, title: row.from_status
       ? `${OPPORTUNITY_STATUS_LABELS[row.from_status]} → ${OPPORTUNITY_STATUS_LABELS[row.to_status]}`
@@ -189,7 +197,7 @@ export async function fetchPropertyDetail(
   const complete = opportunityRows !== null && quoteRows !== null &&
     auditResult.status === "fulfilled" && statusResult.status === "fulfilled" &&
     assignmentResult.status === "fulfilled" && acceptanceResult.status === "fulfilled" &&
-    changeResult.status === "fulfilled";
+    changeResult.status === "fulfilled" && crmResult.status === "fulfilled";
   const dates = [property.created_at, ...(opportunityRows ?? []).map((row) => row.created_at), ...(quoteRows ?? []).map((row) => row.created_at)];
   const activity = [property.updated_at, ...(opportunityRows ?? []).map((row) => row.updated_at), ...(quoteRows ?? []).map((row) => row.updated_at)].sort().at(-1) ?? property.updated_at;
   const attributes: Record<string, string> = {};

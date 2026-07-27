@@ -46,6 +46,8 @@ describe("fetchPropertyDetail", () => {
     const customer = builder([{ id: "customer-1", display_name: "Jordan", company_name: null, archived_at: null }]);
     const opportunities = builder([opportunity]);
     const audit = builder([]);
+    const crmNotes = builder([]);
+    const crmTasks = builder([]);
     const quotes = builder([quote]);
     const status = builder([]);
     const assignments = builder([]);
@@ -53,7 +55,7 @@ describe("fetchPropertyDetail", () => {
     const changes = builder([]);
     const result = await fetchPropertyDetail(
       "user-1", { type: "personal" }, "property-1",
-      client(core, customer, opportunities, audit, quotes, status, assignments, acceptances, changes)
+      client(core, customer, opportunities, audit, crmNotes, crmTasks, quotes, status, assignments, acceptances, changes)
     );
     expect(core.eq).toHaveBeenCalledWith("user_id", "user-1");
     expect(core.is).toHaveBeenCalledWith("organization_id", null);

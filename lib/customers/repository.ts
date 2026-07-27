@@ -31,6 +31,7 @@ import {
   type CustomerProperty,
   type CustomerTimelineItem,
 } from "./types";
+import { fetchCrmTimelineFacts } from "@/lib/crm/repository";
 
 function comparablePhone(value: string | null): string {
   return value?.replace(/\D/g, "") ?? "";
@@ -360,8 +361,11 @@ export async function fetchCustomerDetail(
       occurred_at: string;
     }[];
   };
-  const [quotesSettled, statusSettled, assignmentSettled, auditSettled] =
-    await Promise.allSettled([quotePromise(), statusPromise(), assignmentPromise(), auditPromise()]);
+  const [quotesSettled, statusSettled, assignmentSettled, auditSettled, crmSettled] =
+    await Promise.allSettled([
+      quotePromise(), statusPromise(), assignmentPromise(), auditPromise(),
+      fetchCrmTimelineFacts(userId, workspace, { type: "customer", id: customerId }, client),
+    ]);
   const quoteRows = quotesSettled.status === "fulfilled" ? quotesSettled.value : null;
   const quoteIds = quoteRows?.map((row) => row.id) ?? [];
   const [acceptancesSettled, changesSettled] = await Promise.allSettled([
@@ -545,13 +549,22 @@ export async function fetchCustomerDetail(
       });
     }
   }
+  if (crmSettled.status === "fulfilled") {
+    for (const row of crmSettled.value) {
+      timeline.push({
+        id: `crm:${row.id}`, kind: "customer", title: row.title, detail: row.detail,
+        occurredAt: row.occurredAt, actorUserId: row.actorUserId,
+      });
+    }
+  }
   const timelineComplete =
     statusSettled.status === "fulfilled" &&
     assignmentSettled.status === "fulfilled" &&
     quotesSettled.status === "fulfilled" &&
     acceptancesSettled.status === "fulfilled" &&
     changesSettled.status === "fulfilled";
-  const completeTimeline = timelineComplete && auditSettled.status === "fulfilled";
+  const completeTimeline = timelineComplete && auditSettled.status === "fulfilled" &&
+    crmSettled.status === "fulfilled";
   const uniqueTimeline = [...new Map(timeline.map((item) => [item.id, item])).values()]
     .sort((a, b) =>
       b.occurredAt.localeCompare(a.occurredAt) || a.id.localeCompare(b.id)

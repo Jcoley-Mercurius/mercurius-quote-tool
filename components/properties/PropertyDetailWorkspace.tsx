@@ -13,6 +13,7 @@ import { QUOTE_STATUS_LABELS, QUOTE_STATUS_STYLES } from "@/lib/quotes/types";
 import { fetchPropertyDetail } from "@/lib/properties/repository";
 import type { PropertyDetail } from "@/lib/properties/types";
 import { PropertyEditDialog } from "./PropertyEditDialog";
+import { CrmEntitySections } from "@/components/crm/CrmEntitySections";
 
 export function PropertyDetailWorkspace({ propertyId }: { propertyId: string }) {
   const { user } = useAuth();
@@ -47,6 +48,10 @@ export function PropertyDetailWorkspace({ propertyId }: { propertyId: string }) 
   if (currentState === "error") return <PageState title="Property couldn’t be loaded" detail="Return to the linked customer or opportunity and try again." />;
   if (!current) return <PageState title="Loading property…" />;
   const d = current.detail;
+  const crmMemberLabels = new Map(current.members);
+  if (workspace.type === "personal" && user) {
+    crmMemberLabels.set(user.id, user.user_metadata?.full_name?.trim() || user.email || "You");
+  }
   return <div className="space-y-6 pb-10">
     <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
     <header className="border-b border-slate-200 pb-6">
@@ -76,6 +81,7 @@ export function PropertyDetailWorkspace({ propertyId }: { propertyId: string }) 
     </div>
     <Section title="Linked opportunities">{d.opportunities.status === "error" ? <Unavailable /> : d.opportunities.value.length ? <ul className="grid gap-3 lg:grid-cols-2">{d.opportunities.value.map((o) => <li key={o.id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-wrap justify-between gap-2"><Link href={`/opportunities/${o.id}`} className="inline-flex min-h-11 items-center break-words font-semibold text-slate-900 hover:text-emerald-700">{o.title}</Link><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${OPPORTUNITY_STATUS_STYLES[o.status]}`}>{OPPORTUNITY_STATUS_LABELS[o.status]}</span></div><p className="text-sm text-slate-600">{OPPORTUNITY_ORIGIN_LABELS[o.origin]}{workspace.type === "organization" ? ` · ${o.assignedUserId ? current.members.get(o.assignedUserId) || (current.membersAvailable ? "Former team member" : "Assigned team member") : "Unassigned"}` : ""}</p><p className="text-xs text-slate-500">Updated {formatCustomerDate(o.updatedAt)}</p></li>)}</ul> : <p className="text-sm text-slate-600">No linked opportunities.</p>}</Section>
     <Section title="Linked quotes"><p className="mb-4 text-sm text-slate-600">Quotes connected through property opportunities only. These are not completed work or collected revenue.</p>{d.quotes.status === "error" ? <Unavailable /> : d.quotes.value.length ? <ul className="grid gap-3 lg:grid-cols-2">{d.quotes.value.map((q) => { const s = QUOTE_STATUS_STYLES[q.status]; return <li key={q.id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-wrap justify-between gap-2"><Link href={`/quote?quoteId=${q.id}`} className="inline-flex min-h-11 items-center break-words font-semibold text-slate-900 hover:text-emerald-700">{q.reference} · {q.title}</Link><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${s.bg} ${s.text}`}>{QUOTE_STATUS_LABELS[q.status]}</span></div><p className="text-xs text-slate-500">Created {formatCustomerDate(q.createdAt)}{q.sharedAt ? " · Shared" : ""}{q.viewed ? " · Viewed" : ""}{q.accepted ? " · Accepted" : ""}</p></li>; })}</ul> : <p className="text-sm text-slate-600">No opportunity-connected quotes.</p>}</Section>
+    <CrmEntitySections target={{ type: "property", id: d.id }} memberLabels={crmMemberLabels} onTimelineChanged={() => setRefresh((value) => value + 1)} />
     <Section title="Recorded property history">{d.timeline.status === "error" ? <Unavailable /> : <><ol className="space-y-4">{d.timeline.value.map((item) => <li key={item.id} className="border-l-2 border-slate-200 pl-5"><h3 className="break-words text-sm font-semibold text-slate-900">{item.title}</h3><p className="break-words text-xs text-slate-600">{item.detail}</p><p className="text-xs text-slate-500">{formatCustomerDate(item.occurredAt)}{item.actorUserId ? ` · Actor: ${current.members.get(item.actorUserId) || (current.membersAvailable ? "Former team member" : "Unknown team member")}` : ""}</p></li>)}</ol>{!d.timeline.complete ? <p role="status" className="mt-4 text-sm text-amber-800">Some recorded activity is temporarily unavailable.</p> : null}</>}</Section>
     {editing ? <PropertyEditDialog detail={d} onClose={() => setEditing(false)} onChanged={(message) => { if (message) setAnnouncement(message); setRefresh((value) => value + 1); }} /> : null}
   </div>;

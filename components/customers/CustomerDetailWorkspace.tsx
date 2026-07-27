@@ -29,6 +29,7 @@ import {
   QUOTE_STATUS_STYLES,
 } from "@/lib/quotes/types";
 import { CustomerManagementActions } from "./CustomerManagementDialogs";
+import { CrmEntitySections } from "@/components/crm/CrmEntitySections";
 
 export function CustomerDetailWorkspace({ customerId }: { customerId: string }) {
   const { user } = useAuth();
@@ -109,6 +110,10 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
     />;
   }
   if (!current) return <DetailLoading />;
+  const crmMemberLabels = new Map(current.memberLabels);
+  if (workspace.type === "personal" && user) {
+    crmMemberLabels.set(user.id, user.user_metadata?.full_name?.trim() || user.email || "You");
+  }
 
   return (
     <div className="space-y-6 pb-10">
@@ -264,6 +269,12 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
           ) : <EmptyText>No opportunity-connected quotes.</EmptyText>}
         </SecondaryState>
       </Section>
+
+      <CrmEntitySections
+        target={{ type: "customer", id: current.detail.id }}
+        memberLabels={crmMemberLabels}
+        onTimelineChanged={() => setRefresh((value) => value + 1)}
+      />
 
       <Section title="Customer timeline">
         {current.detail.timeline.status === "error" ? (
