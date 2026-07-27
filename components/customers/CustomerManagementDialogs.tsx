@@ -151,7 +151,7 @@ function EditDialog({ detail, user, workspace, onClose, onChanged }: {
           {candidate.archived ? " (archived)" : ""} · {candidate.reasons.join(", ")}
         </li>)}</ul>
       </div> : null}
-      {error ? <div role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{error.message}{error.conflict ? <button type="button" onClick={onChanged} className="ml-2 font-semibold underline">Reload latest customer</button> : null}</div> : null}
+      {error ? <div role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{error.message}{error.conflict ? <button type="button" onClick={() => onChanged()} className="ml-2 font-semibold underline">Reload latest customer</button> : null}</div> : null}
       {discard ? <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm">
         <p className="font-semibold">Discard unsaved changes?</p>
         <div className="mt-2 flex gap-2"><button type="button" onClick={() => setDiscard(false)} className="min-h-11 rounded-lg border px-3">Keep editing</button><button type="button" onClick={onClose} className="min-h-11 rounded-lg bg-slate-800 px-3 text-white">Discard changes</button></div>

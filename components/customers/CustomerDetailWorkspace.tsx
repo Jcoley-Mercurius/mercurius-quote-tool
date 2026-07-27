@@ -178,7 +178,12 @@ export function CustomerDetailWorkspace({ customerId }: { customerId: string }) 
               <ul className="space-y-3">
                 {properties.map((property) => (
                   <li key={property.id} className="min-w-0 rounded-xl border border-slate-200 p-4">
-                    <p className="break-words font-semibold text-slate-900">{property.address}</p>
+                    <Link
+                      href={`/properties/${encodeURIComponent(property.id)}`}
+                      className="inline-flex min-h-11 items-center break-words font-semibold text-slate-900 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    >
+                      {property.address}
+                    </Link>
                     <div className="mt-2 flex flex-wrap gap-2 text-xs">
                       <SourceBadge source={property.source} />
                       {property.tags.map((tag) => (
