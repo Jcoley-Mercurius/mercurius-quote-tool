@@ -991,3 +991,108 @@ owner/admin/member and removal flows with seeded browser fixtures, add a
 deterministic two-session conflict scenario, and complete release regression
 review. B4 does not add notifications, messaging, scheduling, analytics,
 workload dashboards, list-card assignment actions, or dashboard redesign.
+
+## 28. PR4.3B5 validation and release review
+
+### Final architecture and role matrix
+
+Assignment remains a pessimistic authenticated-browser call to the
+`assign_opportunity` security-definer RPC. The RPC locks and derives the
+workspace from the opportunity row, validates current database membership and
+the target, checks the optional `updated_at` concurrency token, changes only
+`assigned_user_id`, and appends assignment history in the same transaction.
+Assignment history remains read-only to authenticated clients.
+
+| Workspace role | View | Assign self | Assign/reassign current member | Clear |
+| --- | --- | --- | --- | --- |
+| Personal owner | yes, shown as You | implicit only | no | no UI |
+| Organization owner | yes | yes | yes | yes |
+| Organization admin | yes | yes | yes | yes |
+| Organization member | yes | yes, including approved claim behavior | no | no |
+| Non-member | no | no | no | no |
+
+`remove_organization_member` derives organization, target user, and role from
+the locked membership row. It clears assignments only for active statuses
+`new`, `opened`, `quoting`, and `quoted`. Terminal `won`, `lost`, `declined`,
+and `closed` assignments remain unchanged. Each cleared assignment receives a
+`vendor_os` / `member_removed` history event attributed to the remover.
+Cleanup, history, organization audit logging, and membership deletion are one
+transaction.
+
+### Concurrency, workspace, timeline, and list guarantees
+
+A stale assignment token returns a conflict without an optimistic assignment
+or history event. Detail controls stay disabled until one authoritative refresh
+restores both assignee and `updatedAt`; retry uses that new token. Request keys
+include authenticated user, workspace, and opportunity, so late detail,
+membership, history, and conflict-refresh results cannot cross workspace
+boundaries. Hidden Detail records use the existing not-found response.
+
+Assignment and status histories remain independently loaded and are merged
+deterministically by occurrence time and typed ID. Successful assignment
+refreshes assignment history once without resetting status history, quotes, or
+Detail state. A secondary history failure leaves core Detail and assignment
+success authoritative and exposes a retry.
+
+Organization list filters remain All, Assigned, Unassigned, and Mine. Mine
+uses the authenticated user inside the repository and never places identity in
+the URL. Valid filters survive Detail navigation and browser Back. Personal
+mode hides and normalizes assignment filtering. The Command Center continues
+to link Unassigned Opportunities to
+`/opportunities?assignment=unassigned`; its health calculation and recent
+opportunity behavior are unchanged.
+
+### Security, accessibility, and responsive review
+
+No service role is used by browser assignment code, no browser-supplied
+organization or role authorizes assignment, assignment history has no browser
+write grant, and the assignment trigger blocks direct `assigned_user_id`
+updates. Safe UI errors do not expose database messages, policies, stack
+traces, or UUIDs. Cross-workspace reads and mutations do not disclose record
+existence.
+
+Native labeled controls retain keyboard behavior. Progress and errors are
+associated with controls, conflicts retain or restore focus, disabled states
+include explanatory text, and feedback is not color-only. Assignment and retry
+targets use a practical 44px minimum. Timeline and former-member copy wrap, and
+the existing phone/tablet/desktop layout conventions avoid horizontal
+overflow at approximately 320, 375, 768, and 1280 pixels.
+
+### Validation results
+
+The focused B1-B4 repository, Detail, history, list, member-removal, Command
+Center, quote-mapping, and opportunity-to-quote regression run passed 85 tests
+across 15 files. The full Vitest suite, scoped ESLint, production build,
+Playwright discovery/execution, and final diff checks are recorded in the B5
+completion report.
+
+SQL suites 022 and 023 were expanded to make admin assign/reassign/clear,
+all four active removal statuses, terminal preservation, quote linkage, and
+organization audit invariants explicit. They could not be executed in this
+workspace: `psql` is installed but no PostgreSQL server or database URL is
+available, and Supabase CLI, Docker, and Podman are unavailable. Database
+validation is therefore **not passed**.
+
+Seeded browser validation and the required deterministic two-normal-session
+conflict scenario could not run because disposable seeded credentials and
+fixtures are absent. The environment-gated tests must skip rather than access
+production or use a browser service role.
+
+### Known limitations, rollback, and release recommendation
+
+Deleted auth identities display Unknown team member; former identities have no
+immutable name/email snapshot. Notifications, email, messaging, scheduling,
+jobs, analytics, workload reporting, member-specific URL filters, list-card
+assignment controls, and persistent browser fixtures remain intentionally
+absent. Any unrelated repository lint baseline is outside PR4.3.
+
+Rollback should first stop rollout of the assignment UI. Migration 023 can be
+replaced with the prior member-removal function if cleanup behavior must be
+withdrawn; existing cleanup history must remain preserved. Rolling back
+migration 022 is destructive because its history table contains audit records
+and should not occur without explicit retention/export planning.
+
+**Release decision: NO-GO.** Runtime review and automated non-database
+regressions are clean, but mandatory SQL execution, seeded role validation, and
+the deterministic two-session browser concurrency test remain unperformed.
+Promote only after those checks pass in a disposable Supabase environment.

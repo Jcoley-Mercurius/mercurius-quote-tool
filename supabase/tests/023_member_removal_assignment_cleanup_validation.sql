@@ -53,17 +53,23 @@ declare
   v_other_owner uuid := '02300000-0000-4000-8000-000000000004';
   v_outsider uuid := '02300000-0000-4000-8000-000000000005';
   v_atomic_member uuid := '02300000-0000-4000-8000-000000000006';
+  v_owner_removed_member uuid := '02300000-0000-4000-8000-000000000007';
   v_org uuid := '02300000-0000-4000-8000-000000000101';
   v_other_org uuid := '02300000-0000-4000-8000-000000000102';
   v_member_id uuid := '02300000-0000-4000-8000-000000000201';
   v_owner_member_id uuid := '02300000-0000-4000-8000-000000000202';
   v_atomic_member_id uuid := '02300000-0000-4000-8000-000000000203';
+  v_owner_removed_member_id uuid := '02300000-0000-4000-8000-000000000207';
   v_opportunity_one uuid := '02300000-0000-4000-8000-000000000301';
   v_opportunity_two uuid := '02300000-0000-4000-8000-000000000302';
+  v_opportunity_opened uuid := '02300000-0000-4000-8000-000000000306';
+  v_opportunity_quoting uuid := '02300000-0000-4000-8000-000000000307';
   v_terminal_opportunity uuid := '02300000-0000-4000-8000-000000000305';
   v_other_opportunity uuid := '02300000-0000-4000-8000-000000000303';
   v_atomic_opportunity uuid := '02300000-0000-4000-8000-000000000304';
+  v_owner_removed_opportunity uuid := '02300000-0000-4000-8000-000000000308';
   v_prior_history uuid := '02300000-0000-4000-8000-000000000401';
+  v_quote uuid := '02300000-0000-4000-8000-000000000501';
 begin
   insert into auth.users (id, email)
   values
@@ -72,7 +78,8 @@ begin
     (v_member, 'pr43b4-member@example.invalid'),
     (v_other_owner, 'pr43b4-other-owner@example.invalid'),
     (v_outsider, 'pr43b4-outsider@example.invalid'),
-    (v_atomic_member, 'pr43b4-atomic@example.invalid');
+    (v_atomic_member, 'pr43b4-atomic@example.invalid'),
+    (v_owner_removed_member, 'pr43b5-owner-removal@example.invalid');
 
   insert into public.organizations (id, name)
   values
@@ -90,6 +97,7 @@ begin
     ('02300000-0000-4000-8000-000000000204', v_org, v_admin, 'admin'),
     (v_member_id, v_org, v_member, 'member'),
     (v_atomic_member_id, v_org, v_atomic_member, 'member'),
+    (v_owner_removed_member_id, v_org, v_owner_removed_member, 'member'),
     ('02300000-0000-4000-8000-000000000205',
       v_other_org, v_other_owner, 'owner'),
     ('02300000-0000-4000-8000-000000000206',
@@ -110,12 +118,27 @@ begin
       'hvac', 'Removal one', v_member),
     (v_opportunity_two, v_org, v_owner, 'direct', 'quoted',
       'hvac', 'Removal two', v_member),
+    (v_opportunity_opened, v_org, v_owner, 'direct', 'opened',
+      'hvac', 'Removal opened', v_member),
+    (v_opportunity_quoting, v_org, v_owner, 'direct', 'quoting',
+      'hvac', 'Removal quoting', v_member),
     (v_terminal_opportunity, v_org, v_owner, 'direct', 'won',
       'hvac', 'Completed assignment remains historical', v_member),
     (v_other_opportunity, v_other_org, v_other_owner, 'direct', 'opened',
       'hvac', 'Unrelated', v_member),
     (v_atomic_opportunity, v_org, v_owner, 'direct', 'quoted',
-      'hvac', 'Atomic rollback', v_atomic_member);
+      'hvac', 'Atomic rollback', v_atomic_member),
+    (v_owner_removed_opportunity, v_org, v_owner, 'direct', 'opened',
+      'hvac', 'Owner-authorized removal', v_owner_removed_member);
+
+  insert into public.quotes (
+    id, user_id, organization_id, opportunity_id, reference, status,
+    service_type, job_name, form_data, quote_data, source
+  )
+  values (
+    v_quote, v_owner, v_org, v_opportunity_one, 'PR43-B5-REMOVAL', 'draft',
+    'hvac', 'Removal invariant', '{}'::jsonb, '{}'::jsonb, 'fallback'
+  );
 
   insert into public.opportunity_assignment_history (
     id,
@@ -151,7 +174,7 @@ begin
   ) or (
     select count(*) from public.opportunities
     where organization_id = v_org and assigned_user_id = v_member
-  ) <> 3 then
+  ) <> 5 then
     raise exception 'unauthorized removal changed assignment state';
   end if;
 
@@ -166,7 +189,7 @@ begin
     end if;
   end;
 
-  -- Admin removal clears every current assignment and records exact history.
+  -- Admin removal clears every active assignment and records exact history.
   perform set_config('request.jwt.claim.sub', v_admin::text, true);
   perform public.remove_organization_member(v_member_id);
 
@@ -186,13 +209,18 @@ begin
   if (
     select count(*)
     from public.opportunity_assignment_history
-    where opportunity_id in (v_opportunity_one, v_opportunity_two)
+    where opportunity_id in (
+      v_opportunity_one,
+      v_opportunity_two,
+      v_opportunity_opened,
+      v_opportunity_quoting
+    )
       and previous_assigned_user_id = v_member
       and new_assigned_user_id is null
       and actor_user_id = v_admin
       and source_system = 'vendor_os'
       and reason_code = 'member_removed'
-  ) <> 2 then
+  ) <> 4 then
     raise exception 'member-removal assignment history is incomplete';
   end if;
   if not exists (
@@ -210,6 +238,15 @@ begin
        <> 'quoted' then
     raise exception 'member removal changed opportunity status';
   end if;
+  if (select status from public.opportunities where id = v_opportunity_opened)
+       <> 'opened'
+     or (select status from public.opportunities where id = v_opportunity_quoting)
+       <> 'quoting'
+     or (select opportunity_id from public.quotes where id = v_quote)
+       is distinct from v_opportunity_one
+     or (select status from public.quotes where id = v_quote) <> 'draft' then
+    raise exception 'member removal changed active status or quote linkage';
+  end if;
   if (select assigned_user_id from public.opportunities
       where id = v_terminal_opportunity) is distinct from v_member
      or exists (
@@ -224,6 +261,46 @@ begin
       where id = v_other_opportunity) is distinct from v_member then
     raise exception 'member removal changed another organization';
   end if;
+  if (
+    select count(*)
+    from public.organization_audit_log
+    where organization_id = v_org
+      and actor_user_id = v_admin
+      and target_user_id = v_member
+      and action = 'member_removed'
+  ) <> 1 then
+    raise exception 'member removal audit event is missing or duplicated';
+  end if;
+
+  -- An owner can remove a non-owner and receives the same atomic cleanup.
+  perform set_config('request.jwt.claim.sub', v_owner::text, true);
+  perform public.remove_organization_member(v_owner_removed_member_id);
+  if exists (
+       select 1 from public.organization_members
+       where id = v_owner_removed_member_id
+     )
+     or (select assigned_user_id from public.opportunities
+         where id = v_owner_removed_opportunity) is not null
+     or (
+       select count(*)
+       from public.opportunity_assignment_history
+       where opportunity_id = v_owner_removed_opportunity
+         and previous_assigned_user_id = v_owner_removed_member
+         and new_assigned_user_id is null
+         and actor_user_id = v_owner
+         and source_system = 'vendor_os'
+         and reason_code = 'member_removed'
+     ) <> 1
+     or (
+       select count(*)
+       from public.organization_audit_log
+       where organization_id = v_org
+         and actor_user_id = v_owner
+         and target_user_id = v_owner_removed_member
+         and action = 'member_removed'
+     ) <> 1 then
+    raise exception 'owner-authorized member removal failed';
+  end if;
 
   -- Remaining authorized members can still read the preserved history via RLS.
   set local role authenticated;
@@ -231,9 +308,14 @@ begin
   if (
     select count(*)
     from public.opportunity_assignment_history
-    where opportunity_id in (v_opportunity_one, v_opportunity_two)
+    where opportunity_id in (
+      v_opportunity_one,
+      v_opportunity_two,
+      v_opportunity_opened,
+      v_opportunity_quoting
+    )
       and reason_code = 'member_removed'
-  ) <> 2 then
+  ) <> 4 then
     raise exception 'authorized member cannot read removal history';
   end if;
   reset role;
@@ -261,6 +343,13 @@ begin
        select 1 from public.opportunity_assignment_history
        where opportunity_id = v_atomic_opportunity
          and reason_code = 'member_removed'
+     )
+     or exists (
+       select 1
+       from public.organization_audit_log
+       where organization_id = v_org
+         and target_user_id = v_atomic_member
+         and action = 'member_removed'
      ) then
     raise exception 'member-removal rollback was not atomic';
   end if;

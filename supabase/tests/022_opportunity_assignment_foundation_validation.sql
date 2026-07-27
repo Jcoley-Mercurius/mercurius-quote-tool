@@ -103,11 +103,13 @@ declare
   v_org uuid := '02200000-0000-4000-8000-000000000101';
   v_other_org uuid := '02200000-0000-4000-8000-000000000102';
   v_owner_opportunity uuid := '02200000-0000-4000-8000-000000000201';
+  v_admin_opportunity uuid := '02200000-0000-4000-8000-000000000207';
   v_member_opportunity uuid := '02200000-0000-4000-8000-000000000202';
   v_denied_opportunity uuid := '02200000-0000-4000-8000-000000000203';
   v_stale_opportunity uuid := '02200000-0000-4000-8000-000000000204';
   v_other_opportunity uuid := '02200000-0000-4000-8000-000000000205';
   v_personal_opportunity uuid := '02200000-0000-4000-8000-000000000206';
+  v_quote uuid := '02200000-0000-4000-8000-000000000301';
   v_result record;
   v_updated_at timestamptz;
 begin
@@ -165,11 +167,21 @@ begin
   )
   values
     (v_owner_opportunity, v_org, v_owner, 'direct', 'new', 'hvac', 'Owner flow'),
+    (v_admin_opportunity, v_org, v_owner, 'direct', 'quoted', 'hvac', 'Admin flow'),
     (v_member_opportunity, v_org, v_owner, 'direct', 'new', 'hvac', 'Member flow'),
     (v_denied_opportunity, v_org, v_owner, 'direct', 'new', 'hvac', 'Denied flow'),
     (v_stale_opportunity, v_org, v_owner, 'direct', 'new', 'hvac', 'Stale flow'),
     (v_other_opportunity, v_other_org, v_outsider, 'direct', 'new', 'hvac', 'Other workspace'),
     (v_personal_opportunity, null, v_personal_owner, 'direct', 'new', 'hvac', 'Personal flow');
+
+  insert into public.quotes (
+    id, user_id, organization_id, opportunity_id, reference, status,
+    service_type, job_name, form_data, quote_data, source
+  )
+  values (
+    v_quote, v_owner, v_org, v_owner_opportunity, 'PR43-B5-QUOTE', 'draft',
+    'hvac', 'Assignment invariant', '{}'::jsonb, '{}'::jsonb, 'fallback'
+  );
 
   -- Owner assign, reassign, and clear.
   perform set_config('request.jwt.claim.sub', v_owner::text, true);
@@ -230,6 +242,39 @@ begin
          and new_assigned_user_id is null
      ) <> 1 then
     raise exception 'owner clear failed';
+  end if;
+
+  -- Admin assign, reassign, and clear.
+  perform set_config('request.jwt.claim.sub', v_admin::text, true);
+  select * into v_result
+  from public.assign_opportunity(
+    v_admin_opportunity,
+    v_member,
+    null,
+    'admin_assignment'
+  );
+  select * into v_result
+  from public.assign_opportunity(
+    v_admin_opportunity,
+    v_other_member,
+    v_result.updated_at,
+    'admin_reassignment'
+  );
+  select * into v_result
+  from public.assign_opportunity(
+    v_admin_opportunity,
+    null,
+    v_result.updated_at,
+    'admin_clear'
+  );
+  if v_result.assigned_user_id is not null
+     or (
+       select count(*)
+       from public.opportunity_assignment_history
+       where opportunity_id = v_admin_opportunity
+         and actor_user_id = v_admin
+     ) <> 3 then
+    raise exception 'admin assign, reassign, or clear failed';
   end if;
 
   -- Member self-assignment succeeds.
@@ -355,6 +400,14 @@ begin
   exception when sqlstate '42501' then
     null;
   end;
+
+  if (select status from public.opportunities where id = v_owner_opportunity)
+       <> 'new'
+     or (select opportunity_id from public.quotes where id = v_quote)
+       is distinct from v_owner_opportunity
+     or (select status from public.quotes where id = v_quote) <> 'draft' then
+    raise exception 'assignment changed opportunity status or quote linkage';
+  end if;
 end;
 $$;
 
