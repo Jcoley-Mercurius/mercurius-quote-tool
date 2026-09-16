@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "Mercurius Quote Tool MDS",
+  "version": "1.0.0",
+  "color": {
+    "brand": {
+      "ink900": "#1F242E",
+      "ink800": "#29303D",
+      "green600": "#3F8361",
+      "green500Dark": "#4FB080",
+      "coral600": "#D76742"
+    },
+    "semantic": {
+      "success": "#3F8361",
+      "warning": "#B26B19",
+      "error": "#DC2828",
+      "info": "#308CE8"
+    },
+    "surface": {
+      "lightPage": "#FBFAF9",
+      "lightCard": "#FDFDFC",
+      "lightMuted": "#F6F5F3",
+      "lightSecondary": "#F1F0EE",
+      "darkPage": "#11151C",
+      "darkCard": "#1A1F28",
+      "darkMuted": "#222630"
+    },
+    "text": {
+      "lightPrimary": "#1F242E",
+      "lightMuted": "#676F7E",
+      "darkPrimary": "#EEECE7"
+    },
+    "border": {
+      "light": "#E5E2DC",
+      "dark": "#323843",
+      "focus": "#4B9B73"
+    }
+  },
+  "font": {
+    "family": { "display": "Manrope", "ui": "Manrope" },
+    "weight": { "regular": 400, "medium": 500, "semibold": 600, "bold": 700 },
+    "size": {
+      "displayXlDesktop": "64px",
+      "displayXlMobile": "44px",
+      "displayLgDesktop": "52px",
+      "displayLgMobile": "40px",
+      "h1Desktop": "44px",
+      "h1Mobile": "34px",
+      "h2Desktop": "34px",
+      "h2Mobile": "28px",
+      "h3Desktop": "24px",
+      "h3Mobile": "22px",
+      "title": "18px",
+      "bodyLargeDesktop": "18px",
+      "bodyLargeMobile": "17px",
+      "body": "16px",
+      "bodySmall": "14px",
+      "label": "12px"
+    }
+  },
+  "space": { "1": "4px", "2": "8px", "3": "12px", "4": "16px", "5": "20px", "6": "24px", "8": "32px", "10": "40px", "12": "48px", "16": "64px", "20": "80px" },
+  "radius": { "sm": "8px", "md": "12px", "lg": "16px", "xl": "24px", "2xl": "32px", "pill": "9999px" },
+  "motion": { "fast": "150ms", "base": "220ms", "deliberate": "320ms" },
+  "control": { "minimum": "44px", "prominent": "52px" },
+  "layout": {
+    "headerDesktop": "64px",
+    "headerMobile": "56px",
+    "workspaceRail": "264px",
+    "publicMax": "96rem",
+    "operationalMax": "80rem",
+    "guidedMax": "72rem",
+    "readingMax": "45rem"
+  },
+  "breakpoint": { "sm": "640px", "md": "768px", "lg": "1024px", "xl": "1280px", "2xl": "1536px" }
+}

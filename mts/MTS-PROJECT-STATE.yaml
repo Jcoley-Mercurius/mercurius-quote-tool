@@ -1,0 +1,39 @@
+system: Mercurius Technology System
+project: Mercurius Quote Tool
+version: "1.0"
+status: approved
+implementation_readiness: conditional-ready
+standard:
+  agent_entry: AGENTS.md
+  execution_conductor: BLUEPRINT.md
+  loop: "AGENTS.md -> MPS -> MDS -> MTS -> BLUEPRINT.md -> Skill Manifest -> Phase Zero -> Slices -> Combined QA -> Production"
+gates:
+  gate_1_repository_discovery: approved
+  gate_2_architecture: approved
+  gate_3_data_auth_security: approved
+  gate_4_integrations_external_services: approved
+  gate_5_operations_reliability: approved
+  gate_6_capabilities_agent_governance: approved
+  gate_7_implementation_readiness: approved
+strategy:
+  modernization: preserve-harden-extend
+  rebuild: false
+implementation:
+  phase_zero_required: true
+  slice_count: 9
+  mds_dependency_sequence: D0-D9
+  unified_agents_md: required
+  skill_manifest: required
+  combined_qa: required
+blockers:
+  pre_slice_1:
+    - approved MPS package present
+    - approved MDS package present
+    - canonical MDS references present
+    - capability verification passes
+    - environment/secrets baseline established
+  bounded:
+    GAP-001: direct payments
+    GAP-002: job-board visibility
+    GAP-003: multi-quote comparison
+    GAP-004: trust claims

@@ -1,0 +1,1638 @@
+mds:
+  system: Mercurius Design System
+  schema_version: "1.2"
+  project_id: mercurius-quote-tool
+  project_name: Mercurius Quote Tool
+  lifecycle: active
+  mds_version: "v1.1"
+  current_gate: compliance
+  mps_project_id: mercurius-quote-tool
+  mps_version: "v1.0"
+  created_at: "2026-09-08"
+  updated_at: "2026-09-15"
+
+revision:
+  target_version: "v1.1"
+  status: complete
+  opened_at: "2026-09-13"
+  trigger: Product-owner requirement that every page route have a dedicated canonical route design
+  audit: MDS-V1.1-ROUTE-DESIGN-COVERAGE-AUDIT.md
+  active_baseline: "v1.1"
+  gate_6: route_reference_expansion_approved
+  gate_7: refreshed_for_route_reference_completeness
+  route_inventory: 21
+  dedicated_route_canvases_approved: 21
+  dedicated_route_canvases_drafted: 0
+
+project:
+  name: Mercurius Quote Tool
+  description: Source-aware professional quoting and conversion for Marketplace and direct home-service work.
+  product_type: Responsive vendor operating workspace with homeowner/customer quote portals
+  audience:
+    - Solo home-service contractors
+    - Small vendor crews and teams
+    - Marketplace homeowners
+    - Vendor-acquired direct customers
+  platforms:
+    - Responsive web
+    - Mobile job-site use
+  primary_experience: Opportunity to quote to acceptance to source-appropriate payment/job conversion
+  scope:
+    - Marketplace homeowner repair requests and vendor quote responses
+    - Direct vendor-created quotes for customers outside Marketplace
+    - Vendor quote pipeline, team workspace, client review, acceptance, and payment handoff
+    - Source-aware components, states, layout, responsive behavior, and accessibility
+  out_of_scope:
+    - Payment-provider selection
+    - Data, event, identity, commission, and security architecture
+    - Property manager and HOA B2B expansion beyond approved release intent
+  status: approved
+
+identity:
+  logo:
+    asset: references/mercurius-logo.png
+    source: Product-owner-supplied Mercurius figure-and-coin mark
+    status: approved
+    rule: Preserve the exact artwork and proportions; do not redraw, approximate, replace, or omit it on primary branded surfaces or exported artifacts
+  personality: [professional, fast, trustworthy, locally_intelligent, transparent]
+  brand_adjectives: [premium, practical, calm, capable, human]
+  emotional_response: Confidence that the scope, commercial path, and next step are clear
+  visual_direction: Inherit approved Marketplace MDS foundations; preserve useful Quote Tool compositions without retaining conflicting emerald, slate, or Inter tokens
+  principles:
+    - Make the money path unmistakable
+    - Move work forward
+    - One system with context-aware behavior
+    - Professional at the job site
+    - AI supports judgment
+  references:
+    - MDS-REF-001 through MDS-REF-044
+
+color:
+  primary:
+    ink900: {name: color.brand.ink900, value: "#1F242E", role: Primary content, status: inherited_approved}
+    ink800: {name: color.brand.ink800, value: "#29303D", role: Structural action, status: inherited_approved}
+  secondary:
+    green600: {name: color.brand.green600, value: "#3F8361", role: Trusted progression, status: inherited_approved}
+    green500Dark: {name: color.brand.green500Dark, value: "#4FB080", role: Trusted progression on dark, status: inherited_approved}
+  accent:
+    coral600: {name: color.brand.coral600, value: "#D76742", role: Explicit AI generation, status: inherited_approved}
+  neutrals: {}
+  semantic:
+    success: {name: color.semantic.success, value: "#3F8361", role: Confirmed success, status: inherited_approved}
+    warning: {name: color.semantic.warning, value: "#B26B19", role: Attention and recoverable risk, status: inherited_approved}
+    error: {name: color.semantic.error, value: "#DC2828", role: Validation and destructive consequence, status: inherited_approved}
+    info: {name: color.semantic.info, value: "#308CE8", role: Neutral system information, status: inherited_approved}
+  surfaces:
+    lightPage: {name: color.surface.lightPage, value: "#FBFAF9", role: Default canvas, status: inherited_approved}
+    lightCard: {name: color.surface.lightCard, value: "#FDFDFC", role: Card and quote sheet, status: inherited_approved}
+    lightMuted: {name: color.surface.lightMuted, value: "#F6F5F3", role: Quiet grouping, status: inherited_approved}
+    lightSecondary: {name: color.surface.lightSecondary, value: "#F1F0EE", role: Recessed and disabled, status: inherited_approved}
+    darkPage: {name: color.surface.darkPage, value: "#11151C", role: Bounded photo inspection, status: inherited_approved}
+    darkCard: {name: color.surface.darkCard, value: "#1A1F28", role: Dark elevated content, status: inherited_approved}
+    darkMuted: {name: color.surface.darkMuted, value: "#222630", role: Quiet dark grouping, status: inherited_approved}
+  text:
+    lightPrimary: {name: color.text.lightPrimary, value: "#1F242E", role: Primary text, status: inherited_approved}
+    lightMuted: {name: color.text.lightMuted, value: "#676F7E", role: Supporting text, status: inherited_approved}
+    darkPrimary: {name: color.text.darkPrimary, value: "#EEECE7", role: Text on dark, status: inherited_approved}
+  borders:
+    light: {name: color.border.light, value: "#E5E2DC", role: Default light border, status: inherited_approved}
+    dark: {name: color.border.dark, value: "#323843", role: Default dark border, status: inherited_approved}
+    focus: {name: color.border.focus, value: "#4B9B73", role: Persistent focus ring, status: inherited_approved}
+  usage_rules:
+    - Ink is the default action and structure color
+    - Coral is limited to explicit AI generation and bounded AI emphasis
+    - Green is limited to trusted progression, verified success, acceptance, and payment progression
+    - Marketplace and Direct source use text and icon labels rather than competing source colors
+    - Financial values use ink unless they communicate a confirmed accepted or paid outcome
+
+typography:
+  display_family: Manrope
+  ui_family: Manrope
+  mono_family: Optional implementation-approved monospace for quote references only
+  weights: {regular: 400, medium: 500, semibold: 600, bold: 700}
+  scale:
+    display_xl: {desktop: 64px, mobile: 44px}
+    display_lg: {desktop: 52px, mobile: 40px}
+    h1: {desktop: 44px, mobile: 34px}
+    h2: {desktop: 34px, mobile: 28px}
+    h3: {desktop: 24px, mobile: 22px}
+    title: 18px
+    body_large: {desktop: 18px, mobile: 17px}
+    body: 16px
+    body_small: 14px
+    label: 12px
+  line_heights: {display_xl: 1.08, display_lg: 1.10, h1: 1.15, h2: 1.20, h3: 1.30, title: 1.40, body_large: 1.60, body: 1.55, body_small: 1.50, label: 1.35}
+  letter_spacing: {default: normal}
+  roles: {}
+  usage_rules:
+    - Operational text is never smaller than 14px
+    - 12px is limited to short labels with sufficient contrast
+    - Display roles are reserved for public marketing
+    - Use sentence case and tabular numerals for aligned financial data
+
+spacing:
+  base_unit: 4px
+  scale: {1: 4px, 2: 8px, 3: 12px, 4: 16px, 5: 20px, 6: 24px, 8: 32px, 10: 40px, 12: 48px, 16: 64px, 20: 80px}
+  page_rules: {mobile_gutter: 16-20px, desktop: Inherit Marketplace container and gutters}
+  section_rules: {customer: 32-48px, vendor: 24-40px, marketing: 56-96px}
+  component_rules: {customer_card_padding: 24-32px, vendor_card_padding: 16-24px, form_group_gap: 24px, control_text_gap: 8-12px, adjacent_actions: 8px minimum}
+
+shape:
+  radius: {sm: 8px, md: 12px, lg: 16px, xl: 24px, 2xl: 32px, pill: 9999px}
+  borders: {light: "1px #E5E2DC", dark: "1px #323843"}
+  dividers: {default: "1px #E5E2DC"}
+  shadows: {sm: Inherit parent recipe, base: Inherit parent recipe, md: Inherit parent recipe}
+  elevation: {base: Border and surface first, sm: Hover or sticky separation, raised: Menus and popovers, overlay: Dialogs and consequential overlays}
+
+icons:
+  family: Lucide or MTS-approved equivalent
+  implementation: Reusable icon wrapper
+  stroke_style: Rounded outline at 2px
+  fill_style: None unless required by a status convention
+  sizes: {small: 16px, standard: 20px, feature: 24px}
+  custom_icon_rules:
+    - Preserve branded marks as supplied assets rather than redraw them as UI icons
+  usage_rules:
+    - Pair source, financial, status, urgency, and destructive icons with visible text
+    - Avoid repeated one-off inline SVG implementations
+components:
+  button:
+    applicability: required
+    status: approved
+    variants: [structural, ai, progression, secondary, quiet, destructive]
+    sizes: [md_44px, lg_52px]
+    states: [default, hover, focus_visible, active, disabled, loading]
+    specification: MDS-GATE-3-COMPONENTS.md#4-action-components
+    implementation: Consolidate repeated local button styles
+    reference: null
+  input:
+    applicability: required
+    status: approved
+    variants: [text, email, phone, currency, address, search]
+    sizes: [md_44px]
+    states: [default, focus, filled, disabled, read_only, error, success]
+    specification: MDS-GATE-3-COMPONENTS.md#3-applicability-inventory
+    implementation: Normalize labels help text prefixes and errors
+    reference: null
+  selection:
+    applicability: required
+    status: approved
+    variants: [checkbox, radio, card_selection, select, combobox]
+    sizes: [standard]
+    states: [default, hover, focus, selected, disabled, error, loading, no_results]
+    specification: MDS-GATE-3-COMPONENTS.md#3-applicability-inventory
+    implementation: Semantic controls beneath visual selections
+    reference: null
+  badge_tag_status:
+    applicability: required
+    status: approved
+    variants: [source, lifecycle, urgency, category, workspace]
+    sizes: [standard]
+    states: [default, info, warning, error, success]
+    specification: MDS-GATE-3-COMPONENTS.md#5-identity-source-and-status-components
+    implementation: Replace inconsistent chips and editable status badges
+    reference: null
+  progress:
+    applicability: required
+    status: approved
+    variants: [stepper, completion_bar, status_timeline]
+    sizes: [standard]
+    states: [current, complete, incomplete, blocked, error]
+    specification: MDS-GATE-3-COMPONENTS.md#3-applicability-inventory
+    implementation: Current uses ink and complete uses green
+    reference: null
+  card_panel:
+    applicability: required
+    status: approved
+    variants: [static, selectable, actionable, summary, elevated]
+    sizes: [compact, standard, major]
+    states: [default, hover, focus, selected, disabled, loading, empty]
+    specification: MDS-GATE-3-COMPONENTS.md#3-applicability-inventory
+    implementation: Border first with click affordance only when actionable
+    reference: null
+  overlay:
+    applicability: required
+    status: approved
+    variants: [dialog, drawer, mobile_action_sheet, menu, tooltip]
+    sizes: [content_dependent]
+    states: [closed, opening, open, loading, error, closing]
+    specification: MDS-GATE-3-COMPONENTS.md#3-applicability-inventory
+    implementation: Normalize focus trap return focus and escape behavior
+    reference: null
+  data_display:
+    applicability: required
+    status: approved
+    variants: [table, responsive_list, metric_card, financial_summary]
+    sizes: [compact, standard]
+    states: [loading, populated, empty, error]
+    specification: MDS-GATE-3-COMPONENTS.md#3-applicability-inventory
+    implementation: Preserve programmatic label value relationships on mobile
+    reference: null
+  feedback:
+    applicability: required
+    status: approved
+    variants: [inline_validation, error_summary, alert, banner, toast, skeleton, spinner, empty_state]
+    sizes: [inline, card, page]
+    states: [info, success, warning, error, loading, empty]
+    specification: MDS-GATE-3-COMPONENTS.md#10-feedback-and-system-state-components
+    implementation: Persistent critical feedback with supplemental toasts only
+    reference: null
+  source_context_label:
+    applicability: required
+    status: approved
+    variants: [marketplace, direct_customer]
+    sizes: [compact, explanatory]
+    states: [default]
+    specification: MDS-GATE-3-COMPONENTS.md#5-identity-source-and-status-components
+    implementation: Persist across opportunity builder history portal acceptance and payment
+    reference: null
+  opportunity:
+    applicability: required
+    status: approved
+    variants: [card, row, summary, filters]
+    sizes: [compact, standard]
+    states: [new, viewed, response_due, quoted, closed, loading, empty, error]
+    specification: MDS-GATE-3-COMPONENTS.md#6-opportunity-components
+    implementation: Modify existing opportunity list detail and filters
+    reference: null
+  quote_builder:
+    applicability: required
+    status: approved
+    variants: [stepper, form_section, service_selector, property_lookup, photo_upload, ai_draft, line_item_editor, quote_options, financial_summary]
+    sizes: [desktop, mobile]
+    states: [current, complete, incomplete, blocked, error, saving, saved, generating]
+    specification: MDS-GATE-3-COMPONENTS.md#7-quote-builder-components
+    implementation: Modify QuoteFlow QuoteForm and supporting components
+    reference: null
+  customer_quote:
+    applicability: required
+    status: approved
+    variants: [header, review_sheet, change_request, acceptance, payment_handoff]
+    sizes: [desktop, mobile, print]
+    states: [draft, sent, viewed, changes_requested, accepted, payment_pending, paid, expired, error]
+    specification: MDS-GATE-3-COMPONENTS.md#8-customer-quote-and-commitment-components
+    implementation: Modify client portal acceptance and PDF components
+    reference: null
+  workspace_support:
+    applicability: required
+    status: approved
+    variants: [workspace_switcher, save_target, onboarding_checklist, business_profile, brand_snapshot, lifecycle_action_bar]
+    sizes: [compact, standard]
+    states: [default, loading, complete, warning, error]
+    specification: MDS-GATE-3-COMPONENTS.md#9-workspace-and-supporting-components
+    implementation: Modify existing organization settings and dashboard components
+    reference: null
+  switch:
+    applicability: optional
+    status: approved
+    variants: [immediate_binary_setting]
+    sizes: [standard]
+    states: [default, focus, checked, disabled]
+    specification: MDS-GATE-3-COMPONENTS.md#3-applicability-inventory
+    implementation: Use only for immediate settings
+    reference: null
+  chart:
+    applicability: not_applicable
+    status: approved
+    variants: []
+    sizes: []
+    states: []
+    specification: Simple metric cards cover current release needs
+    implementation: null
+    reference: null
+layout:
+  max_content_width:
+    marketplace_public: 96rem
+    operational: 80rem
+    guided_detail: 72rem
+    reading: 45rem
+    client_quote: 72rem
+  grid:
+    columns: {wide: 12, desktop: 12, tablet: 8, mobile: 4}
+    gap: {wide: 24px, desktop: 24px, tablet: 20px, mobile: 16px}
+  gutters: {wide: 64px, desktop: 48px, tablet: 32px, mobile: 20px, narrow_mobile: 16px}
+  header: {desktop: 64px, mobile: 56px, behavior: Marketplace identity and context}
+  sidebar: {desktop_width: 264px, behavior: Sticky grouped vendor navigation beneath header}
+  footer: {public: Marketplace footer, authenticated: not_required, client_quote: Minimal Mercurius attribution and legal links}
+  section_spacing:
+    marketing: {desktop: 96px, tablet: 72px, mobile: 56px}
+    operational: {desktop: 48px, tablet: 40px, mobile: 32px}
+    compact: {desktop: 32px, tablet: 28px, mobile: 24px}
+  page_shells:
+    public_marketplace: {status: approved, desktop: Marketplace header and footer with bounded content, mobile: Single column with homeowner action first}
+    vendor_workspace: {status: approved, desktop: Header plus grouped left rail and main, mobile: Compact header plus bottom navigation}
+    operational_list: {status: approved, desktop: Header metrics filters and rows, mobile: Summary filters sheet and cards}
+    detail_action_rail: {status: approved, desktop: 8 column content plus 4 column rail, mobile: Inline summary then safe action bar}
+    guided_quote_builder: {status: approved, desktop: 8 column active step plus 4 column summary, mobile: One step plus sticky Back and Continue}
+    customer_quote: {status: approved, desktop: 8 column document plus 4 column decision rail, mobile: Document then decision summary and action}
+    settings: {status: approved, desktop: 3 column local navigation plus 9 column form, mobile: Section picker and focused form section}
+    media_viewer: {status: approved, desktop: Bounded dark overlay, mobile: Full viewport safe area viewer}
+
+responsive:
+  breakpoints: {mobile: 640px, tablet: 768px, desktop: 1024px, wide: 1280px, extra_wide: 1536px}
+  rules:
+    stacking:
+      - Summary rails move inline before consequential actions
+      - Multi-column forms become one semantic field group at a time
+    navigation:
+      - Desktop uses grouped left rail
+      - Mobile uses Overview Opportunities New quote Quotes and More bottom navigation
+      - Public and client quote pages do not show vendor bottom navigation
+    sidebar:
+      - Collapse global rail before source price deadline or action context
+    grid:
+      - Operational tables transform into labeled cards without essential horizontal scrolling
+      - Filter bands transform into trigger and accessible sheet with active chips retained
+    typography:
+      - Apply approved mobile type sizes without dropping operational text below 14px
+    spacing:
+      - Preserve 16 to 20px mobile gutters and safe-area padding
+    visibility:
+      - Never hide source price deadline payment path or owner action because of viewport width
+    media:
+      - Preserve captions source and controls
+      - Provide button alternatives to swipe and drag
+    touch:
+      - Preserve 44px targets
+      - Sticky surfaces may not overlap focused content browser chrome or each other
+
+patterns:
+  landing: {applicability: required, status: approved, composition: Public Marketplace shell, components_used: [Marketplace header, hero, process, evidence, footer], responsive_behavior: Homeowner action first}
+  dashboard: {applicability: required, status: approved, composition: Attention-first overview, components_used: [attention list, create quote action, metrics, activity], responsive_behavior: Single-column priority order}
+  search_results: {applicability: required, status: approved, composition: Operational list shell, components_used: [search, filters, active chips, rows or cards, empty state], responsive_behavior: Filter sheet and labeled cards}
+  detail: {applicability: required, status: approved, composition: Evidence plus action rail, components_used: [source context, summary, evidence, activity, lifecycle action bar], responsive_behavior: Inline summary before action}
+  forms: {applicability: required, status: approved, composition: Recoverable five-step guided flow, components_used: [stepper, form section, autosave, validation, action bar], responsive_behavior: One active step on mobile}
+  authentication: {applicability: required, status: approved, composition: Marketplace identity with focused authentication card, components_used: [auth form, recovery, legal links], responsive_behavior: Single column}
+  empty: {applicability: required, status: approved, composition: Cause preserved context and one legitimate action, components_used: [empty state, action], responsive_behavior: Same semantic order}
+  error: {applicability: required, status: approved, composition: Failure consequence preserved state and recovery, components_used: [alert, error summary, recovery action], responsive_behavior: Same semantic order}
+  loading: {applicability: required, status: approved, composition: Geometry-matched skeletons or inline progress, components_used: [skeleton, spinner, progress], responsive_behavior: Match responsive final geometry}
+  custom:
+    opportunity_triage: {status: approved, shell: operational_list}
+    opportunity_response: {status: approved, shell: detail_action_rail}
+    quote_builder: {status: approved, shell: guided_quote_builder}
+    customer_review_acceptance: {status: approved, shell: customer_quote}
+    marketplace_comparison: {status: blocked_by_mps_gap, shell: customer_quote}
+    source_aware_payment: {status: blocked_by_mps_mts_gap, shell: customer_quote}
+    workspace_settings: {status: approved, shell: settings}
+
+visual_language:
+  personality: Professional and approachable with local-service credibility
+  density: Moderate; operational views may be denser than customer-facing views
+  contrast: Clear hierarchy with restrained semantic color
+  surface_philosophy: Inherit warm light Marketplace surfaces with bounded vendor-brand expression
+  border_philosophy: Inherit quiet warm-gray Marketplace borders; borders define structure before shadows
+  shadow_philosophy: Restrained elevation; stronger only for overlays and floating actions
+  color_philosophy: Marketplace ink carries structure, green means trusted progression, coral may initiate AI generation, and semantic colors retain distinct meanings
+  typography_character: Marketplace Manrope; direct, modern, legible, and premium
+  icon_character: Inherit Marketplace Lucide-style outline icons with consistent 2px stroke and optical size
+  whitespace_philosophy: Generous customer-facing space; efficient but breathable vendor operations
+
+guidance:
+  do:
+    - {id: MDS-DO-001, area: color, statement: Use ink for ordinary primary actions, rationale: Preserves green for confirmed progression, status: approved}
+    - {id: MDS-DO-002, area: source, statement: Label Marketplace and Direct customer in words with an icon, rationale: Keeps commercial provenance explicit, status: approved}
+    - {id: MDS-DO-003, area: identity, statement: Keep vendor branding inside bounded presentation zones, rationale: Protects Mercurius semantic meaning, status: approved}
+    - {id: MDS-DO-004, area: ai, statement: Present AI output as a reviewable draft, rationale: AI supports vendor judgment, status: approved}
+    - {id: MDS-DO-005, area: shape, statement: Use 12px controls and 16px workflow cards consistently, rationale: Creates a coherent operational rhythm, status: approved}
+  dont:
+    - {id: MDS-DONT-001, area: color, statement: Do not make every primary action green, rationale: Green means trusted progression, status: approved}
+    - {id: MDS-DONT-002, area: color, statement: Do not use coral as a generic accent or urgency color, rationale: Coral identifies bounded AI generation, status: approved}
+    - {id: MDS-DONT-003, area: source, statement: Do not encode quote source through color alone, rationale: Source affects commercial terms and must be explicit, status: approved}
+    - {id: MDS-DONT-004, area: identity, statement: Do not let vendor colors override system states or Marketplace checkout, rationale: Maintains trust and consistency, status: approved}
+    - {id: MDS-DONT-005, area: actions, statement: Do not place delete beside the primary forward action, rationale: Prevents destructive mistakes, status: approved}
+
+accessibility:
+  target: WCAG 2.2 AA
+  contrast: 4.5 to 1 normal text; 3 to 1 large text and essential UI graphics
+  focus: Persistent 3px #4B9B73 ring with visual separation
+  keyboard: Existing focus-trapped mobile navigation and semantic controls should be preserved
+  touch_targets: 44 by 44 CSS pixel minimum; 52px for prominent progression controls where appropriate
+  motion: 150ms fast, 220ms base, 320ms deliberate; honor prefers-reduced-motion
+  semantic_markup: Preserve fieldsets, labels, headings, tables, alerts, and status text
+  screen_reader: Announce AI generation, save, send, acceptance, payment, errors, and async completion without stealing focus
+  image_alternatives: Preserve meaningful alt text; define quote-photo behavior in Gate 3
+  additional_rules:
+    - Source, status, urgency, price movement, and progress never rely on color alone
+    - Sticky actions must not obscure focus, errors, or content
+    - Responsive card transformations preserve programmatic label and value relationships
+
+references:
+  - id: MDS-REF-001
+    name: Quote creation description and workspace target
+    type: component
+    source: project_sources/04-Quote-Dashboard-1.3.png
+    canonical: false
+    observations: [Numbered sections, workspace save target, sticky generation action]
+  - id: MDS-REF-002
+    name: Vendor settings and onboarding checklist
+    type: dashboard
+    source: project_sources/05-Settings.png
+    canonical: false
+    observations: [Tabbed settings, setup progress, personal workspace context]
+  - id: MDS-REF-003
+    name: Marketplace process cards
+    type: homepage
+    source: project_sources/06-Hero-Page-1.1png.png
+    canonical: false
+    observations: [Three-step homeowner-to-vendor explanation]
+  - id: MDS-REF-004
+    name: Marketplace hero
+    type: homepage
+    source: project_sources/07-Hero-Page.png
+    canonical: false
+    observations: [Split hero, SWFL imagery, homeowner and vendor calls to action]
+  - id: MDS-REF-005
+    name: Marketplace feature grid top
+    type: homepage
+    source: project_sources/08-Hero-page-1.2.png
+    canonical: false
+    observations: [Asymmetric feature grid, AI/local positioning]
+  - id: MDS-REF-006
+    name: Quote service selection
+    type: component
+    source: project_sources/09-Quote-Dashbboard.png
+    canonical: false
+    observations: [Service tiles, progress, local context]
+  - id: MDS-REF-007
+    name: Property lookup
+    type: component
+    source: project_sources/10-Quote-Dashboard-1.1png.png
+    canonical: false
+    observations: [Smart lookup, local hints, manual fallback]
+  - id: MDS-REF-008
+    name: Quote history metrics and list
+    type: dashboard
+    source: project_sources/11-Quote-history-and-requests-1.1.png
+    canonical: false
+    observations: [Metrics, filters, status editing, quote rows]
+  - id: MDS-REF-009
+    name: Marketplace feature grid continuation
+    type: homepage
+    source: project_sources/12-Hero-page-1.3.png
+    canonical: false
+    observations: [Client portal, local expertise, vendor dashboard]
+  - id: MDS-REF-010
+    name: Incoming repair requests
+    type: dashboard
+    source: project_sources/13-Quote-History-and-requests.png
+    canonical: false
+    observations: [Warm lead cards, urgency tags, create quote action]
+  - id: MDS-REF-011
+    name: Approved Mercurius Marketplace MDS v1.0 foundation
+    type: design_system
+    source: Mercurius ReImagine/MDS/specification/DESIGN-SYSTEM.md and tokens/mds.tokens.json
+    canonical: true
+    observations: [Parent Marketplace identity, colors, Manrope typography, spacing, shape, elevation, iconography, layout, responsive behavior, accessibility]
+    approved_rules: [Quote Tool inherits parent Marketplace foundations and defines only domain-specific extensions]
+  - id: MDS-REF-012
+    name: Quote Tool core reference
+    type: design_system
+    source: mds-draft/references/MDS-CORE-REFERENCE.png
+    canonical: true
+    observations: [Marketplace-aligned tokens, typography character, spacing, shape, controls, semantic states, exact Mercurius masthead]
+  - id: MDS-REF-013
+    name: Quote Tool layout and behavior reference
+    type: design_system
+    source: mds-draft/references/MDS-LAYOUT-BEHAVIOR-REFERENCE.png
+    canonical: true
+    observations: [Responsive grid, workspace navigation, page-shell transformations, exact Mercurius masthead]
+  - id: MDS-REF-014
+    name: Quote Tool component library reference
+    type: design_system
+    source: mds-draft/references/MDS-COMPONENT-LIBRARY-REFERENCE.png
+    canonical: true
+    observations: [Reusable actions, controls, source and lifecycle labels, opportunity, builder, commitment, feedback, exact Mercurius masthead]
+  - id: MDS-REF-015
+    name: Quote Tool desktop quote builder reference
+    type: ui_reference
+    source: mds-draft/references/MDS-UI-DESKTOP-QUOTE-BUILDER.png
+    canonical: true
+    observations: [Desktop step-four builder, grouped rail, source-aware summary, exact Mercurius masthead]
+  - id: MDS-REF-016
+    name: Quote Tool mobile reference set
+    type: ui_reference
+    source: mds-draft/references/MDS-UI-MOBILE-REFERENCE-SET.png
+    canonical: true
+    observations: [Mobile opportunities, Direct builder, Marketplace customer quote, exact Mercurius masthead]
+  - id: MDS-REF-017
+    name: Mercurius identity mark
+    type: identity_asset
+    source: mds-draft/references/mercurius-logo.png
+    canonical: true
+    observations: [Exact product-owner-supplied figure-and-coin artwork, transparent background, fixed proportions, non-substitutable]
+  - id: MDS-REF-018
+    name: Gate 6 public request and access reference
+    type: ui_reference
+    source: mds-draft/references/MDS-GATE-6-PUBLIC-REQUEST-ACCESS.png
+    canonical: true
+    observations: [Homeowner request desktop and mobile, vendor sign-in, password reset, invitation states, validation, success, exact Mercurius masthead]
+  - id: MDS-REF-019
+    name: Gate 6 vendor operations reference
+    type: ui_reference
+    source: mds-draft/references/MDS-GATE-6-VENDOR-OPERATIONS.png
+    canonical: true
+    observations: [Command center desktop and mobile, opportunity detail, quote history, filters, empty and error states, exact Mercurius masthead]
+  - id: MDS-REF-020
+    name: Gate 6 customer commitment and administration reference
+    type: ui_reference
+    source: mds-draft/references/MDS-GATE-6-CUSTOMER-ADMINISTRATION.png
+    canonical: true
+    observations: [Customer quote review and acceptance, settings, team administration, invitations, destructive confirmation, exact Mercurius masthead]
+  - id: MDS-REF-021
+    name: Gate 6 system states and overlays reference
+    type: ui_reference
+    source: mds-draft/references/MDS-GATE-6-SYSTEM-STATES-OVERLAYS.png
+    canonical: true
+    observations: [Loading and skeletons, recoverable and global errors, not found, offline and session states, permissions and read-only, validation and notifications, filters, media, upload, sharing, acceptance, change request, destructive confirmation, mobile actions, exact Mercurius masthead]
+  - id: MDS-REF-022
+    name: Gate 6 export and customer delivery reference
+    type: ui_reference
+    source: mds-draft/references/MDS-GATE-6-EXPORT-CUSTOMER-DELIVERY.png
+    canonical: true
+    observations: [Quote PDF first and continuation pages, branded email, secure share link, printer-friendly layout, download states, mobile customer review and acceptance, source expiration acceptance and attribution, exact Mercurius masthead]
+  - id: MDS-REF-023
+    name: Gate 6 intentional placeholder modules reference
+    type: ui_reference
+    source: mds-draft/references/MDS-GATE-6-PLACEHOLDER-MODULES.png
+    canonical: true
+    observations: [Reusable coming-soon pattern, Analytics, Business Plan, Customers, Jobs, Messages, Properties, Services, Storefront, desktop rail, mobile examples, safe next actions, exact Mercurius masthead]
+  - id: MDS-REF-024
+    name: Quote Tool request-repair route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTE-REQUEST-REPAIR.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-13"
+    observations: [Dedicated request-repair route canvas, desktop and mobile Step 1 composition, validation, saved resume, submission success, exact Mercurius mark]
+  - id: MDS-REF-025
+    name: Quote Tool public Marketplace landing route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTE-PUBLIC-LANDING.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-13"
+    observations: [Dedicated public landing route canvas, desktop and mobile split hero, homeowner and vendor entry actions, three-step journey proof, exact Mercurius mark, no unsupported scale or rating claims]
+  - id: MDS-REF-026
+    name: Quote Tool vendor sign-in route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTE-LOGIN.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-13"
+    observations: [Dedicated vendor sign-in route canvas, desktop and mobile form composition, invalid credentials, signing-in, success redirect, password recovery entry, exact Mercurius mark, unsupported trust claims omitted]
+  - id: MDS-REF-027
+    name: Quote Tool password-reset route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTE-RESET-PASSWORD.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-13"
+    observations: [Dedicated password-reset recovery-link route canvas, desktop and mobile valid-link form, password strength and mismatch feedback, link verification, expired or invalid link recovery, updating and success redirect, exact Mercurius mark]
+  - id: MDS-REF-028
+    name: Quote Tool organization-invitation route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTE-INVITE-TOKEN.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-13"
+    observations: [Dedicated organization-invitation route canvas, desktop signed-out invitation decision, mobile matching-account acceptance, invited-email constraint, loading, email mismatch recovery, expired, already accepted, invite not found, joining, and success states, exact Mercurius mark]
+  - id: MDS-REF-029
+    name: Quote Tool Business Command Center route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTE-COMMAND-CENTER.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-13"
+    observations: [Dedicated command-center route canvas, desktop vendor rail and populated business overview, mobile dashboard and bottom navigation, growth score, priorities, business health, recent opportunities, activity and quick actions, loading, partial-data, empty, unavailable, and error states, exact Mercurius mark]
+  - id: MDS-REF-030
+    name: Quote Tool opportunities list route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTE-OPPORTUNITIES.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-13"
+    observations: [Dedicated opportunities-list route canvas, desktop vendor rail and populated pipeline list, exact status source and assignment filters, responsive labeled mobile cards and five-position bottom navigation, pagination, loading, first-use empty, filtered empty, load error, and mobile filter-sheet states, exact Mercurius mark]
+  - id: MDS-REF-031
+    name: Quote Tool opportunity detail route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTE-OPPORTUNITY-DETAIL.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-13"
+    observations: [Dedicated opportunity-detail route canvas, desktop 8-column request and linked-quote content with 4-column customer property assignment and timeline context rail, Marketplace source context and homeowner-provided budget, responsive mobile decision hierarchy and five-position bottom navigation, Create Quote action, loading, not-found, load-error, secondary-data unavailable, and no-linked-quotes states, exact Mercurius mark]
+  - id: MDS-REF-032
+    name: Quote Tool guided quote builder route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTE-QUOTE-BUILDER.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-13"
+    observations: [Dedicated five-step quote-builder route canvas, desktop Step 4 pricing workspace with 8-column active step and 4-column source-aware summary rail, editable review-required AI draft, quote options, autosave and current total, responsive mobile Step 3 scope and photos composition with safe-area actions and five-position bottom navigation, complete five-step journey, validation, generation failure, and offline recovery states, exact Mercurius mark]
+  - id: MDS-REF-033
+    name: Quote Tool quotes workspace route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTE-QUOTES-WORKSPACE.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-13"
+    observations: [Dedicated quotes-workspace route canvas, desktop quote metrics, incoming Marketplace repair-request attention lane, source-aware quote pipeline with read-only lifecycle badges and legitimate next actions, responsive mobile request and quote switching with labeled quote cards and five-position bottom navigation, loading, first-use empty, filtered empty, partial-data and offline recovery, independent request-lane failure, and destructive delete-confirmation states, exact Mercurius mark]
+  - id: MDS-REF-034
+    name: Quote Tool customer quote and acceptance route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTE-CUSTOMER-QUOTE.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-13"
+    observations: [Dedicated customer quote and acceptance route canvas, desktop professional quote document with four-column decision rail and separate consequential confirmation dialog, responsive Direct-customer mobile composition with selected total repeated before final action, explicit Marketplace and Direct-customer acceptance handoffs without processor or protection-policy invention, selected option, itemized total, expiry, terms, signature and agreement, request-changes drawer, loading, draft-preview, unavailable, expired, change-request, and acceptance states, exact Mercurius mark]
+  - id: MDS-REF-035
+    name: Quote Tool settings route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTE-SETTINGS.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-14"
+    observations: [Dedicated settings route canvas, desktop vendor shell with three-column local settings navigation and nine-column focused form, temporary data-driven setup progress, Personal and organization workspace context, business profile, customer-facing brand preview, pricing and defaults, logo upload, scoped Personal and organization photo storage, responsive mobile section picker and focused pricing form, section-scoped save behavior, loading, validation, saving, saved, save-failed, unsaved-navigation, logo-upload, photo-gallery, and read-only organization states, exact Mercurius mark]
+  - id: MDS-REF-036
+    name: Quote Tool team and permissions route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTE-TEAM.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-15"
+    observations: [Dedicated team and permissions route canvas, organization-owner desktop shell with Team selected in the Manage group, responsive mobile More navigation, members roles and protected owner controls, truthful shareable invitation-link workflow, pending invitations and seven-day expiry, role-aware activity history, personal-workspace empty and member read-only states, transfer-ownership remove-member and cancel-invitation confirmations, loading validation success failure and recovery states, exact Mercurius mark]
+  - id: MDS-REF-037
+    name: Quote Tool analytics intentional-placeholder route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTES-ANALYTICS-BUSINESS-PLAN.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-15"
+    observations: [Dedicated Analytics route composition within an eligible grouped board, desktop Analytics-selected business navigation, responsive mobile More navigation, explicit Coming soon availability state, approved route explanation, truthful no-live-metrics notice, safe Overview and Quotes return paths, Personal organization-member offline shell-failure and narrow-reflow states, no fabricated analytics or commercial claims, exact Mercurius mark]
+  - id: MDS-REF-038
+    name: Quote Tool business-plan intentional-placeholder route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTES-ANALYTICS-BUSINESS-PLAN.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-15"
+    observations: [Dedicated Business Plan route composition within an eligible grouped board, desktop Business plan-selected business navigation, responsive mobile More navigation, explicit Coming soon availability state, approved route explanation, truthful no-current-planning-data notice, safe Overview and Opportunities return paths, Personal organization-member offline shell-failure and narrow-reflow states, no fabricated stages milestones recommendations or commercial claims, exact Mercurius mark]
+  - id: MDS-REF-039
+    name: Quote Tool customers intentional-placeholder route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTES-CUSTOMERS-JOBS.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-15"
+    observations: [Dedicated Customers route composition within an eligible grouped board, desktop Customers-selected work navigation, responsive mobile More navigation, explicit Coming soon availability state, approved route explanation, truthful distinction between connected customer records and unavailable customer-management UI, safe Quotes and Overview return paths, Personal organization-member offline shell-failure and narrow-reflow states, no fabricated customers contacts counts or CRM actions, exact Mercurius mark]
+  - id: MDS-REF-040
+    name: Quote Tool jobs intentional-placeholder route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTES-CUSTOMERS-JOBS.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-15"
+    observations: [Dedicated Jobs route composition within an eligible grouped board, desktop Jobs-selected work navigation, responsive mobile More navigation, explicit Coming soon availability state, approved route explanation, truthful absence of scheduling completion tracking and job history, safe Quotes and Overview return paths, Personal organization-member offline shell-failure and narrow-reflow states, no fabricated jobs calendars assignments statuses revenue or completion data, exact Mercurius mark]
+  - id: MDS-REF-041
+    name: Quote Tool messages intentional-placeholder route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTES-MESSAGES-PROPERTIES.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-15"
+    observations: [Dedicated Messages route composition within an eligible grouped board, desktop Messages-selected work navigation, responsive mobile More navigation, explicit Coming soon availability state, approved route explanation, truthful absence of message reading and sending, safe Opportunities and Overview return paths, Personal organization-member offline shell-failure and narrow-reflow states, no fabricated conversations unread counts composers contacts previews attachments or notifications, exact Mercurius mark]
+  - id: MDS-REF-042
+    name: Quote Tool properties intentional-placeholder route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTES-MESSAGES-PROPERTIES.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-15"
+    observations: [Dedicated Properties route composition within an eligible grouped board, desktop Properties-selected work navigation, responsive mobile More navigation, explicit Coming soon availability state, approved route explanation, truthful absence of property browsing service history and management, safe Opportunities and Overview return paths, Personal organization-member offline shell-failure and narrow-reflow states, no fabricated properties addresses maps homeowner identities valuations histories counts search or creation actions, exact Mercurius mark]
+  - id: MDS-REF-043
+    name: Quote Tool services intentional-placeholder route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTES-SERVICES-STOREFRONT.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-15"
+    observations: [Dedicated Services route composition within an eligible grouped board, desktop Services-selected business navigation, responsive mobile More navigation, explicit Coming soon availability state, approved route explanation, truthful absence of service definitions and catalog management, safe Quote and Overview return paths, Personal organization-member offline shell-failure and narrow-reflow states, no fabricated services categories prices packages commissions durations counts or management actions, exact Mercurius mark]
+  - id: MDS-REF-044
+    name: Quote Tool storefront intentional-placeholder route reference
+    type: ui_reference
+    source: mds-draft/references/MDS-V1.1-ROUTES-SERVICES-STOREFRONT.png
+    canonical: true
+    status: approved
+    approved_at: "2026-09-15"
+    observations: [Dedicated Storefront route composition within an eligible grouped board, desktop Storefront-selected business navigation, responsive mobile More navigation, explicit Coming soon availability state, approved route explanation, truthful absence of homeowner discovery public profile preview and storefront editing, safe Settings and Overview return paths, Personal organization-member offline shell-failure and narrow-reflow states, no fabricated ratings reviews leads views listing status packages pricing subscriptions publishing or homeowner activity, exact Mercurius mark]
+
+technical:
+  framework: Next.js App Router
+  framework_version: "16.2.9"
+  language: TypeScript 5
+  styling_system: Tailwind CSS 4 with limited custom CSS variables and many utility-level decisions
+  component_system: Project-local React components; no formal reusable primitive library
+  icon_implementation: Repeated project-local inline SVG icons
+  font_implementation: Inter through next/font/google
+  repository_structure: app routes plus components and domain libraries
+  token_location: app/globals.css and tailwind.config.ts; incomplete semantic coverage
+  component_location: components
+  global_style_location: app/globals.css
+  layout_location: app/layout.tsx and components/layout
+  deployment_target: Vercel
+  accessibility_tools: [eslint, React Testing Library, Playwright]
+  test_tools: [Vitest, React Testing Library, Playwright]
+  design_delivery_capability_signals:
+    - id: MDS-CAP-001
+      capability: Component composition and semantic token implementation
+      applicable: [MDS-DEC-004 through MDS-DEC-018, MDS-REF-012 through MDS-REF-014]
+      stage: D1 through D8
+      evidence: Code diff plus rendered primitive and state inventory
+      consequence_if_unavailable: Stop before route styling
+    - id: MDS-CAP-002
+      capability: Exact raster identity integration
+      applicable: [MDS-DEC-031, MDS-REF-017]
+      stage: [D0, D1, D6]
+      evidence: Asset byte or checksum preservation plus header PDF and email renders
+      consequence_if_unavailable: Branded surfaces cannot pass
+    - id: MDS-CAP-003
+      capability: Responsive browser inspection
+      applicable: [MDS-DEC-019 through MDS-DEC-027, MDS-DEC-030, MDS-DEC-032, MDS-REF-013, MDS-REF-016, MDS-REF-018 through MDS-REF-023]
+      stage: Every implementation slice
+      evidence: Captures at 320 390 768 1024 and 1280-plus CSS pixels plus 200 percent zoom
+      consequence_if_unavailable: Slice cannot clear its visual gate
+    - id: MDS-CAP-004
+      capability: Screenshot and canonical-reference comparison
+      applicable: [MDS-DEC-028, MDS-DEC-029, MDS-DEC-033, MDS-DEC-034, MDS-REF-012 through MDS-REF-023]
+      stage: D1 through D9
+      evidence: Before and after captures with documented comparison findings
+      consequence_if_unavailable: No fidelity claim; review required
+    - id: MDS-CAP-005
+      capability: Accessibility testing
+      applicable: [WCAG 2.2 AA, component and composition accessibility rules]
+      stage: D1 through D9
+      evidence: Automated results plus keyboard focus screen-reader smoke reduced-motion and touch review
+      consequence_if_unavailable: Slice cannot be done
+    - id: MDS-CAP-006
+      capability: Representative image and photo-state fixtures
+      applicable: [Photo upload viewer and content-stress requirements]
+      stage: [D5, D8]
+      evidence: Missing loading failed large and many-image fixtures
+      consequence_if_unavailable: Photo experience remains unverified
+    - id: MDS-CAP-007
+      capability: PDF email print and mobile-delivery rendering inspection
+      applicable: [MDS-REF-022]
+      stage: D6
+      evidence: First and continuation PDF email print mobile review and failure-state artifacts
+      consequence_if_unavailable: Customer delivery remains blocked
+    - id: MDS-CAP-008
+      capability: Runtime console and network verification
+      applicable: [Gate 8 QA Gate 3]
+      stage: D3 through D9
+      evidence: Targeted flow evidence with console runtime and network findings
+      consequence_if_unavailable: Product-quality gate fails
+
+governance:
+  decisions:
+    - id: MDS-DEC-001
+      area: discovery
+      key: experience_architecture
+      value: One quote system with Marketplace and direct source-aware variants
+      status: approved
+      source: Approved MPS v1.0 and repository audit
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [patterns, components, layout, references, qa]
+    - id: MDS-DEC-002
+      area: identity
+      key: parent_foundation
+      value: Inherit approved Marketplace MDS v1.0 foundations; retain only aligned Quote Tool compositions and domain patterns
+      status: approved
+      source: Product-owner direction plus approved Marketplace MDS v1.0
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [color, typography, shape, icons, references]
+    - id: MDS-DEC-003
+      area: color
+      key: semantic_brand_roles
+      value: Marketplace ink for structure, Marketplace green for trusted progression, coral for bounded AI generation, warm Marketplace surfaces throughout
+      status: approved
+      source: Approved Marketplace MDS v1.0
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [tokens, components, patterns, references, qa, code]
+    - id: MDS-DEC-004
+      area: identity
+      key: identity_hierarchy
+      value: Marketplace first and vendor-branded second; vendor expression is limited to bounded presentation zones
+      status: approved
+      source: Parent Marketplace MDS plus Gate 1 product architecture
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [components, patterns, references, qa]
+    - id: MDS-DEC-005
+      area: color
+      key: quote_tool_semantic_action_model
+      value: Ink for ordinary structure and actions, coral for explicit AI generation, green for trusted progression and confirmed outcomes
+      status: approved
+      source: Parent Marketplace MDS semantic roles
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [tokens, components, patterns, references, qa, code]
+    - id: MDS-DEC-006
+      area: typography
+      key: quote_tool_type_application
+      value: Use Manrope weights 400 through 700 and the inherited Marketplace type scale; no Inter exception
+      status: approved
+      source: Parent Marketplace MDS typography
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [tokens, components, layout, references, qa, code]
+    - id: MDS-DEC-007
+      area: spacing
+      key: quote_tool_spacing_application
+      value: Use the inherited 4px scale with generous customer density and efficient touch-safe vendor density
+      status: approved
+      source: Parent Marketplace MDS spacing
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [tokens, components, layout, responsive, references, qa, code]
+    - id: MDS-DEC-008
+      area: shape
+      key: quote_tool_shape_application
+      value: Use 12px controls, 16px workflow cards, 24px major panels, quiet borders, and restrained inherited elevation
+      status: approved
+      source: Parent Marketplace MDS shape and elevation
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [tokens, components, layout, references, qa, code]
+    - id: MDS-DEC-009
+      area: icons
+      key: icon_and_motion_application
+      value: Use Lucide-style rounded 2px outline icons at 16, 20, or 24px and meaningful motion at 150, 220, or 320ms
+      status: approved
+      source: Parent Marketplace MDS iconography and motion
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [components, patterns, references, qa, code]
+    - id: MDS-DEC-010
+      area: accessibility
+      key: design_accessibility_target
+      value: WCAG 2.2 AA with 44px minimum targets, persistent 3px focus, non-color cues, and announced async state
+      status: approved
+      source: Parent Marketplace MDS and Quote Tool workflow needs
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [tokens, components, patterns, responsive, qa, code]
+    - id: MDS-DEC-011
+      area: visual_language
+      key: quote_tool_visual_language
+      value: Warm light Marketplace workspace; dark only as a bounded media utility; restrained color and commercial clarity
+      status: approved
+      source: Parent Marketplace MDS and Gate 1 audit
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [components, layout, patterns, references, qa]
+    - id: MDS-DEC-012
+      area: components
+      key: component_architecture
+      value: One shared primitive and domain component system with source-aware variants instead of separate Marketplace and Direct implementations
+      status: approved
+      source: Approved MPS workflow and Gate 2 foundations
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [spec, components, patterns, references, qa, code]
+    - id: MDS-DEC-013
+      area: components
+      key: action_variants
+      value: Structural, AI, progression, secondary, quiet, and destructive actions with one legitimate primary forward action per context
+      status: approved
+      source: Approved Gate 2 semantic action model
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [components, patterns, references, qa, code]
+    - id: MDS-DEC-014
+      area: components
+      key: source_and_workspace_context
+      value: Persistent Marketplace or Direct customer labels are separate from Personal or team workspace ownership
+      status: approved
+      source: Approved Gate 1 experience architecture
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [components, patterns, references, qa, code]
+    - id: MDS-DEC-015
+      area: components
+      key: lifecycle_interaction
+      value: Noneditable lifecycle statuses pair with state-aware legitimate next actions and protected destructive overflow actions
+      status: approved
+      source: Repository audit and approved move-work-forward principle
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [components, patterns, references, qa, code]
+    - id: MDS-DEC-016
+      area: components
+      key: ai_draft_behavior
+      value: AI output is coral-accented, labeled, reasoned, review-required, and never overwrites vendor edits without confirmation
+      status: approved
+      source: Approved AI supports judgment principle
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [components, patterns, references, qa, code]
+    - id: MDS-DEC-017
+      area: components
+      key: quote_component_families
+      value: Opportunity, builder, customer review, acceptance, and payment use one source-aware component chain
+      status: approved
+      source: Approved MPS quote workflows
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [components, patterns, layout, responsive, references, qa, code]
+    - id: MDS-DEC-018
+      area: components
+      key: component_accessibility
+      value: Semantic controls, complete keyboard patterns, live async announcements, non-drag alternatives, and durable critical feedback are required
+      status: approved
+      source: Approved WCAG 2.2 AA design target
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [components, responsive, qa, code]
+    - id: MDS-DEC-019
+      area: layout
+      key: grid_and_containers
+      value: Inherit 12 8 4 column Marketplace grid and 96rem public 80rem operational 72rem guided and 45rem reading widths
+      status: approved
+      source: Approved parent Marketplace MDS v1.0
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [tokens, layout, responsive, references, qa, code]
+    - id: MDS-DEC-020
+      area: navigation
+      key: workspace_navigation
+      value: Marketplace header plus grouped 264px desktop rail and five-position mobile bottom navigation
+      status: approved
+      source: Gate 4 composition audit of current flat navigation
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [components, layout, responsive, patterns, references, qa, code]
+    - id: MDS-DEC-021
+      area: layout
+      key: page_shells
+      value: Eight approved page shells cover public vendor list detail builder customer quote settings and media experiences
+      status: approved
+      source: Approved product workflows and component architecture
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [layout, responsive, patterns, references, qa, code]
+    - id: MDS-DEC-022
+      area: responsive
+      key: responsive_transformations
+      value: Mobile is a primary composition with inline consequential summaries labeled cards filter sheets safe-area actions and non-gesture alternatives
+      status: approved
+      source: Parent Marketplace MDS and mobile job-site requirement
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [tokens, components, layout, patterns, references, qa, code]
+    - id: MDS-DEC-023
+      area: patterns
+      key: guided_quote_builder
+      value: Replace the long form composition with a recoverable five-step builder using autosave and source-aware summary
+      status: approved
+      source: Gate 1 audit and approved quote component family
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [components, layout, responsive, references, qa, code]
+    - id: MDS-DEC-024
+      area: patterns
+      key: customer_commitment
+      value: Customer review uses document plus decision rail and repeats source price terms and payment path immediately before acceptance
+      status: approved
+      source: Approved make-the-money-path-unmistakable principle
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [components, layout, responsive, references, qa, code]
+    - id: MDS-DEC-025
+      area: patterns
+      key: operational_lists
+      value: Efficient desktop rows transform into labeled mobile cards with attention-first ordering and protected destructive actions
+      status: approved
+      source: Existing repository and screenshot audit
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [components, layout, responsive, references, qa, code]
+    - id: MDS-DEC-026
+      area: interaction
+      key: save_loading_recovery
+      value: Autosave and all async actions preserve context expose durable state and reconcile unknown external results before retry
+      status: approved
+      source: Approved professional-at-job-site and accessibility principles
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [components, patterns, responsive, qa, code]
+    - id: MDS-DEC-027
+      area: patterns
+      key: public_entry
+      value: Public Marketplace shell remains reachable without vendor authentication and prioritizes homeowner repair request entry
+      status: approved
+      source: Approved MPS workflow and Gate 1 deviation MDS-DEV-001
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [layout, patterns, references, qa, code]
+    - id: MDS-DEC-028
+      area: references
+      key: gate_5_reference_package
+      value: Core layout component desktop builder and mobile journey references form one proposed canonical visual contract
+      status: approved
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      source: Approved Gates 1 through 4 and reconciled Gate 5 generation
+      confidence: high
+      dependencies: [references, approval, specification, implementation, qa, code]
+    - id: MDS-DEC-029
+      area: references
+      key: reference_authority
+      value: Approved state tokens and written specifications override generated sample copy data and miniature labels when conflicts occur
+      status: approved
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      source: MDS source of truth hierarchy and Gate 5 reconciliation
+      confidence: high
+      dependencies: [references, implementation, qa, code]
+    - id: MDS-DEC-030
+      area: responsive
+      key: canonical_mobile_reference
+      value: The Gate 5 mobile set is the canonical visual expression of opportunities Direct quote building and Marketplace customer commitment
+      status: approved
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      source: Approved Gate 4 responsive transformations
+      confidence: high
+      dependencies: [references, responsive, implementation, qa, code]
+    - id: MDS-DEC-031
+      area: identity
+      key: canonical_mercurius_mark
+      value: The exact product-owner-supplied figure-and-coin mark is mandatory on primary branded surfaces reference mastheads customer quote attribution and exported product artifacts
+      status: approved
+      source: Explicit product-owner direction during Gate 5
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [identity, references, layout, customer_quote, exports, qa, code]
+    - id: MDS-DEC-032
+      area: governance
+      key: exhaustive_experience_coverage
+      value: Gate 6 approval requires explicit design coverage for every in-scope route layout role state breakpoint overlay and exported surface; each item must map to a canonical pattern or dedicated reference and no undesignated page may enter implementation
+      status: approved
+      source: Explicit product-owner direction during Gate 6 entry
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [approval, patterns, layout, responsive, references, implementation, qa, code]
+    - id: MDS-DEC-033
+      area: references
+      key: gate_6_wave_a
+      value: MDS-REF-018 through MDS-REF-020 are canonical full core-route reference expansions for public request and access vendor operations and customer commitment and administration
+      status: approved
+      source: Explicit product-owner approval of Gate 6 Wave A
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: draft
+      dependencies: [references, approval, patterns, responsive, implementation, qa, code]
+    - id: MDS-DEC-034
+      area: references
+      key: gate_6_wave_b_c
+      value: MDS-REF-021 through MDS-REF-023 are canonical references for system states overlays exported customer delivery and the eight intentional placeholder modules
+      status: approved
+      source: Explicit product-owner approval of Gate 6 Wave B and Wave C
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: "v1.0"
+      dependencies: [references, approval, feedback, overlays, exports, placeholders, responsive, implementation, qa, code]
+    - id: MDS-DEC-035
+      area: governance
+      key: gate_6_policy_carry_forward
+      value: MDS-GAP-001 through MDS-GAP-004 remain bounded upstream policy dependencies; implementation must omit unsupported claims and must not invent payment competition comparison protection commission or trust policy
+      status: approved
+      source: Gate 6 final exhaustive coverage audit
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: "v1.0"
+      dependencies: [mps, mts, content, customer_quote, marketplace, implementation, qa, code]
+    - id: MDS-DEC-036
+      area: governance
+      key: mds_v1_activation
+      value: The exhaustive audit found 21 current routes and zero undesignated routes; MDS v1.0 is active and Gate 7 Implementation Readiness is open
+      status: approved
+      source: Gate 6 approval and MDS-GATE-6-COVERAGE-AUDIT.md
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: "v1.0"
+      dependencies: [approval, specification, implementation, qa, code]
+    - id: MDS-DEC-037
+      area: implementation_readiness
+      key: gate_7_package
+      value: The approved Gate 7 package maps MDS v1.0 into repository foundations reusable dependencies vertical design slices capability signals and three-gate QA
+      status: approved
+      source: Explicit product-owner approval of Gate 7
+      confidence: high
+      approved_at: "2026-09-08"
+      introduced_version: "v1.0"
+      dependencies: [specification, tokens, references, implementation, agents, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-038
+      area: governance
+      key: dedicated_route_design_contract
+      value: Every current page route requires its own approved canonical desktop and mobile route canvas; a shared pattern mapping or miniature frame in a multi-route board is supporting evidence but does not independently complete route design
+      status: approved
+      source: Explicit product-owner direction on 2026-09-13
+      confidence: high
+      approved_at: "2026-09-13"
+      introduced_version: "v1.1"
+      dependencies: [references, approval, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-039
+      area: references
+      key: request_repair_route_reference
+      value: MDS-REF-024 is the canonical dedicated desktop and mobile route canvas for /request-repair under the MDS v1.1 route-design contract
+      status: approved
+      source: Explicit product-owner approval on 2026-09-13
+      confidence: high
+      approved_at: "2026-09-13"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-040
+      area: references
+      key: public_landing_route_reference
+      value: MDS-REF-025 is the canonical dedicated desktop and mobile route canvas for the public Marketplace landing route / under the MDS v1.1 route-design contract
+      status: approved
+      source: Explicit product-owner approval on 2026-09-13
+      confidence: high
+      approved_at: "2026-09-13"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-041
+      area: references
+      key: vendor_sign_in_route_reference
+      value: MDS-REF-026 is the canonical dedicated desktop and mobile route canvas for the vendor sign-in route /login under the MDS v1.1 route-design contract
+      status: approved
+      source: Explicit product-owner approval on 2026-09-13
+      confidence: high
+      approved_at: "2026-09-13"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-042
+      area: references
+      key: password_reset_route_reference
+      value: MDS-REF-027 is the canonical dedicated desktop and mobile route canvas for the recovery-link destination /auth/reset-password under the MDS v1.1 route-design contract
+      status: approved
+      source: Explicit product-owner approval on 2026-09-13
+      confidence: high
+      approved_at: "2026-09-13"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-043
+      area: references
+      key: organization_invitation_route_reference
+      value: MDS-REF-028 is the canonical dedicated desktop and mobile route canvas for /invite/[token] under the MDS v1.1 route-design contract
+      status: approved
+      source: Explicit product-owner approval on 2026-09-13
+      confidence: high
+      approved_at: "2026-09-13"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-044
+      area: references
+      key: low_complexity_route_grouping
+      value: Closely related low-complexity routes may share one approval board when every route is explicitly labeled and receives route-specific responsive composition and material-state coverage; substantial workflows retain standalone canvases
+      status: approved
+      source: Explicit product-owner direction on 2026-09-13
+      confidence: high
+      approved_at: "2026-09-13"
+      introduced_version: "v1.1"
+      dependencies: [references, approval, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-045
+      area: references
+      key: command_center_route_reference
+      value: MDS-REF-029 is the canonical dedicated desktop and mobile route canvas for /command-center under the MDS v1.1 route-design contract
+      status: approved
+      source: Explicit product-owner approval on 2026-09-13
+      confidence: high
+      approved_at: "2026-09-13"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-046
+      area: references
+      key: opportunities_list_route_reference
+      value: MDS-REF-030 is the canonical dedicated desktop and mobile route canvas for /opportunities under the MDS v1.1 route-design contract
+      status: approved
+      source: Explicit product-owner approval on 2026-09-13
+      confidence: high
+      approved_at: "2026-09-13"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-047
+      area: references
+      key: opportunity_detail_route_reference
+      value: MDS-REF-031 is the canonical dedicated desktop and mobile route canvas for /opportunities/[id] under the MDS v1.1 route-design contract
+      status: approved
+      source: Explicit product-owner approval on 2026-09-13
+      confidence: high
+      approved_at: "2026-09-13"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-048
+      area: references
+      key: guided_quote_builder_route_reference
+      value: MDS-REF-032 is the canonical dedicated desktop and mobile route canvas for /quote under the MDS v1.1 route-design contract
+      status: approved
+      source: Explicit product-owner approval on 2026-09-13
+      confidence: high
+      approved_at: "2026-09-13"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-049
+      area: references
+      key: quotes_workspace_route_reference
+      value: MDS-REF-033 is the canonical dedicated desktop and mobile route canvas for /quotes under the MDS v1.1 route-design contract
+      status: approved
+      source: Explicit product-owner approval on 2026-09-13
+      confidence: high
+      approved_at: "2026-09-13"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-050
+      area: references
+      key: customer_quote_acceptance_route_reference
+      value: MDS-REF-034 is the canonical dedicated desktop and mobile route canvas for /quote/[token] under the MDS v1.1 route-design contract
+      status: approved
+      source: Explicit product-owner approval on 2026-09-13
+      confidence: high
+      approved_at: "2026-09-13"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-051
+      area: references
+      key: settings_route_reference
+      value: MDS-REF-035 is the canonical dedicated desktop and mobile route canvas for /settings under the MDS v1.1 route-design contract
+      status: approved
+      source: Explicit product-owner approval on 2026-09-14
+      confidence: high
+      approved_at: "2026-09-14"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-052
+      area: references
+      key: team_permissions_route_reference
+      value: MDS-REF-036 is the canonical dedicated desktop and mobile route canvas for /team under the MDS v1.1 route-design contract
+      status: approved
+      source: Explicit product-owner approval on 2026-09-15
+      confidence: high
+      approved_at: "2026-09-15"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-053
+      area: references
+      key: analytics_route_reference
+      value: MDS-REF-037 is the canonical dedicated desktop and mobile route composition for /analytics under the MDS v1.1 route-design contract and approved grouped-board exception
+      status: approved
+      source: Explicit product-owner approval on 2026-09-15
+      confidence: high
+      approved_at: "2026-09-15"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-054
+      area: references
+      key: business_plan_route_reference
+      value: MDS-REF-038 is the canonical dedicated desktop and mobile route composition for /business-plan under the MDS v1.1 route-design contract and approved grouped-board exception
+      status: approved
+      source: Explicit product-owner approval on 2026-09-15
+      confidence: high
+      approved_at: "2026-09-15"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-055
+      area: references
+      key: customers_route_reference
+      value: MDS-REF-039 is the canonical dedicated desktop and mobile route composition for /customers under the MDS v1.1 route-design contract and approved grouped-board exception
+      status: approved
+      source: Explicit product-owner approval on 2026-09-15
+      confidence: high
+      approved_at: "2026-09-15"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-056
+      area: references
+      key: jobs_route_reference
+      value: MDS-REF-040 is the canonical dedicated desktop and mobile route composition for /jobs under the MDS v1.1 route-design contract and approved grouped-board exception
+      status: approved
+      source: Explicit product-owner approval on 2026-09-15
+      confidence: high
+      approved_at: "2026-09-15"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-057
+      area: references
+      key: messages_route_reference
+      value: MDS-REF-041 is the canonical dedicated desktop and mobile route composition for /messages under the MDS v1.1 route-design contract and approved grouped-board exception
+      status: approved
+      source: Explicit product-owner approval on 2026-09-15
+      confidence: high
+      approved_at: "2026-09-15"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-058
+      area: references
+      key: properties_route_reference
+      value: MDS-REF-042 is the canonical dedicated desktop and mobile route composition for /properties under the MDS v1.1 route-design contract and approved grouped-board exception
+      status: approved
+      source: Explicit product-owner approval on 2026-09-15
+      confidence: high
+      approved_at: "2026-09-15"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-059
+      area: references
+      key: services_route_reference
+      value: MDS-REF-043 is the canonical dedicated desktop and mobile route composition for /services under the MDS v1.1 route-design contract and approved grouped-board exception
+      status: approved
+      source: Explicit product-owner approval on 2026-09-15
+      confidence: high
+      approved_at: "2026-09-15"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-060
+      area: references
+      key: storefront_route_reference
+      value: MDS-REF-044 is the canonical dedicated desktop and mobile route composition for /storefront under the MDS v1.1 route-design contract and approved grouped-board exception
+      status: approved
+      source: Explicit product-owner approval on 2026-09-15
+      confidence: high
+      approved_at: "2026-09-15"
+      introduced_version: "v1.1"
+      dependencies: [references, implementation, qa, mts, build_roadmap, code]
+    - id: MDS-DEC-061
+      area: reference_authority
+      key: marketplace_token_and_copy_boundary
+      value: Route boards are canonical for composition responsive behavior hierarchy and material states; approved Marketplace tokens terminology wording and route behavior remain authoritative during implementation, and illustrative board copy must not override them
+      status: approved
+      source: Explicit product-owner clarification on 2026-09-15
+      confidence: high
+      approved_at: "2026-09-15"
+      introduced_version: "v1.1"
+      dependencies: [references, specification, implementation, qa, mts, build_roadmap, code]
+  gaps:
+    - id: MDS-GAP-007
+      area: experience_coverage
+      statement: The 21 current page routes have approved behavioral pattern coverage but do not yet all have approved route-specific responsive coverage through standalone or eligible grouped canvases under MDS-DEC-038 and MDS-DEC-044
+      status: closed
+      resolution: MDS-REF-024 through MDS-REF-044 provide approved route-specific responsive coverage for all 21 current routes; implementation and QA mappings were refreshed for MDS v1.1
+    - id: MDS-GAP-001
+      area: product_policy
+      statement: Direct-payment processing, support, refund/dispute, and Marketplace-protection disclosure are undefined in supplied MPS context
+      status: open
+    - id: MDS-GAP-002
+      area: marketplace_workflow
+      statement: Exact job-board vendor visibility and competition model is undefined in supplied MPS context
+      status: open
+    - id: MDS-GAP-003
+      area: homeowner_comparison
+      statement: Exact multi-quote comparison model is undefined in supplied MPS context
+      status: open
+    - id: MDS-GAP-004
+      area: content_evidence
+      statement: Public trust and scale claims require approval/evidence
+      status: open
+    - id: MDS-GAP-005
+      area: responsive_reference
+      statement: No approved mobile visual reference exists
+      status: closed
+      resolution: Approved MDS-REF-016 provides canonical mobile reference coverage for opportunities Direct quote building and Marketplace customer commitment
+    - id: MDS-GAP-006
+      area: experience_coverage
+      statement: Several current routes and cross-route system surfaces do not yet have explicit route-level design coverage or an approved dedicated reference
+      status: closed
+      resolution: MDS-REF-018 through MDS-REF-023 and the final coverage audit map all 21 routes and all required cross-route state overlay responsive and export surfaces with zero undesignated pages
+  exceptions: []
+  deviations:
+    - id: MDS-DEV-001
+      area: public_entry
+      statement: Live root redirects to sign-in although the repository and references define a public Marketplace landing experience
+      severity: major
+      status: open
+    - id: MDS-DEV-002
+      area: payment_state
+      statement: Current client portal promises no payment due now and cannot represent approved source-specific payment paths
+      severity: major
+      status: open
+  changes:
+    - id: MDS-CHG-001
+      date: "2026-09-08"
+      type: gate_approval
+      summary: Gate 1 Discovery approved; decisions MDS-DEC-001 through MDS-DEC-003 became authoritative and Gate 2 Foundations opened
+      affected_dependencies: [governance, specification, color, typography, shape, icons, references, qa, code]
+      approval: Product owner
+    - id: MDS-CHG-002
+      date: "2026-09-08"
+      type: gate_approval
+      summary: Gate 2 Foundations approved; decisions MDS-DEC-004 through MDS-DEC-011 and foundation guidance became authoritative and Gate 3 Components opened
+      affected_dependencies: [governance, specification, tokens, visual, agents, manifest, qa, code]
+      approval: Product owner
+    - id: MDS-CHG-003
+      date: "2026-09-08"
+      type: gate_approval
+      summary: Gate 3 Components approved; decisions MDS-DEC-012 through MDS-DEC-018 and the component inventory became authoritative and Gate 4 Composition opened
+      affected_dependencies: [governance, specification, tokens, visual, agents, manifest, qa, code]
+      approval: Product owner
+    - id: MDS-CHG-004
+      date: "2026-09-08"
+      type: gate_approval
+      summary: Gate 4 Composition approved; decisions MDS-DEC-019 through MDS-DEC-027 became authoritative and Gate 5 References opened
+      affected_dependencies: [governance, specification, layout, responsive, patterns, references, qa, code]
+      approval: Product owner
+    - id: MDS-CHG-005
+      date: "2026-09-08"
+      type: identity_confirmation
+      summary: Exact product-owner-supplied Mercurius figure-and-coin mark added as MDS-REF-017 and made mandatory across primary branded surfaces and exported artifacts
+      affected_dependencies: [identity, foundations, references, customer_quote, exports, qa, code]
+      approval: Product owner
+    - id: MDS-CHG-006
+      date: "2026-09-08"
+      type: gate_approval
+      summary: Gate 5 References approved; MDS-REF-012 through MDS-REF-017 became canonical and Gate 6 Approval opened
+      affected_dependencies: [governance, references, approval, specification, implementation, qa, code]
+      approval: Product owner
+    - id: MDS-CHG-007
+      date: "2026-09-08"
+      type: governance_expansion
+      summary: Full-product design coverage made a Gate 6 release condition across every route layout role state breakpoint overlay and exported surface
+      affected_dependencies: [governance, patterns, layout, responsive, references, implementation, qa, code]
+      approval: Product owner
+    - id: MDS-CHG-008
+      date: "2026-09-08"
+      type: reference_approval
+      summary: Gate 6 Wave A approved; MDS-REF-018 through MDS-REF-020 became canonical and Wave B/C reference coverage opened
+      affected_dependencies: [references, approval, patterns, layout, responsive, implementation, qa, code]
+      approval: Product owner
+    - id: MDS-CHG-009
+      date: "2026-09-08"
+      type: reference_approval
+      summary: Gate 6 Wave B and Wave C approved; MDS-REF-021 through MDS-REF-023 became canonical
+      affected_dependencies: [references, feedback, overlays, exports, placeholders, responsive, implementation, qa, code]
+      approval: Product owner
+    - id: MDS-CHG-010
+      date: "2026-09-08"
+      type: gate_approval
+      summary: Gate 6 passed exhaustive coverage audit with 21 routes and zero undesignated routes; MDS v1.0 activated and Gate 7 opened
+      affected_dependencies: [governance, specification, references, implementation, qa, code]
+      approval: Product owner
+    - id: MDS-CHG-011
+      date: "2026-09-08"
+      type: gate_approval
+      summary: Gate 7 implementation-readiness package approved; authoritative specifications tokens references implementation manifest QA protocol and unified agent instructions became current and MDS input to MTS and the Build Roadmap was authorized
+      affected_dependencies: [governance, specification, tokens, references, implementation, agents, qa, mts, build_roadmap, code]
+      approval: Product owner
+    - id: MDS-CHG-012
+      date: "2026-09-15"
+      type: reference_approval
+      summary: Final Services and Storefront route board approved; MDS-REF-043 and MDS-REF-044 became canonical, completing dedicated responsive route coverage for all 21 current routes
+      affected_dependencies: [governance, references, approval, implementation, qa, mts, build_roadmap, code]
+      approval: Product owner
+    - id: MDS-CHG-013
+      date: "2026-09-15"
+      type: version_activation
+      summary: MDS v1.1 activated; route-level written reconciliation, implementation mappings, and QA mappings refreshed while Marketplace tokens and final wording remain implementation authority over illustrative reference copy
+      affected_dependencies: [governance, specification, references, implementation, agents, qa, mts, build_roadmap, code]
+      approval: Product owner
+  versions:
+    - version: "v1.0"
+      status: superseded
+      date: "2026-09-08"
+      summary: Initial approved Mercurius Quote Tool design system with exhaustive route state responsive overlay placeholder and export coverage
+    - version: "v1.1"
+      status: active
+      date: "2026-09-15"
+      summary: Approved route-reference expansion with dedicated responsive canonical coverage for all 21 current page routes and refreshed implementation and QA mappings
+
+artifacts:
+  design_specification: {path: specification/DESIGN-SYSTEM.md, status: current}
+  principles: {path: specification/PRINCIPLES.md, status: current}
+  do_dont: {path: specification/DO-DONT.md, status: current}
+  tokens: {paths: [tokens/mds.tokens.json, tokens/mds.css], status: current}
+  core_reference: {path: references/MDS-CORE-REFERENCE.png, status: current}
+  layout_reference: {path: references/MDS-LAYOUT-BEHAVIOR-REFERENCE.png, status: current}
+  component_reference: {path: references/MDS-COMPONENT-LIBRARY-REFERENCE.png, status: current}
+  ui_references:
+    - {path: references/MDS-UI-DESKTOP-QUOTE-BUILDER.png, status: current}
+    - {path: references/MDS-UI-MOBILE-REFERENCE-SET.png, status: current}
+    - {path: references/MDS-GATE-6-PUBLIC-REQUEST-ACCESS.png, status: current}
+    - {path: references/MDS-GATE-6-VENDOR-OPERATIONS.png, status: current}
+    - {path: references/MDS-GATE-6-CUSTOMER-ADMINISTRATION.png, status: current}
+    - {path: references/MDS-GATE-6-SYSTEM-STATES-OVERLAYS.png, status: current}
+    - {path: references/MDS-GATE-6-EXPORT-CUSTOMER-DELIVERY.png, status: current}
+    - {path: references/MDS-GATE-6-PLACEHOLDER-MODULES.png, status: current}
+    - {path: references/MDS-V1.1-ROUTE-REQUEST-REPAIR.png, status: current}
+    - {path: references/MDS-V1.1-ROUTE-PUBLIC-LANDING.png, status: current}
+    - {path: references/MDS-V1.1-ROUTE-LOGIN.png, status: current}
+    - {path: references/MDS-V1.1-ROUTE-RESET-PASSWORD.png, status: current}
+    - {path: references/MDS-V1.1-ROUTE-INVITE-TOKEN.png, status: current}
+    - {path: references/MDS-V1.1-ROUTE-COMMAND-CENTER.png, status: current}
+    - {path: references/MDS-V1.1-ROUTE-OPPORTUNITIES.png, status: current}
+    - {path: references/MDS-V1.1-ROUTE-OPPORTUNITY-DETAIL.png, status: current}
+    - {path: references/MDS-V1.1-ROUTE-QUOTE-BUILDER.png, status: current}
+    - {path: references/MDS-V1.1-ROUTE-QUOTES-WORKSPACE.png, status: current}
+    - {path: references/MDS-V1.1-ROUTE-CUSTOMER-QUOTE.png, status: current}
+    - {path: references/MDS-V1.1-ROUTE-SETTINGS.png, status: current}
+    - {path: references/MDS-V1.1-ROUTE-TEAM.png, status: current}
+    - {path: references/MDS-V1.1-ROUTES-ANALYTICS-BUSINESS-PLAN.png, status: current}
+    - {path: references/MDS-V1.1-ROUTES-CUSTOMERS-JOBS.png, status: current}
+    - {path: references/MDS-V1.1-ROUTES-MESSAGES-PROPERTIES.png, status: current}
+    - {path: references/MDS-V1.1-ROUTES-SERVICES-STOREFRONT.png, status: current}
+  identity_asset: {path: references/mercurius-logo.png, status: approved}
+  reference_manifest: {path: references/REFERENCE-MANIFEST.md, status: current}
+  agents_md: {path: AGENTS.md, status: current, note: MPS and MDS authority prepared; merge approved MTS Agent Skill Manifest into this single file when available}
+  implementation_manifest: {path: implementation/MDS-IMPLEMENTATION.md, status: current}
+  qa_protocol: {path: qa/MDS-QA.md, status: current}
+  compliance_report: {path: null, status: missing}
+  discovery_report: {path: MDS-GATE-1-DISCOVERY.md, status: current}
+  foundations_report: {path: MDS-GATE-2-FOUNDATIONS.md, status: current}
+  components_report: {path: MDS-GATE-3-COMPONENTS.md, status: current}
+  composition_report: {path: MDS-GATE-4-COMPOSITION.md, status: current}
+  references_report: {path: MDS-GATE-5-REFERENCES.md, status: current}
+  approval_report: {path: MDS-GATE-6-APPROVAL.md, status: current}
+  experience_coverage_matrix: {path: MDS-GATE-6-APPROVAL.md#4-exhaustive-route-coverage-matrix, status: current}
+  coverage_audit: {path: MDS-GATE-6-COVERAGE-AUDIT.md, status: current}
+  implementation_readiness_report: {path: MDS-GATE-7-IMPLEMENTATION-READINESS.md, status: current}
+  route_design_coverage_audit: {path: MDS-V1.1-ROUTE-DESIGN-COVERAGE-AUDIT.md, status: current}
+  gate_6_wave_a_references: {paths: [references/MDS-GATE-6-PUBLIC-REQUEST-ACCESS.png, references/MDS-GATE-6-VENDOR-OPERATIONS.png, references/MDS-GATE-6-CUSTOMER-ADMINISTRATION.png], status: current}
+  gate_6_wave_b_c_references: {paths: [references/MDS-GATE-6-SYSTEM-STATES-OVERLAYS.png, references/MDS-GATE-6-EXPORT-CUSTOMER-DELIVERY.png, references/MDS-GATE-6-PLACEHOLDER-MODULES.png], status: current}
+
+gates:
+  discovery:
+    status: complete
+    requirements: [MPS context, repository audit, supplied reference audit, parent Marketplace MDS alignment, initial gaps and deviations]
+    blocking_items: []
+    completed_at: "2026-09-08"
+  foundations:
+    status: complete
+    requirements: [Identity hierarchy and principles, inherited color and semantic action model, typography and type scale, spacing and density, shape borders and elevation, iconography and motion, visual language, Do and Dont rules, WCAG 2.2 AA design target]
+    blocking_items: []
+    completed_at: "2026-09-08"
+  components:
+    status: complete
+    requirements: [Applicability inventory, primitive variants sizes and states, source and lifecycle components, opportunity components, quote builder components, customer review acceptance and payment components, workspace components, feedback states, component accessibility, repository disposition]
+    blocking_items: []
+    completed_at: "2026-09-08"
+  composition:
+    status: complete
+    requirements: [Grid and containers, global and workspace navigation, page shells, responsive transformations, public entry, operational lists and details, guided quote builder, customer review acceptance and payment, settings, interaction state and recovery, composition accessibility]
+    blocking_items: []
+    completed_at: "2026-09-08"
+  references:
+    status: complete
+    requirements: [Core visual reference, layout and responsive behavior reference, component library reference, canonical desktop UI, canonical mobile UI, exact Mercurius identity asset, reconciliation against approved state]
+    blocking_items: []
+    completed_at: "2026-09-08"
+  approval:
+    status: complete
+    requirements: [Resolve blocking MDS and MPS gaps, verify every current route and system surface has explicit design coverage, map every route to an approved shell pattern states roles and breakpoints, add dedicated references where shared patterns are insufficient, establish MDS v1.0]
+    blocking_items: []
+    completed_at: "2026-09-08"
+  implementation_readiness: {status: complete, requirements: [Generate authoritative specifications and token package, prepare implementation manifest and QA protocol, merge project-level AGENTS.md, map design prerequisites and deviations into implementation slices], blocking_items: [], completed_at: "2026-09-08", refreshed_at: "2026-09-15"}
+  compliance: {status: not_started, requirements: [], blocking_items: [], completed_at: null}
+
+compliance:
+  gate_1: approved
+  gate_2: approved
+  gate_3: approved
+  gate_4: approved
+  gate_5: approved
+  gate_6: approved
+  gate_7: approved
+  overall_status: null
+  open_gaps: 4
+  approved_exceptions: 0
+  open_deviations: 2
+  reviewed_at: null
