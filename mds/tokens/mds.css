@@ -1,0 +1,57 @@
+:root {
+  --mds-color-ink-900: #1f242e;
+  --mds-color-ink-800: #29303d;
+  --mds-color-green-600: #3f8361;
+  --mds-color-green-500-dark: #4fb080;
+  --mds-color-ai-coral-600: #d76742;
+  --mds-color-success: #3f8361;
+  --mds-color-warning: #b26b19;
+  --mds-color-error: #dc2828;
+  --mds-color-info: #308ce8;
+  --mds-color-page: #fbfaf9;
+  --mds-color-card: #fdfdfc;
+  --mds-color-muted: #f6f5f3;
+  --mds-color-recessed: #f1f0ee;
+  --mds-color-text: #1f242e;
+  --mds-color-text-muted: #676f7e;
+  --mds-color-border: #e5e2dc;
+  --mds-color-focus: #4b9b73;
+  --mds-font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --mds-space-1: 0.25rem;
+  --mds-space-2: 0.5rem;
+  --mds-space-3: 0.75rem;
+  --mds-space-4: 1rem;
+  --mds-space-5: 1.25rem;
+  --mds-space-6: 1.5rem;
+  --mds-space-8: 2rem;
+  --mds-space-10: 2.5rem;
+  --mds-space-12: 3rem;
+  --mds-space-16: 4rem;
+  --mds-space-20: 5rem;
+  --mds-radius-sm: 0.5rem;
+  --mds-radius-md: 0.75rem;
+  --mds-radius-lg: 1rem;
+  --mds-radius-xl: 1.5rem;
+  --mds-radius-2xl: 2rem;
+  --mds-radius-pill: 9999px;
+  --mds-motion-fast: 150ms;
+  --mds-motion-base: 220ms;
+  --mds-motion-deliberate: 320ms;
+  --mds-control-min: 44px;
+  --mds-control-prominent: 52px;
+  --mds-header-desktop: 64px;
+  --mds-header-mobile: 56px;
+  --mds-workspace-rail: 264px;
+  --mds-public-max: 96rem;
+  --mds-operational-max: 80rem;
+  --mds-guided-max: 72rem;
+  --mds-reading-max: 45rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --mds-motion-fast: 0ms;
+    --mds-motion-base: 0ms;
+    --mds-motion-deliberate: 0ms;
+  }
+}

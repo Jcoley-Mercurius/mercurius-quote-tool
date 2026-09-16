@@ -1,0 +1,140 @@
+project: mercurius-quote-tool
+version: "1.0"
+authority: "AGENTS.md"
+execution_conductor: "BLUEPRINT.md"
+
+states:
+  - REQUIRED
+  - CONDITIONAL
+  - OPTIONAL
+  - PROHIBITED_WITHOUT_APPROVAL
+
+capabilities:
+  component_semantic_tokens:
+    requirement: REQUIRED
+    status: project-configuration-required
+    invoke_when: [ui-change, component-change, layout-change]
+    evidence: [semantic-token-use, shared-component-use, mds-reference-match]
+    fallback: "Read approved MDS token/specification files directly."
+
+  exact_raster_identity:
+    requirement: REQUIRED
+    status: asset-packaging-required
+    invoke_when: [logo, brand-image, canonical-raster]
+    evidence: [asset-manifest-match, exact-file-use]
+    fallback: "Stop and raise MDS packaging gap; never recreate canonical identity."
+
+  responsive_browser_inspection:
+    requirement: REQUIRED
+    status: available
+    tooling: [playwright, browser-verification]
+    invoke_when: [after-ui-change, before-slice-exit]
+    evidence: [mobile-capture, intermediate-capture, desktop-capture, console-check]
+    fallback: "Playwright plus manual browser inspection."
+
+  screenshot_comparison:
+    requirement: REQUIRED
+    status: configuration-required
+    tooling: [playwright]
+    invoke_when: [mds-backed-route-change, before-slice-exit]
+    evidence: [reference-image, implementation-capture, deviation-record]
+    fallback: "Manual side-by-side comparison with recorded evidence."
+
+  accessibility:
+    requirement: REQUIRED
+    status: install-or-configure
+    tooling: [playwright, axe-compatible-runner]
+    invoke_when: [ui-change, form-change, dialog-change, before-slice-exit]
+    evidence: [automated-a11y-report, keyboard-review, focus-review]
+    fallback: "Manual semantic/keyboard/focus review; unresolved failures block exit."
+
+  photo_fixtures:
+    requirement: REQUIRED
+    status: fixture-pack-required
+    invoke_when: [photo-upload, storage, vision, job-board, quote-photo]
+    evidence: [fixture-matrix, upload-result, storage-result, render-result, ai-or-fallback-result]
+    fallback: "Use approved synthetic/local fixtures only; never customer imagery."
+
+  pdf_email_print:
+    requirement: REQUIRED
+    status: partially-available
+    tooling: [react-pdf, resend]
+    invoke_when: [quote-delivery, pdf-change, email-change, commercial-copy-change]
+    evidence: [rendered-pdf, email-render, quote-revision-link]
+    fallback: "Manual artifact inspection; no slice exit without commercial consistency."
+
+  runtime_full_story:
+    requirement: REQUIRED
+    status: available
+    tooling: [playwright, browser-verification, runtime-logs]
+    invoke_when: [slice-exit, preview-release, production-smoke]
+    evidence: [ui, api, data, external-boundary, response]
+    fallback: "Stop at first broken boundary and document evidence."
+
+  nextjs:
+    requirement: REQUIRED
+    status: available
+    invoke_when: [nextjs-change]
+    evidence: [current-local-docs-consulted, type-build-pass]
+    fallback: "Use installed Next.js docs/source and official current docs."
+
+  supabase_rls_security:
+    requirement: REQUIRED
+    status: project-capability-required
+    invoke_when: [migration, rls, auth, storage-policy, rpc, service-role]
+    evidence: [migration-test, positive-rls-test, negative-rls-test, grant-review]
+    fallback: "Approved MTS security rules + official Supabase tooling/docs + executable tests."
+
+  vercel_ci_deploy:
+    requirement: REQUIRED
+    status: available
+    invoke_when: [ci-change, preview, production-release]
+    evidence: [ci-result, preview-url, deployment-id, smoke-result]
+
+  environment_secrets:
+    requirement: REQUIRED
+    status: available
+    invoke_when: [env-change, integration-config, release]
+    evidence: [env-name-inventory-no-values, preview-production-separation, secret-rotation-evidence]
+
+  ai_sdk:
+    requirement: CONDITIONAL
+    status: available
+    invoke_when: [ai-generation-change, photo-vision-change]
+    evidence: [current-sdk-doc-check, structured-output-test, fallback-test]
+
+  resend_email:
+    requirement: CONDITIONAL
+    status: available
+    invoke_when: [email-change, delivery-worker-change]
+    evidence: [render-test, delivery-state-test, failure-test]
+
+  observability:
+    requirement: CONDITIONAL
+    status: available
+    invoke_when: [instrumentation, diagnostics, release-monitoring]
+    evidence: [structured-redacted-event, correlation-id, operational-query]
+
+  direct_payment_provider:
+    requirement: CONDITIONAL
+    status: blocked
+    blocked_by: [GAP-001]
+    invoke_when: [direct-payment-implementation]
+    evidence: [provider-approval, signed-webhook-test, reconciliation-test]
+
+  durable_workflow_queue:
+    requirement: CONDITIONAL
+    status: architecture-dependent
+    invoke_when: [outbound-delivery-scale-or-reliability-requires]
+    evidence: [need-justification, retry-test, lease-test, dead-letter-test]
+
+prohibited_without_approval:
+  - replace-supabase
+  - add-second-database
+  - replace-auth
+  - add-second-payment-system
+  - replace-mds-component-architecture
+  - add-event-platform
+  - switch-ai-provider-architecture
+  - make-private-customer-storage-public
+  - major-framework-upgrade

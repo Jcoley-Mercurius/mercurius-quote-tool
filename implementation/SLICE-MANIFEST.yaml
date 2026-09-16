@@ -1,0 +1,73 @@
+project: mercurius-quote-tool
+version: "1.0"
+sequence:
+  - id: phase-zero
+    branch: implementation/phase-zero
+    objective: Verify authorities, capabilities, environment, security/test baseline.
+  - id: slice-01
+    name: Foundation & Security
+    branch: slice/01-foundation-security
+    dependencies: [phase-zero]
+    focus: [agent-governance, node-ci, secrets, supabase-testing, rls, security-definer]
+  - id: slice-02
+    name: MDS Foundation
+    branch: slice/02-mds-foundation
+    dependencies: [slice-01]
+    focus: [logo-assets, semantic-tokens, components, shell, responsive, accessibility]
+  - id: slice-03
+    name: Quote Workspace
+    branch: slice/03-quote-workspace
+    dependencies: [slice-02]
+    focus: [dashboard, quote-flow, ai, vision, photos, pricing, send-states]
+  - id: slice-04
+    name: Direct Customer Lifecycle
+    branch: slice/04-direct-lifecycle
+    dependencies: [slice-03]
+    focus: [direct-customer, delivery, public-view, changes, acceptance, pipeline]
+  - id: slice-05
+    name: Homeowner Job Board
+    branch: slice/05-job-board
+    dependencies: [slice-01, slice-02]
+    bounded_gaps: [GAP-002]
+    focus: [intake, property, photos, request, opportunity]
+  - id: slice-06
+    name: Marketplace Lifecycle
+    branch: slice/06-marketplace-lifecycle
+    dependencies: [slice-03, slice-01]
+    focus: [signed-ingress, projection, opportunity, quote, acceptance, outbox]
+  - id: slice-07
+    name: Durable Delivery & Commercial Artifacts
+    branch: slice/07-delivery-artifacts
+    dependencies: [slice-04, slice-06]
+    focus: [resend, pdf, revisions, durable-delivery, retries, diagnostics]
+  - id: slice-08
+    name: Payments & Job Conversion
+    branch: slice/08-payments-jobs
+    dependencies: [slice-04, slice-06, slice-07]
+    bounded_gaps: [GAP-001]
+    focus: [marketplace-payment-projection, direct-provider, webhooks, reconciliation, jobs]
+  - id: slice-09
+    name: Production Readiness & Combined QA
+    branch: slice/09-production-readiness
+    dependencies: [slice-01, slice-02, slice-03, slice-04, slice-05, slice-06, slice-07, slice-08]
+    focus: [mps-acceptance, mds-compliance, mts-security, runtime, release]
+slice_contract:
+  required_sections:
+    - objective
+    - mps_requirements
+    - mds_dependencies
+    - mts_constraints
+    - likely_files
+    - required_capabilities
+    - migrations
+    - security
+    - unit_tests
+    - integration_tests
+    - browser_verification
+    - responsive_verification
+    - accessibility
+    - visual_comparison
+    - runtime_verification
+    - evidence
+    - rollback
+    - definition_of_done
